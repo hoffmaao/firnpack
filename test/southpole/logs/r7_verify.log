@@ -1,0 +1,28 @@
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/firedrake/petsc.py:96: UserWarning: No external package for parmetis, ptscotch, chaco found, defaulting to PETSc simple partitioner. This may not be optimal.
+  warn(
+knot layouts from knots_r6.json: 22 T + 52 b
+b-prior: DE-BIASED — post-1950 centers = 0.0960 (Buizert-era climatology; ERA5 was ~27% low)
+warm start from sp_joint_r6.json (r5-style, continuation)
+================================================================
+ROUND 5: Calonne k + seam offset + d(age)/dz
+  10 scalars + 22 T + 52 b = 84 ctrls; per-point J
+  column 130 m (NZ=100), spinup 2500 yr, dt 5.0
+  d(age)/dz spacing 1.0 m; b_off prior sigma 0.25
+================================================================
+  obs: 56 rho, 42 age, 124 d(age)/dz, 59 T, 15 vel
+
+Reproducibility:
+  J1=328.84920191 J2=328.84920191 match=True
+  rms: rho=0.47 age=0.21 dage=2.18 T=0.44 v=0.60
+
+Gradient:
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/pyadjoint/drivers.py:73: FutureWarning: compute_gradient is deprecated in favour of compute_derivative.
+  warn("compute_gradient is deprecated in favour of compute_derivative.",
+  hl_k0=-4.9e-01 hl_k1=-5.3e+00 hl_Ea1=2.3e+00 hl_Ea2=6.0e+01 k_snow_scale=-9.8e-01 k_firn_scale=1.2e+00 Q_base=1.5e+02 ezz_yr=1.2e+04 s2_shape=2.1e+00 b_off=8.9e+01 Tk0=3.4e-02 Tk1=1.3e-02 Tk2=4.8e-02 Tk3=1.4e-01 Tk4=3.4e-01 Tk5=4.3e-01 Tk6=3.2e-01 Tk7=3.5e-01 Tk8=2.9e-01 Tk9=2.7e-01 Tk10=2.5e-01 Tk11=2.4e-01 Tk12=2.4e-01 Tk13=2.2e-01 Tk14=1.9e-01 Tk15=1.5e-01 Tk16=3.4e-02 Tk17=6.4e-02 Tk18=9.1e-02 Tk19=3.6e-01 Tk20=4.5e-01 Tk21=9.2e-02 b1000=1.1e+01 b1050=1.5e+00 b1100=-9.3e-02 b1150=6.3e-01 b1200=6.9e-01 b1250=-1.9e+00 b1300=-4.6e+00 b1350=-1.9e+00 b1400=1.3e+00 b1425=1.3e+00 b1450=6.9e-01 b1475=-2.0e-01 b1500=-5.6e-01 b1525=-2.0e-01 b1550=3.1e-01 b1575=2.7e-01 b1600=-6.9e-01 b1625=-2.5e+00 b1650=-3.7e+00 b1675=-2.6e+00 b1700=-5.3e-01 b1725=1.1e-01 b1750=-9.9e-01 b1765=-1.8e+00 b1780=-1.2e+00 b1795=1.2e+00 b1810=3.7e+00 b1825=4.4e+00 b1840=2.6e+00 b1855=-8.5e-01 b1870=-3.9e+00 b1885=-1.8e+00 b1900=2.3e+00 b1910=4.0e+00 b1920=4.3e+00 b1930=1.9e+00 b1940=-1.4e+00 b1945=-3.4e+00 b1950=-5.0e+00 b1955=-1.2e+01 b1960=-1.3e+01 b1965=-1.3e+01 b1970=-1.1e+01 b1975=-9.1e+00 b1980=-7.0e+00 b1985=-5.0e+00 b1990=-3.3e+00 b1995=-2.7e+00 b2000=-3.1e+00 b2005=-3.5e+00 b2010=-4.0e+00 b2015=-2.5e+00
+  FD check:
+    b_off        adj=+8.884e+01 FD=+8.884e+01 ratio=+1.0000
+    Tk18         adj=+9.087e-02 FD=+9.087e-02 ratio=+1.0000
+    b1950        adj=-4.982e+00 FD=-4.981e+00 ratio=+1.0000
+    b1985        adj=-5.046e+00 FD=-5.046e+00 ratio=+1.0000
+
+VERIFY_ONLY — stop.

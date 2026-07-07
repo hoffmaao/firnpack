@@ -1,0 +1,24 @@
+{
+  "ran_at_utc": "2026-01-27T14:10:15Z",
+  "base_dir": "/home/andrew/projects/firngrain/test",
+  "datasets": [
+    {
+      "id": "FirnCover",
+      "pid": "doi:10.18739/A25X25D7M",
+      "notes": "FirnCover dataset (Greenland; includes Summit).",
+      "stored_in": "/home/andrew/projects/firngrain/test/_shared_sources/FirnCover"
+    },
+    {
+      "id": "SUMup_1952_2019",
+      "pid": "doi:10.18739/A24Q7QR58",
+      "notes": "SUMup Working Group datasets 1952\u20132019.",
+      "stored_in": "/home/andrew/projects/firngrain/test/_shared_sources/SUMup_1952_2019"
+    },
+    {
+      "id": "WAIS_WD2014_age_depth_USAP",
+      "landing": "https://www.usap-dc.org/view/dataset/601015",
+      "notes": "USAP-DC landing page for WAIS Divide WD2014 timescale (best-effort).",
+      "stored_in": "/home/andrew/projects/firngrain/test/_shared_sources/WAIS_WD2014_age_depth_USAP"
+    }
+  ]
+}

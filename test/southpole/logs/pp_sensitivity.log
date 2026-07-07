@@ -1,0 +1,56 @@
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/firedrake/petsc.py:96: UserWarning: No external package for parmetis, ptscotch, chaco found, defaulting to PETSc simple partitioner. This may not be optimal.
+  warn(
+================================================================
+Attribution sensitivities dq/dx at sp_joint_pp.json (h=0.1 sigmas, 93 pairs)
+================================================================
+tsfc:WARNING Estimated quadrature degree 11 more than tenfold greater than any argument/coefficient degree (max 1)
+tsfc:WARNING Estimated quadrature degree 11 more than tenfold greater than any argument/coefficient degree (max 1)
+base: h'(2015)=+633.44 cm, rate(1957-2015)=-2.167 mm/yr, dFAC=+66.17 cm  [16s/pair]
+  [ 1/46] hl_k0     h=1.0e-01 dh'/dx=-25.380 cm/unit drate/dx=-0.9127 mm/yr/unit
+  [ 2/46] hl_k1     h=1.0e-01 dh'/dx=-102.649 cm/unit drate/dx=-1.6356 mm/yr/unit
+  [ 3/46] hl_Ea1    h=5.0e-02 dh'/dx=+139.662 cm/unit drate/dx=+5.0110 mm/yr/unit
+  [ 4/46] hl_Ea2    h=5.0e-02 dh'/dx=+1114.935 cm/unit drate/dx=+17.7280 mm/yr/unit
+  [ 5/46] k_factor  h=1.0e-01 dh'/dx=-1.031 cm/unit drate/dx=+0.0107 mm/yr/unit
+  [ 6/46] Q_base    h=5.0e-03 dh'/dx=-40.773 cm/unit drate/dx=+4.0322 mm/yr/unit
+  [ 7/46] ezz_yr    h=1.0e-05 dh'/dx=-4734.213 cm/unit drate/dx=+1430.5565 mm/yr/unit
+  [ 8/46] s2_shape  h=3.0e-02 dh'/dx=+35.598 cm/unit drate/dx=+0.2520 mm/yr/unit
+  [ 9/46] Tk0       h=6.0e-02 dh'/dx=+83.148 cm/unit drate/dx=+0.8671 mm/yr/unit
+  [10/46] Tk1       h=6.0e-02 dh'/dx=-13.908 cm/unit drate/dx=+0.0286 mm/yr/unit
+  [11/46] Tk2       h=6.0e-02 dh'/dx=-14.472 cm/unit drate/dx=+0.0242 mm/yr/unit
+  [12/46] Tk3       h=6.0e-02 dh'/dx=-14.666 cm/unit drate/dx=-0.0010 mm/yr/unit
+  [13/46] Tk4       h=6.0e-02 dh'/dx=-14.652 cm/unit drate/dx=-0.0624 mm/yr/unit
+  [14/46] Tk5       h=6.0e-02 dh'/dx=-9.666 cm/unit drate/dx=-0.1006 mm/yr/unit
+  [15/46] Tk6       h=6.0e-02 dh'/dx=-4.629 cm/unit drate/dx=-0.0721 mm/yr/unit
+  [16/46] Tk7       h=6.0e-02 dh'/dx=-3.982 cm/unit drate/dx=-0.0266 mm/yr/unit
+  [17/46] Tk8       h=6.0e-02 dh'/dx=-3.076 cm/unit drate/dx=+0.0575 mm/yr/unit
+  [18/46] Tk9       h=6.0e-02 dh'/dx=-2.653 cm/unit drate/dx=+0.0458 mm/yr/unit
+  [19/46] Tk10      h=6.0e-02 dh'/dx=-2.302 cm/unit drate/dx=-0.1142 mm/yr/unit
+  [20/46] Tk11      h=6.0e-02 dh'/dx=-1.559 cm/unit drate/dx=-0.2312 mm/yr/unit
+  [21/46] Tk12      h=6.0e-02 dh'/dx=-1.314 cm/unit drate/dx=-0.2021 mm/yr/unit
+  [22/46] Tk13      h=6.0e-02 dh'/dx=-1.399 cm/unit drate/dx=-0.2153 mm/yr/unit
+  [23/46] Tk14      h=6.0e-02 dh'/dx=-0.661 cm/unit drate/dx=-0.1016 mm/yr/unit
+  [24/46] b1000     h=1.5e-02 dh'/dx=-9217.730 cm/unit drate/dx=-91.3397 mm/yr/unit
+  [25/46] b1100     h=1.5e-02 dh'/dx=+940.031 cm/unit drate/dx=-0.1872 mm/yr/unit
+  [26/46] b1200     h=1.5e-02 dh'/dx=+946.847 cm/unit drate/dx=-0.3250 mm/yr/unit
+  [27/46] b1300     h=1.5e-02 dh'/dx=+968.147 cm/unit drate/dx=-0.5032 mm/yr/unit
+  [28/46] b1400     h=1.5e-02 dh'/dx=+960.405 cm/unit drate/dx=-0.6980 mm/yr/unit
+  [29/46] b1500     h=1.5e-02 dh'/dx=+952.867 cm/unit drate/dx=-0.9356 mm/yr/unit
+  [30/46] b1600     h=1.5e-02 dh'/dx=+959.995 cm/unit drate/dx=-1.2549 mm/yr/unit
+  [31/46] b1700     h=1.5e-02 dh'/dx=+748.305 cm/unit drate/dx=-1.2419 mm/yr/unit
+  [32/46] b1750     h=1.5e-02 dh'/dx=+535.727 cm/unit drate/dx=-1.0904 mm/yr/unit
+  [33/46] b1800     h=1.5e-02 dh'/dx=+504.400 cm/unit drate/dx=-1.2190 mm/yr/unit
+  [34/46] b1840     h=1.5e-02 dh'/dx=+442.719 cm/unit drate/dx=-1.4378 mm/yr/unit
+  [35/46] b1875     h=1.5e-02 dh'/dx=+398.915 cm/unit drate/dx=-1.7980 mm/yr/unit
+  [36/46] b1905     h=1.5e-02 dh'/dx=+354.319 cm/unit drate/dx=-1.9421 mm/yr/unit
+  [37/46] b1930     h=1.5e-02 dh'/dx=+308.231 cm/unit drate/dx=-2.0862 mm/yr/unit
+  [38/46] b1950     h=1.5e-02 dh'/dx=+221.829 cm/unit drate/dx=+6.3459 mm/yr/unit
+  [39/46] b1962     h=1.5e-02 dh'/dx=+107.132 cm/unit drate/dx=+16.4819 mm/yr/unit
+  [40/46] b1972     h=1.5e-02 dh'/dx=+80.420 cm/unit drate/dx=+12.3723 mm/yr/unit
+  [41/46] b1980     h=1.5e-02 dh'/dx=+86.599 cm/unit drate/dx=+13.3229 mm/yr/unit
+  [42/46] b1988     h=1.5e-02 dh'/dx=+70.742 cm/unit drate/dx=+10.8834 mm/yr/unit
+  [43/46] b1995     h=1.5e-02 dh'/dx=+87.170 cm/unit drate/dx=+13.4108 mm/yr/unit
+  [44/46] b2002     h=1.5e-02 dh'/dx=+67.051 cm/unit drate/dx=+10.3155 mm/yr/unit
+  [45/46] b2008     h=1.5e-02 dh'/dx=+67.647 cm/unit drate/dx=+10.4073 mm/yr/unit
+  [46/46] b2015     h=1.5e-02 dh'/dx=+63.820 cm/unit drate/dx=+9.8185 mm/yr/unit
+Saved /home/andrew/projects/firngrain/test/southpole/results/sp_uq_sensitivity_pp.json
+Done.

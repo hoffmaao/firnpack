@@ -1,0 +1,40 @@
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/firedrake/petsc.py:96: UserWarning: No external package for parmetis, ptscotch, chaco found, defaulting to PETSc simple partitioner. This may not be optimal.
+  warn(
+================================================================
+SP firn reanalysis — forward MAP model (sp_joint_r5.json), CTRL vs FULL forcing (T + b(t))
+  MAP: k0=11.18 k1=432.5 Ea1=10421 Ea2=21874 ks=1.576 kf2=0.987 Qb=-0.0103 ezz=-4.72e-05/yr
+  T-knots: 1000:-45.35 1150:-45.40 1300:-45.34 1450:-45.20 1600:-44.96 1750:-44.81 1800:-44.91 1850:-44.85 1890:-44.84 1920:-44.80 1945:-44.68 1965:-44.58 1980:-44.48 1995:-44.74 2015:-45.22
+  spinup=2500yr dt=5.0 = 500 steps
+================================================================
+
+CTRL scenario (constant T = -45.35 C, b = 0.0808):
+tsfc:WARNING Estimated quadrature degree 11 more than tenfold greater than any argument/coefficient degree (max 1)
+tsfc:WARNING Estimated quadrature degree 11 more than tenfold greater than any argument/coefficient degree (max 1)
+  [CTRL] step 100/500 (yr 15) FAC=31.754 wbot=-0.0881 rho_max=865
+  [CTRL] step 200/500 (yr 515) FAC=34.263 wbot=-0.0841 rho_max=859
+  [CTRL] step 300/500 (yr 1015) FAC=34.519 wbot=-0.0837 rho_max=836
+  [CTRL] step 400/500 (yr 1515) FAC=34.523 wbot=-0.0837 rho_max=835
+  [CTRL] step 500/500 (yr 2015) FAC=34.524 wbot=-0.0837 rho_max=835
+  [CTRL] done in 14s — FAC(2015)=34.524 m, |w_bot|=0.0837 m/yr, T=[-45.66 mean]
+
+FULL scenario (recovered T + b(t) history):
+  [FULL] step 100/500 (yr 15) FAC=31.754 wbot=-0.0881 rho_max=865
+  [FULL] step 200/500 (yr 515) FAC=34.263 wbot=-0.0841 rho_max=859
+  [FULL] step 300/500 (yr 1015) FAC=34.519 wbot=-0.0835 rho_max=836
+  [FULL] step 400/500 (yr 1515) FAC=34.507 wbot=-0.0806 rho_max=836
+  [FULL] step 500/500 (yr 2015) FAC=34.584 wbot=-0.0776 rho_max=835
+  [FULL] done in 9s — FAC(2015)=34.584 m, |w_bot|=0.0776 m/yr, T=[-45.17 mean]
+
+Sanity: max |anomaly| pre-1000 CE (forcing identical): dh'/dt 0.00e+00 m/yr, dFAC 0.00e+00 m
+CTRL steady-state drift, FAC(2015)-FAC(1000): 5.20e-03 m
+
+===== HEADLINE =====
+  Surface-height anomaly h'(2015)  = +178.8 cm (mass +160.0, air/dFAC +6.0)
+  Peak drawdown -80.8 cm @ 1235
+  Mean firn dh'/dt 1900-2015 = +4.05 mm/yr
+  Mean firn dh'/dt 1957-2015 = +0.44 mm/yr
+  Instantaneous 2015 rate    = -6.15 mm/yr
+
+Saved /home/andrew/projects/firngrain/test/southpole/results/sp_reanalysis_r5.json and .npz
+Saved /home/andrew/projects/firngrain/test/southpole/results/sp_reanalysis_r5.png
+Done.

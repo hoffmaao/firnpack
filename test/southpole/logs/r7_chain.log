@@ -1,0 +1,8 @@
+[r7] verify: 4/4 FD ratios OK (tol 5e-4)
+b-prior: DE-BIASED — post-1950 centers = 0.0960 (Buizert-era climatology; ERA5 was ~27% low)
+  J1=328.84920191 J2=328.84920191 match=True
+  rms: rho=0.47 age=0.21 dage=2.18 T=0.44 v=0.60
+[r7] launching optimization
+[chain] 2026-07-06 15:15:43 sp_joint_r7 optimize (FIRN_MAX_ITER=80, T_SHIFT=-5.8, KSNOW=1.29, DEEP=none)
+[chain] 2026-07-06 20:36:13 diagnostics at sp_joint_r7 MAP
+[chain] 2026-07-06 20:36:24 CHAIN_COMPLETE

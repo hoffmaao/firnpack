@@ -1,0 +1,106 @@
+{
+  "@context": "https://schema.org/",
+  "@id": "doi:10.15784/601323",
+  "@type": "Dataset",
+  "additionalType": [
+    "geolink:Dataset",
+    "vivo:Dataset"
+  ],
+  "citation": "Pettit, E. C. (2020) \"ApRES Vertical Strain Study\" U.S. Antarctic Program (USAP) Data Center. doi: https://doi.org/10.15784/601323.",
+  "contributor": [
+    {
+      "@type": "Role",
+      "description": "funderName:NSF:GEO:PLR:Antarctic Glaciology awardNumber:1142167 awardTitle:Collaborative Research: VeLveT Ice - eVoLution of Fabric and Texture in Ice at WAIS Divide, West Antarctica",
+      "roleName": "credit"
+    }
+  ],
+  "creator": [
+    {
+      "@type": "Person",
+      "additionalType": "geolink:Person",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Box 351310, Seattle, Washington 98195-1310, USA"
+      },
+      "email": "pettiter@oregonstate.edu",
+      "name": "Pettit, Erin"
+    }
+  ],
+  "datePublished": "2020-05-14",
+  "description": "We tested the ability of phase sensitive radar (ApRES) to detect vertical strain throughout the depth of an ice sheet 3400m thick. ",
+  "distribution": [
+    {
+      "@type": "DataDownload",
+      "additionalType": "http://www.w3.org/ns/dcat#DataCatalog",
+      "contentUrl": "/dataset/filename",
+      "encodingFormat": "text/xml",
+      "name": "ISO Metadata Document",
+      "url": "https://www.usap-dc.org/metadata/isoxml/601323iso.xml"
+    },
+    {
+      "@id": "http://dx.doi.org/10.15784/601323",
+      "@type": "DataDownload",
+      "additionalType": "dcat:distribution",
+      "contentUrl": "/dataset/filename",
+      "encodingFormat": "text/html",
+      "url": "http://dx.doi.org/10.15784/601323"
+    },
+    {
+      "@id": "https://www.usap-dc.org/view/dataset/601323",
+      "@type": "DataDownload",
+      "additionalType": "dcat:distribution",
+      "contentUrl": "/dataset/filename",
+      "encodingFormat": "text/html",
+      "url": "https://www.usap-dc.org/view/dataset/601323"
+    }
+  ],
+  "identifier": {
+    "@type": "PropertyValue",
+    "propertyID": "https://registry.identifiers.org/registry/doi",
+    "url": "https://doi.org/10.15784/601323",
+    "value": "doi:10.15784/601323"
+  },
+  "keywords": [
+    "Antarctica",
+    "Glaciers/ice Sheet",
+    "Glaciology",
+    "Ice Penetrating Radar",
+    "Ice Strain",
+    "Phase Sensitive Radar",
+    "Radar",
+    "Snow/ice",
+    "WAIS Divide"
+  ],
+  "license": [
+    {
+      "@type": "CreativeWork",
+      "URL": "https://creativecommons.org/licenses/by-nc/4.0/",
+      "description": "useLimitation: Creative Commons Attribution-NonCommercial v4.0 Generic [CC BY-NC 4.0].",
+      "name": "MD_Constraints"
+    },
+    {
+      "@type": "CreativeWork",
+      "description": "accessConstraints: license.    otherConstraints: Creative Commons Attribution-NonCommercial v4.0 Generic [CC BY-NC 4.0].",
+      "name": "MD_LegalConstraints"
+    },
+    {
+      "@type": "CreativeWork",
+      "description": "classification: ",
+      "name": "MD_SecurityConstraints"
+    }
+  ],
+  "name": "ApRES Vertical Strain Study",
+  "publisher": {
+    "@type": "Organization",
+    "name": "U.S. Antarctic Program (USAP) Data Center"
+  },
+  "spatialCoverage": [
+    {
+      "@type": "Place",
+      "geo": {
+        "@type": "GeoShape",
+        "box": "-79.5, -112.3, -79.2, -111.5"
+      }
+    }
+  ]
+}
