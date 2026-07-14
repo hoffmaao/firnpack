@@ -1,0 +1,70 @@
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/firedrake/petsc.py:96: UserWarning: No external package for parmetis, ptscotch, chaco found, defaulting to PETSc simple partitioner. This may not be optimal.
+  warn(
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/pyadjoint/drivers.py:73: FutureWarning: compute_gradient is deprecated in favour of compute_derivative.
+  warn("compute_gradient is deprecated in favour of compute_derivative.",
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/pyadjoint/drivers.py:73: FutureWarning: compute_gradient is deprecated in favour of compute_derivative.
+  warn("compute_gradient is deprecated in favour of compute_derivative.",
+OBSERVABILITY subset = ['rho'] (co-located truth, ezz=-4.0e-05)
+
+Optimize Syn[obsv_rho] (L-BFGS-B, 23 ctrls, max 120):
+  [001] J=20.3838 (rho=0.95) |g|=3.3e+02 (160s)
+  [002] J=1652.3639 (rho=8.48) |g|=8.5e+00 (157s)
+  [003] J=351.0245 (rho=3.95) |g|=1.4e+03 (159s)
+  [004] J=17.7790 (rho=0.89) |g|=1.8e+02 (155s)
+  [005] J=16.1061 (rho=0.85) |g|=1.5e+01 (155s)
+  [006] J=16.0859 (rho=0.85) |g|=6.9e+00 (160s)
+  [007] J=16.0821 (rho=0.85) |g|=6.5e+00 (165s)
+  [008] J=16.0711 (rho=0.85) |g|=1.3e+00 (155s)
+  [009] J=16.0701 (rho=0.85) |g|=1.4e+00 (154s)
+  [010] J=16.0672 (rho=0.85) |g|=2.5e+00 (163s)
+  [011] J=16.0564 (rho=0.84) |g|=4.2e+00 (167s)
+  [012] J=16.0032 (rho=0.84) |g|=9.8e+00 (161s)
+  [013] J=15.9242 (rho=0.84) |g|=1.4e+01 (166s)
+  [014] J=15.8110 (rho=0.83) |g|=1.4e+01 (164s)
+  [015] J=15.7505 (rho=0.83) |g|=2.7e+01 (157s)
+  [016] J=15.7101 (rho=0.83) |g|=6.7e+00 (148s)
+  [017] J=15.7019 (rho=0.83) |g|=2.4e+00 (144s)
+  [018] J=15.6976 (rho=0.83) |g|=3.3e+00 (137s)
+  [019] J=15.6865 (rho=0.83) |g|=5.7e+00 (142s)
+  [020] J=15.6694 (rho=0.83) |g|=5.9e+00 (133s)
+  [021] J=15.6920 (rho=0.82) |g|=1.4e+01 (146s)
+  [022] J=15.6637 (rho=0.83) |g|=8.1e+00 (141s)
+  [023] J=15.6507 (rho=0.83) |g|=2.7e+00 (143s)
+  [024] J=15.6483 (rho=0.83) |g|=6.8e-01 (143s)
+  [025] J=15.6481 (rho=0.83) |g|=8.1e-02 (154s)
+  [026] J=15.6481 (rho=0.83) |g|=4.8e-02 (142s)
+  [027] J=15.6481 (rho=0.83) |g|=7.3e-02 (145s)
+  [028] J=15.6481 (rho=0.83) |g|=5.9e-02 (143s)
+  [029] J=15.6487 (rho=0.83) |g|=3.8e+00 (146s)
+  [030] J=15.6481 (rho=0.83) |g|=3.5e-01 (142s)
+  [031] J=15.6480 (rho=0.83) |g|=2.9e-01 (144s)
+  [032] J=15.6479 (rho=0.83) |g|=1.4e-01 (148s)
+  [033] J=15.6477 (rho=0.83) |g|=2.1e-01 (152s)
+  [034] J=15.6473 (rho=0.83) |g|=3.4e-01 (153s)
+  [035] J=15.6472 (rho=0.83) |g|=3.5e-01 (148s)
+  [036] J=15.6471 (rho=0.83) |g|=4.6e-01 (141s)
+  [037] J=15.6470 (rho=0.83) |g|=8.2e-02 (140s)
+  [038] J=15.6470 (rho=0.83) |g|=8.6e-03 (146s)
+  [039] J=15.6470 (rho=0.83) |g|=5.1e-03 (150s)
+
+CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH  J=15.6470  -> /home/andrew/projects/firngrain/experiments/synthetic/results/obsv_rho.json
+  hl_k0         = 1.0736e+01
+  hl_k1         = 5.7216e+02
+  hl_Ea1        = 1.0490e+04
+  hl_Ea2        = 2.2305e+04
+  k_snow_scale  = 1.0024e+00
+  k_firn_scale  = 9.9833e-01
+  Q_base        = 1.3902e-02
+  s2_shape      = 8.3375e-01
+  ezz_yr        = -1.9231e-05
+
+subset ['rho']: J=15.65
+  hl_k0        truth=11.5 rec=10.74 err=-0.764
+  hl_k1        truth=540 rec=572.2 err=+32.2
+  hl_Ea1       truth=1.06e+04 rec=1.049e+04 err=-110
+  hl_Ea2       truth=2.24e+04 rec=2.231e+04 err=-94.9
+  k_snow_scale truth=1.15 rec=1.002 err=-0.148
+  k_firn_scale truth=1 rec=0.9983 err=-0.00167
+  Q_base       truth=0.045 rec=0.0139 err=-0.0311
+  s2_shape     truth=0.85 rec=0.8337 err=-0.0163
+  ezz_yr       truth=-4e-05 rec=-1.923e-05 err=+2.08e-05

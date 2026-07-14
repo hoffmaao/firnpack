@@ -8,8 +8,29 @@ demonstrated on **three test cases**:
 2. **South Pole** — cold, low-accumulation real site (flagship; already built).
 3. **Summit, Greenland** — warm, high-accumulation real site (transferability).
 
-Status of this doc: 2026-07-06. Grounded in a full repo map + data inventory
-(not a sketch). Nothing destructive done yet.
+Status of this doc: updated 2026-07-09. Grounded in a full repo map + data
+inventory (not a sketch).
+
+## PROGRESS (2026-07-09)
+- **Phase 0 (freeze SP science): DONE** — r8 is the frozen SP MAP
+  (`test/southpole/results/sp_joint_r8.json`, J=81.3, all misfits ≤1σ).
+- **Phase 1 (skeleton + deletions): DONE** — git init (local, not pushed),
+  README/LICENSE-TBD/gitignore/requirements/pyproject, 7 dead versions deleted,
+  experiments/{synthetic,southpole,summit}/ with data + provenance READMEs.
+- **Phase 2 (shared inverse engine): DONE + VALIDATED** — `src/firn/inverse/`
+  (config.py + engine.py). `experiments/southpole/run.py` reproduces r8 EXACTLY
+  (forward J 81.306). The engine is the through-line for all three cases.
+- **Phase 5 (Summit): inversion DONE** — `experiments/summit/run.py` recovers
+  Summit's law; matches SP (stage-2 rate ratio 1.00, params 1–9%). Data staged
+  (FirnCover+Fourteau density, GISP2 age, FirnCover firn-T).
+  `results/law_comparison.png` = the transferability figure.
+- **Phase 3 (synthetic OSSE): IN PROGRESS** — `experiments/synthetic/run.py`
+  built + verified (FD clean); full recovery run + `plot_recovery.py` figure.
+- **REMAINING**: SP reanalysis+UQ at r8 (Phase 0 tail); distill SP to
+  experiments/southpole (Phase 4); LICENSE choice; CI + provenance polish
+  (Phase 6). Summit refinements: σ_dage inflation, endpoint b-knot.
+
+Nothing destructive done; git is local-only (not pushed).
 
 ---
 

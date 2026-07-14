@@ -1,0 +1,77 @@
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/firedrake/petsc.py:96: UserWarning: No external package for parmetis, ptscotch, chaco found, defaulting to PETSc simple partitioner. This may not be optimal.
+  warn(
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/pyadjoint/drivers.py:73: FutureWarning: compute_gradient is deprecated in favour of compute_derivative.
+  warn("compute_gradient is deprecated in favour of compute_derivative.",
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/pyadjoint/drivers.py:73: FutureWarning: compute_gradient is deprecated in favour of compute_derivative.
+  warn("compute_gradient is deprecated in favour of compute_derivative.",
+VELOCITY-OSSE case=vmis_sig (core-column truth ezz=-4.0e-05/yr, v sigma=0.03)
+
+Optimize Syn[vosse_vmis_sig] (L-BFGS-B, 23 ctrls, max 40):
+  [001] J=2604.1418 (rho=0.95 age=1.10 dage=1.21 Td=11.11 Tsh=4.56 v=1.00) |g|=4.2e+03 (167s)
+  [002] J=70736.1632 (rho=8.48 age=12.85 dage=14.96 Td=52.95 Tsh=33.35 v=1.55) |g|=2.2e+04 (158s)
+  [003] J=1613.3080 (rho=3.77 age=4.52 dage=4.96 Td=2.33 Tsh=1.16 v=0.92) |g|=5.7e+03 (157s)
+  [004] J=444.3078 (rho=2.34 age=1.97 dage=2.56 Td=1.01 Tsh=1.23 v=1.32) |g|=1.1e+03 (170s)
+  [005] J=277.3221 (rho=1.81 age=1.41 dage=1.89 Td=1.34 Tsh=1.29 v=1.22) |g|=1.2e+03 (166s)
+  [006] J=7128.0953 (rho=8.23 age=9.60 dage=10.00 Td=5.61 Tsh=3.13 v=1.45) |g|=8.4e+03 (172s)
+  [007] J=251.2318 (rho=1.67 age=1.31 dage=1.73 Td=1.48 Tsh=1.32 v=1.20) |g|=1.2e+03 (170s)
+  [008] J=496.1179 (rho=2.16 age=1.93 dage=2.46 Td=2.40 Tsh=1.47 v=0.99) |g|=5.4e+03 (176s)
+  [009] J=196.6792 (rho=1.32 age=1.13 dage=1.36 Td=1.71 Tsh=1.36 v=1.12) |g|=7.2e+02 (175s)
+  [010] J=168.8037 (rho=1.25 age=1.12 dage=1.32 Td=1.41 Tsh=1.30 v=1.09) |g|=6.7e+02 (172s)
+  [011] J=145.4854 (rho=1.26 age=1.11 dage=1.31 Td=0.91 Tsh=1.24 v=1.10) |g|=3.1e+02 (175s)
+  [012] J=138.7778 (rho=1.19 age=1.11 dage=1.28 Td=0.90 Tsh=1.24 v=1.08) |g|=2.5e+02 (167s)
+  [013] J=124.8217 (rho=0.92 age=1.15 dage=1.24 Td=0.90 Tsh=1.25 v=1.05) |g|=1.1e+02 (169s)
+  [014] J=121.5417 (rho=0.94 age=1.13 dage=1.21 Td=0.90 Tsh=1.26 v=1.05) |g|=7.7e+01 (170s)
+  [015] J=116.9320 (rho=0.92 age=1.11 dage=1.15 Td=0.94 Tsh=1.35 v=1.05) |g|=1.3e+02 (169s)
+  [016] J=113.3745 (rho=0.89 age=1.09 dage=1.12 Td=0.95 Tsh=1.45 v=1.05) |g|=8.3e+01 (173s)
+  [017] J=111.2917 (rho=0.87 age=1.09 dage=1.12 Td=0.94 Tsh=1.50 v=1.04) |g|=2.7e+01 (171s)
+  [018] J=110.6436 (rho=0.86 age=1.09 dage=1.12 Td=0.94 Tsh=1.48 v=1.04) |g|=3.9e+01 (168s)
+  [019] J=109.4863 (rho=0.85 age=1.08 dage=1.11 Td=0.94 Tsh=1.43 v=1.03) |g|=6.9e+01 (171s)
+  [020] J=107.6303 (rho=0.84 age=1.08 dage=1.10 Td=0.93 Tsh=1.33 v=1.03) |g|=8.9e+01 (172s)
+  [021] J=113.6929 (rho=0.88 age=1.09 dage=1.16 Td=0.94 Tsh=1.23 v=1.05) |g|=7.2e+02 (168s)
+  [022] J=107.2930 (rho=0.84 age=1.08 dage=1.10 Td=0.93 Tsh=1.30 v=1.03) |g|=1.8e+02 (172s)
+  [023] J=105.5268 (rho=0.84 age=1.07 dage=1.10 Td=0.91 Tsh=1.23 v=1.03) |g|=9.3e+01 (175s)
+  [024] J=104.9105 (rho=0.85 age=1.07 dage=1.09 Td=0.90 Tsh=1.21 v=1.03) |g|=2.3e+01 (168s)
+  [025] J=104.8041 (rho=0.85 age=1.07 dage=1.09 Td=0.90 Tsh=1.21 v=1.03) |g|=1.6e+01 (169s)
+  [026] J=104.7227 (rho=0.85 age=1.07 dage=1.09 Td=0.90 Tsh=1.21 v=1.03) |g|=2.0e+01 (169s)
+  [027] J=104.3806 (rho=0.84 age=1.07 dage=1.08 Td=0.90 Tsh=1.21 v=1.03) |g|=3.6e+01 (174s)
+  [028] J=103.7846 (rho=0.84 age=1.07 dage=1.07 Td=0.91 Tsh=1.21 v=1.03) |g|=5.0e+01 (170s)
+  [029] J=103.1686 (rho=0.84 age=1.07 dage=1.07 Td=0.91 Tsh=1.21 v=1.02) |g|=5.3e+01 (165s)
+  [030] J=102.7319 (rho=0.84 age=1.07 dage=1.07 Td=0.90 Tsh=1.22 v=1.02) |g|=2.8e+01 (167s)
+  [031] J=102.5638 (rho=0.84 age=1.07 dage=1.07 Td=0.90 Tsh=1.21 v=1.01) |g|=9.6e+00 (162s)
+  [032] J=102.5088 (rho=0.84 age=1.07 dage=1.07 Td=0.90 Tsh=1.21 v=1.01) |g|=1.3e+01 (174s)
+  [033] J=102.4763 (rho=0.84 age=1.07 dage=1.07 Td=0.90 Tsh=1.21 v=1.01) |g|=1.4e+01 (171s)
+  [034] J=102.4098 (rho=0.84 age=1.06 dage=1.07 Td=0.90 Tsh=1.20 v=1.01) |g|=2.4e+01 (169s)
+  [035] J=102.3531 (rho=0.84 age=1.06 dage=1.07 Td=0.90 Tsh=1.20 v=1.01) |g|=3.0e+01 (166s)
+  [036] J=102.3132 (rho=0.84 age=1.06 dage=1.07 Td=0.90 Tsh=1.20 v=1.01) |g|=1.8e+01 (154s)
+  [037] J=102.2669 (rho=0.84 age=1.06 dage=1.07 Td=0.90 Tsh=1.20 v=1.01) |g|=1.4e+01 (160s)
+  [038] J=102.2233 (rho=0.84 age=1.06 dage=1.07 Td=0.90 Tsh=1.20 v=1.01) |g|=2.0e+01 (163s)
+  [039] J=102.1369 (rho=0.84 age=1.07 dage=1.07 Td=0.90 Tsh=1.20 v=1.01) |g|=2.5e+01 (159s)
+  [040] J=102.0153 (rho=0.84 age=1.07 dage=1.06 Td=0.90 Tsh=1.19 v=1.01) |g|=2.3e+01 (160s)
+  [041] J=102.1581 (rho=0.85 age=1.07 dage=1.06 Td=0.90 Tsh=1.18 v=0.99) |g|=4.4e+01 (168s)
+  [042] J=101.9244 (rho=0.85 age=1.07 dage=1.06 Td=0.90 Tsh=1.18 v=1.00) |g|=1.4e+01 (164s)
+  [043] J=101.8215 (rho=0.84 age=1.07 dage=1.06 Td=0.90 Tsh=1.18 v=1.01) |g|=7.9e+00 (161s)
+  [044] J=101.7756 (rho=0.84 age=1.07 dage=1.06 Td=0.90 Tsh=1.18 v=1.01) |g|=6.7e+00 (160s)
+  [045] J=101.7456 (rho=0.84 age=1.07 dage=1.06 Td=0.90 Tsh=1.18 v=1.01) |g|=1.0e+01 (166s)
+  [046] J=101.7057 (rho=0.84 age=1.07 dage=1.06 Td=0.90 Tsh=1.18 v=1.01) |g|=6.8e+00 (160s)
+
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT  J=101.7057  -> /home/andrew/projects/firngrain/experiments/synthetic/results/vosse_vmis_sig.json
+  hl_k0         = 9.3978e+00
+  hl_k1         = 4.7453e+02
+  hl_Ea1        = 1.0396e+04
+  hl_Ea2        = 2.1926e+04
+  k_snow_scale  = 9.4303e-01
+  k_firn_scale  = 1.0052e+00
+  Q_base        = 4.3696e-02
+  s2_shape      = 9.9925e-01
+  ezz_yr        = -1.1383e-06
+
+case vmis_sig: J=101.71
+  hl_k0        truth=11.5 rec=9.398 err=-2.1
+  hl_k1        truth=540 rec=474.5 err=-65.5
+  hl_Ea1       truth=1.06e+04 rec=1.04e+04 err=-204
+  hl_Ea2       truth=2.24e+04 rec=2.193e+04 err=-474
+  k_snow_scale truth=1.15 rec=0.943 err=-0.207
+  k_firn_scale truth=1 rec=1.005 err=+0.00516
+  Q_base       truth=0.045 rec=0.0437 err=-0.0013
+  s2_shape     truth=0.85 rec=0.9992 err=+0.149
+  ezz_yr       truth=-4e-05 rec=-1.138e-06 err=+3.89e-05

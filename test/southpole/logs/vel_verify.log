@@ -1,0 +1,12 @@
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/firedrake/petsc.py:96: UserWarning: No external package for parmetis, ptscotch, chaco found, defaulting to PETSc simple partitioner. This may not be optimal.
+  warn(
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/pyadjoint/drivers.py:73: FutureWarning: compute_gradient is deprecated in favour of compute_derivative.
+  warn("compute_gradient is deprecated in favour of compute_derivative.",
+velocity block: site x11n6, differenced + n(rho)-registered (11 pts, ref z=37.0 m)
+  replay J1=330.82820832 J2=330.82820832 match=True
+  rms: rho=0.47 age=0.24 dage=2.22 T=0.40 v=1.34
+    k_firn_scale adj=+2.555e-01 FD=+2.555e-01 ratio=+1.0000
+    G_base       adj=+3.241e+01 FD=+3.188e+01 ratio=+1.0167
+    s2_shape     adj=-4.961e+00 FD=-4.961e+00 ratio=+1.0000
+    Tk8          adj=-4.127e-02 FD=-4.127e-02 ratio=+1.0000
+    b1960        adj=+6.018e-01 FD=+6.022e-01 ratio=+0.9994

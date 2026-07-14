@@ -1,0 +1,21 @@
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/firedrake/petsc.py:96: UserWarning: No external package for parmetis, ptscotch, chaco found, defaulting to PETSc simple partitioner. This may not be optimal.
+  warn(
+tsfc:WARNING Estimated quadrature degree 12 more than tenfold greater than any argument/coefficient degree (max 1)
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/pyadjoint/drivers.py:73: FutureWarning: compute_gradient is deprecated in favour of compute_derivative.
+  warn("compute_gradient is deprecated in favour of compute_derivative.",
+tsfc:WARNING Estimated quadrature degree 12 more than tenfold greater than any argument/coefficient degree (max 1)
+tsfc:WARNING Estimated quadrature degree 11 more than tenfold greater than any argument/coefficient degree (max 1)
+tsfc:WARNING Estimated quadrature degree 12 more than tenfold greater than any argument/coefficient degree (max 1)
+tsfc:WARNING Estimated quadrature degree 16 more than tenfold greater than any argument/coefficient degree (max 1)
+tsfc:WARNING Estimated quadrature degree 19 more than tenfold greater than any argument/coefficient degree (max 1)
+tsfc:WARNING Estimated quadrature degree 13 more than tenfold greater than any argument/coefficient degree (max 1)
+tsfc:WARNING Estimated quadrature degree 12 more than tenfold greater than any argument/coefficient degree (max 1)
+tsfc:WARNING Estimated quadrature degree 11 more than tenfold greater than any argument/coefficient degree (max 1)
+tsfc:WARNING Estimated quadrature degree 12 more than tenfold greater than any argument/coefficient degree (max 1)
+  replay J1=328.49259074 J2=328.49259074 match=True
+  rms: rho=0.47 age=0.19 dage=2.23 T=0.49 v=0.60
+    k_firn_scale adj=+4.465e+00 FD=+4.465e+00 ratio=+1.0000
+    G_base       adj=-6.746e+03 FD=-6.747e+03 ratio=+0.9999
+    s2_shape     adj=-9.526e+00 FD=-9.526e+00 ratio=+1.0000
+    Tk8          adj=-5.299e+00 FD=-5.299e+00 ratio=+1.0000
+    b1960        adj=+1.408e+00 FD=+1.409e+00 ratio=+0.9998

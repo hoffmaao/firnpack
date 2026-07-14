@@ -1,0 +1,145 @@
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/firedrake/petsc.py:96: UserWarning: No external package for parmetis, ptscotch, chaco found, defaulting to PETSc simple partitioner. This may not be optimal.
+  warn(
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/pyadjoint/drivers.py:73: FutureWarning: compute_gradient is deprecated in favour of compute_derivative.
+  warn("compute_gradient is deprecated in favour of compute_derivative.",
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/pyadjoint/drivers.py:73: FutureWarning: compute_gradient is deprecated in favour of compute_derivative.
+  warn("compute_gradient is deprecated in favour of compute_derivative.",
+truth forward: rho(10)=433 age(100)=712 T(bot)=-48.18
+
+Optimize Synthetic (L-BFGS-B, 22 ctrls, max 100):
+  [001] J=2676.0734 (rho=0.97 age=1.18 dage=1.61 T=10.76) |g|=4.4e+03 (243s)
+  [002] J=62742.6724 (rho=8.45 age=13.11 dage=14.92 T=47.79) |g|=2.0e+04 (242s)
+  [003] J=1945.0007 (rho=4.08 age=4.99 dage=5.75 T=1.36) |g|=6.0e+03 (243s)
+  [004] J=637.2720 (rho=2.39 age=2.20 dage=3.53 T=0.96) |g|=9.1e+02 (240s)
+  [005] J=495.7529 (rho=2.11 age=1.75 dage=3.04 T=1.41) |g|=1.2e+03 (231s)
+  [006] J=15279.4821 (rho=9.41 age=14.32 dage=15.01 T=10.00) |g|=7.9e+04 (242s)
+  [007] J=387.5070 (rho=1.67 age=1.36 dage=2.46 T=2.09) |g|=1.4e+03 (242s)
+  [008] J=2290.3271 (rho=4.98 age=4.66 dage=5.31 T=4.37) |g|=1.2e+04 (239s)
+  [009] J=352.1802 (rho=1.48 age=1.24 dage=2.21 T=2.31) |g|=1.3e+03 (238s)
+  [010] J=303.8959 (rho=1.44 age=1.26 dage=1.83 T=2.33) |g|=1.4e+03 (239s)
+  [011] J=240.6295 (rho=1.36 age=1.17 dage=1.89 T=1.61) |g|=7.4e+02 (236s)
+  [012] J=194.1191 (rho=1.32 age=1.14 dage=1.80 T=1.05) |g|=6.1e+02 (244s)
+  [013] J=165.2482 (rho=1.21 age=1.11 dage=1.61 T=1.01) |g|=4.7e+02 (238s)
+  [014] J=140.6321 (rho=1.03 age=1.12 dage=1.43 T=1.02) |g|=1.9e+02 (241s)
+  [015] J=136.9512 (rho=1.03 age=1.11 dage=1.43 T=0.96) |g|=7.6e+01 (241s)
+  [016] J=135.6532 (rho=1.00 age=1.12 dage=1.43 T=0.96) |g|=6.7e+01 (236s)
+  [017] J=134.5380 (rho=0.99 age=1.12 dage=1.42 T=0.97) |g|=9.3e+01 (239s)
+  [018] J=126.9221 (rho=0.90 age=1.10 dage=1.36 T=1.03) |g|=1.8e+02 (228s)
+  [019] J=123.1264 (rho=0.86 age=1.10 dage=1.34 T=1.02) |g|=8.2e+01 (227s)
+  [020] J=121.3763 (rho=0.86 age=1.10 dage=1.34 T=1.00) |g|=5.3e+01 (225s)
+  [021] J=120.7633 (rho=0.86 age=1.10 dage=1.33 T=0.99) |g|=7.6e+01 (231s)
+  [022] J=119.4739 (rho=0.86 age=1.11 dage=1.33 T=0.95) |g|=8.7e+01 (227s)
+  [023] J=120.0642 (rho=0.88 age=1.12 dage=1.33 T=0.91) |g|=3.7e+02 (225s)
+  [024] J=118.9936 (rho=0.86 age=1.11 dage=1.33 T=0.93) |g|=1.9e+02 (225s)
+  [025] J=117.9304 (rho=0.86 age=1.11 dage=1.32 T=0.91) |g|=9.4e+01 (222s)
+  [026] J=117.4909 (rho=0.86 age=1.11 dage=1.32 T=0.89) |g|=2.1e+01 (227s)
+  [027] J=117.4065 (rho=0.86 age=1.11 dage=1.32 T=0.89) |g|=1.6e+01 (228s)
+  [028] J=117.3348 (rho=0.86 age=1.11 dage=1.32 T=0.89) |g|=2.1e+01 (227s)
+  [029] J=116.9997 (rho=0.85 age=1.11 dage=1.32 T=0.90) |g|=3.9e+01 (232s)
+  [030] J=116.3810 (rho=0.85 age=1.11 dage=1.32 T=0.90) |g|=5.5e+01 (235s)
+  [031] J=115.4531 (rho=0.83 age=1.10 dage=1.32 T=0.90) |g|=5.3e+01 (228s)
+  [032] J=121.9447 (rho=0.84 age=1.13 dage=1.38 T=0.89) |g|=2.6e+02 (227s)
+  [033] J=115.3007 (rho=0.84 age=1.10 dage=1.32 T=0.90) |g|=5.8e+01 (217s)
+  [034] J=114.8099 (rho=0.83 age=1.10 dage=1.32 T=0.89) |g|=3.0e+01 (211s)
+  [035] J=114.6159 (rho=0.83 age=1.10 dage=1.32 T=0.89) |g|=1.9e+01 (207s)
+  [036] J=114.5130 (rho=0.83 age=1.10 dage=1.31 T=0.89) |g|=5.5e+01 (208s)
+  [037] J=114.3873 (rho=0.83 age=1.10 dage=1.31 T=0.89) |g|=2.1e+01 (206s)
+  [038] J=114.2580 (rho=0.83 age=1.10 dage=1.31 T=0.89) |g|=2.8e+01 (202s)
+  [039] J=114.0234 (rho=0.83 age=1.10 dage=1.31 T=0.89) |g|=4.0e+01 (209s)
+  [040] J=113.9182 (rho=0.84 age=1.10 dage=1.31 T=0.89) |g|=1.8e+01 (202s)
+  [041] J=113.8848 (rho=0.84 age=1.10 dage=1.31 T=0.89) |g|=6.6e+00 (194s)
+  [042] J=113.8690 (rho=0.84 age=1.10 dage=1.31 T=0.89) |g|=1.9e+01 (200s)
+  [043] J=113.8540 (rho=0.84 age=1.10 dage=1.31 T=0.89) |g|=2.1e+01 (193s)
+  [044] J=113.7530 (rho=0.84 age=1.10 dage=1.31 T=0.89) |g|=2.7e+01 (200s)
+  [045] J=113.6601 (rho=0.84 age=1.10 dage=1.31 T=0.89) |g|=2.0e+01 (202s)
+  [046] J=113.5564 (rho=0.83 age=1.10 dage=1.31 T=0.89) |g|=1.3e+01 (212s)
+  [047] J=113.5302 (rho=0.83 age=1.11 dage=1.31 T=0.89) |g|=1.1e+01 (204s)
+  [048] J=113.5134 (rho=0.83 age=1.11 dage=1.31 T=0.89) |g|=2.3e+01 (199s)
+  [049] J=113.4968 (rho=0.83 age=1.11 dage=1.31 T=0.89) |g|=9.4e+00 (206s)
+  [050] J=113.4895 (rho=0.83 age=1.11 dage=1.31 T=0.89) |g|=6.3e+00 (191s)
+  [051] J=113.4781 (rho=0.83 age=1.11 dage=1.31 T=0.89) |g|=1.3e+01 (138s)
+  [052] J=113.4552 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=2.2e+01 (190s)
+  [053] J=113.3994 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=3.0e+01 (253s)
+  [054] J=113.3687 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=7.5e+01 (248s)
+  [055] J=113.2534 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=4.1e+01 (247s)
+  [056] J=113.1944 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=1.5e+01 (247s)
+  [057] J=113.1629 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=8.9e+00 (253s)
+  [058] J=113.1555 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=7.2e+00 (246s)
+  [059] J=113.1291 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=7.6e+00 (252s)
+  [060] J=113.1075 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=2.8e+01 (252s)
+  [061] J=113.0691 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=1.7e+01 (255s)
+  [062] J=113.0286 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=9.3e+00 (254s)
+  [063] J=113.0065 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=9.5e+00 (256s)
+  [064] J=112.9719 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=1.3e+01 (247s)
+  [065] J=112.9232 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=1.2e+01 (250s)
+  [066] J=112.9527 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=4.1e+01 (252s)
+  [067] J=112.9114 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=9.9e+00 (249s)
+  [068] J=112.8972 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=3.1e+00 (254s)
+  [069] J=112.8920 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=3.3e+00 (251s)
+  [070] J=112.9199 (rho=0.83 age=1.12 dage=1.30 T=0.89) |g|=3.0e+01 (248s)
+  [071] J=112.8886 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=7.4e+00 (247s)
+  [072] J=112.8816 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=6.2e+00 (245s)
+  [073] J=112.8595 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=8.6e+00 (248s)
+  [074] J=112.8360 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=7.7e+00 (249s)
+  [075] J=112.9395 (rho=0.83 age=1.12 dage=1.30 T=0.89) |g|=6.2e+01 (241s)
+  [076] J=112.8259 (rho=0.83 age=1.12 dage=1.30 T=0.89) |g|=1.7e+01 (244s)
+  [077] J=112.8104 (rho=0.83 age=1.12 dage=1.30 T=0.89) |g|=9.4e+00 (250s)
+  [078] J=112.8002 (rho=0.83 age=1.12 dage=1.30 T=0.89) |g|=4.9e+00 (244s)
+  [079] J=112.7890 (rho=0.83 age=1.12 dage=1.30 T=0.89) |g|=6.5e+00 (253s)
+  [080] J=112.7631 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=1.1e+01 (248s)
+  [081] J=112.7259 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=2.8e+01 (256s)
+  [082] J=112.6880 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=9.2e+00 (253s)
+  [083] J=112.6642 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=1.2e+01 (249s)
+  [084] J=112.9575 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=8.6e+01 (247s)
+  [085] J=112.6541 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=4.6e+00 (251s)
+  [086] J=112.6486 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=5.8e+00 (257s)
+  [087] J=112.6341 (rho=0.82 age=1.11 dage=1.30 T=0.89) |g|=5.3e+00 (252s)
+  [088] J=112.6053 (rho=0.82 age=1.11 dage=1.30 T=0.89) |g|=5.5e+00 (250s)
+  [089] J=121.2691 (rho=0.91 age=1.11 dage=1.32 T=0.98) |g|=5.1e+02 (255s)
+  [090] J=112.6022 (rho=0.82 age=1.11 dage=1.30 T=0.89) |g|=4.4e+00 (253s)
+  [091] J=112.5789 (rho=0.82 age=1.11 dage=1.30 T=0.89) |g|=3.6e+00 (256s)
+  [092] J=112.5898 (rho=0.83 age=1.11 dage=1.30 T=0.89) |g|=3.2e+01 (259s)
+  [093] J=112.5675 (rho=0.82 age=1.11 dage=1.30 T=0.89) |g|=1.2e+01 (258s)
+  [094] J=112.5481 (rho=0.82 age=1.11 dage=1.30 T=0.89) |g|=9.0e+00 (257s)
+  [095] J=112.5116 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=3.3e+00 (253s)
+  [096] J=112.5038 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=2.9e+00 (254s)
+  [097] J=112.5290 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=2.7e+01 (255s)
+  [098] J=112.4975 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=8.8e+00 (247s)
+  [099] J=112.4844 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=7.6e+00 (251s)
+  [100] J=112.4699 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=7.3e+00 (254s)
+  [101] J=112.4337 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=1.4e+01 (252s)
+  [102] J=112.4339 (rho=0.82 age=1.12 dage=1.29 T=0.89) |g|=1.7e+01 (257s)
+  [103] J=112.4216 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=3.5e+00 (253s)
+  [104] J=112.4174 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=3.2e+00 (257s)
+  [105] J=112.4132 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=1.4e+01 (251s)
+  [106] J=112.4079 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=5.7e+00 (249s)
+  [107] J=112.4035 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=5.3e+00 (246s)
+  [108] J=112.3956 (rho=0.82 age=1.12 dage=1.30 T=0.89) |g|=8.9e+00 (254s)
+  [109] J=112.3872 (rho=0.82 age=1.12 dage=1.29 T=0.89) |g|=9.1e+00 (257s)
+  [110] J=112.4261 (rho=0.83 age=1.12 dage=1.29 T=0.89) |g|=3.6e+01 (252s)
+  [111] J=112.3825 (rho=0.82 age=1.12 dage=1.29 T=0.89) |g|=1.5e+01 (253s)
+  [112] J=112.3659 (rho=0.82 age=1.12 dage=1.29 T=0.89) |g|=1.2e+01 (252s)
+  [113] J=112.3576 (rho=0.82 age=1.12 dage=1.29 T=0.89) |g|=5.0e+00 (246s)
+  [114] J=112.3515 (rho=0.82 age=1.12 dage=1.29 T=0.89) |g|=5.4e+00 (247s)
+  [115] J=112.3496 (rho=0.82 age=1.12 dage=1.29 T=0.89) |g|=6.9e+00 (240s)
+
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT  J=112.3496  -> /home/andrew/projects/firngrain/experiments/synthetic/results/synthetic_osse.json
+  hl_k0         = 9.9836e+00
+  hl_k1         = 5.5262e+02
+  hl_Ea1        = 1.0448e+04
+  hl_Ea2        = 2.2323e+04
+  k_snow_scale  = 8.2121e-01
+  k_firn_scale  = 1.0330e+00
+  Q_base        = 4.7380e-02
+  s2_shape      = 8.9722e-01
+
+=== TRUTH RECOVERY ===
+  hl_k0        truth=11.5  recovered=9.984  ratio=0.868
+  hl_k1        truth=540  recovered=552.6  ratio=1.023
+  hl_Ea1       truth=1.06e+04  recovered=1.045e+04  ratio=0.986
+  hl_Ea2       truth=2.24e+04  recovered=2.232e+04  ratio=0.997
+  k_snow_scale truth=1.15  recovered=0.8212  ratio=0.714
+  k_firn_scale truth=1  recovered=1.033  ratio=1.033
+  Q_base       truth=0.045  recovered=0.04738  ratio=1.053
+  s2_shape     truth=0.85  recovered=0.8972  ratio=1.056
+  (truth saved for the recovery figure)

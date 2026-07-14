@@ -1,0 +1,9 @@
+{
+  "comment": "Temporal-sampling probe (r9): denser T + b knots on the CLEAN r8 configuration (corrected datum, k_snow pin, de-biased b prior, sigma_dage x2.2). b floor = 10 yr (above the dt=5 aliasing zone that poisoned r6's 5-yr knots). T dense only where data can see (post-1850; pre-1750 is prior-bound per UQ + OSSE).",
+  "knot_years": [1000, 1150, 1300, 1450, 1600, 1750, 1800, 1850, 1880, 1900,
+                 1915, 1930, 1945, 1955, 1965, 1975, 1985, 1995, 2005, 2015],
+  "b_knot_years": [1000, 1050, 1100, 1150, 1200, 1250, 1300, 1350, 1400, 1450,
+                   1500, 1550, 1600, 1650, 1700, 1750, 1800, 1820, 1840, 1860,
+                   1880, 1900, 1910, 1920, 1930, 1940, 1950, 1960, 1970, 1980,
+                   1990, 2000, 2010, 2015]
+}

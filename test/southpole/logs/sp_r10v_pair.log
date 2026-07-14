@@ -1,0 +1,100 @@
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/firedrake/petsc.py:96: UserWarning: No external package for parmetis, ptscotch, chaco found, defaulting to PETSc simple partitioner. This may not be optimal.
+  warn(
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/pyadjoint/drivers.py:73: FutureWarning: compute_gradient is deprecated in favour of compute_derivative.
+  warn("compute_gradient is deprecated in favour of compute_derivative.",
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/pyadjoint/drivers.py:73: FutureWarning: compute_gradient is deprecated in favour of compute_derivative.
+  warn("compute_gradient is deprecated in favour of compute_derivative.",
+velocity block: site x17s2, differenced + n(rho)-registered (11 pts, ref z=37.0 m)
+velocity block: site x11n0, differenced + n(rho)-registered (11 pts, ref z=37.0 m)
+
+Optimize SouthPole (L-BFGS-B, 38 ctrls, max 60):
+  [001] J=321.2493 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=1.8e+01 (311s)
+  *** Nonlinear solve failed to converge after 0 nonlinear iterations.
+Reason:
+   DIVERGED_LINEAR_SOLVE
+  [002] J=100000000.0000 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=7.5e+02 (1s)
+  [003] J=321.2493 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=1.8e+01 (301s)
+  *** field blowup: non-finite state
+  [004] J=100000000.0000 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=3.7e+02 (13s)
+  [005] J=321.2493 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=1.8e+01 (313s)
+  [006] J=321.2453 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=1.6e+01 (301s)
+  [007] J=321.2326 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=1.7e+01 (302s)
+  [008] J=321.2281 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=1.1e+01 (299s)
+  [009] J=321.2271 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=6.1e+00 (302s)
+  [010] J=321.2256 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=9.2e+00 (303s)
+  [011] J=321.2225 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=1.9e+01 (306s)
+  [012] J=321.2161 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=3.1e+01 (303s)
+  [013] J=321.2068 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=3.4e+01 (305s)
+  [014] J=321.1942 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=3.5e+01 (317s)
+  [015] J=321.1849 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=5.4e+00 (321s)
+  [016] J=321.1816 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=1.1e+01 (326s)
+  [017] J=321.1789 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=2.0e+01 (318s)
+  [018] J=321.1751 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=2.7e+01 (315s)
+  [019] J=321.1628 (rho=0.46 age=0.20 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.31) |g|=4.0e+01 (309s)
+  [020] J=321.1402 (rho=0.46 age=0.20 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.30) |g|=5.1e+01 (324s)
+  [021] J=321.1037 (rho=0.46 age=0.20 dage=2.21 T=0.40 v_x17s2=0.23 v_x11n0=0.30) |g|=4.9e+01 (311s)
+  [022] J=321.1351 (rho=0.46 age=0.20 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.30) |g|=4.5e+01 (307s)
+  [023] J=321.0866 (rho=0.46 age=0.20 dage=2.21 T=0.40 v_x17s2=0.24 v_x11n0=0.30) |g|=4.3e+01 (312s)
+  [024] J=321.0576 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.23 v_x11n0=0.30) |g|=1.2e+01 (309s)
+  [025] J=321.0504 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.23 v_x11n0=0.29) |g|=9.4e+00 (309s)
+  [026] J=321.0470 (rho=0.46 age=0.19 dage=2.21 T=0.40 v_x17s2=0.23 v_x11n0=0.29) |g|=1.7e+01 (310s)
+  [027] J=321.0401 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.23 v_x11n0=0.29) |g|=2.2e+01 (317s)
+  [028] J=321.0304 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.23 v_x11n0=0.29) |g|=6.1e+01 (318s)
+  [029] J=321.0089 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.23 v_x11n0=0.29) |g|=4.5e+01 (315s)
+  [030] J=320.9643 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.23 v_x11n0=0.29) |g|=1.6e+01 (310s)
+  [031] J=320.9415 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.23 v_x11n0=0.29) |g|=1.9e+01 (312s)
+  [032] J=320.9299 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.23 v_x11n0=0.29) |g|=1.5e+01 (323s)
+  [033] J=320.9207 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.23 v_x11n0=0.28) |g|=5.1e+00 (312s)
+  [034] J=320.9169 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.23 v_x11n0=0.28) |g|=6.8e+00 (314s)
+  [035] J=320.9137 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.23 v_x11n0=0.28) |g|=8.8e+00 (315s)
+  [036] J=320.9049 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.23 v_x11n0=0.28) |g|=7.9e+00 (323s)
+  [037] J=320.8908 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.28) |g|=1.8e+01 (311s)
+  [038] J=320.8914 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.23 v_x11n0=0.29) |g|=2.1e+01 (313s)
+  [039] J=320.8652 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.23 v_x11n0=0.28) |g|=1.5e+01 (301s)
+  [040] J=321.3368 (rho=0.46 age=0.18 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.27) |g|=2.3e+02 (247s)
+  [041] J=320.8602 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.23 v_x11n0=0.28) |g|=2.2e+01 (242s)
+  [042] J=320.8285 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.28) |g|=1.3e+01 (238s)
+  [043] J=320.7640 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.28) |g|=9.3e+00 (252s)
+  [044] J=321.1445 (rho=0.46 age=0.21 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.26) |g|=1.8e+02 (257s)
+  [045] J=320.7568 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.27) |g|=2.1e+01 (259s)
+  [046] J=320.7499 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.27) |g|=1.3e+01 (252s)
+  [047] J=320.7440 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.27) |g|=4.1e+00 (249s)
+  [048] J=320.7429 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.27) |g|=4.5e+00 (252s)
+  [049] J=320.7394 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.27) |g|=7.9e+00 (249s)
+  [050] J=320.7270 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.27) |g|=1.3e+01 (253s)
+  [051] J=320.6805 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.27) |g|=2.4e+01 (264s)
+  [052] J=320.6401 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.26) |g|=2.4e+01 (240s)
+  [053] J=321.5440 (rho=0.47 age=0.21 dage=2.21 T=0.41 v_x17s2=0.23 v_x11n0=0.30) |g|=2.0e+02 (251s)
+  [054] J=320.6380 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.27) |g|=1.8e+01 (247s)
+  [055] J=320.6171 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.26) |g|=1.4e+01 (245s)
+  [056] J=321.2162 (rho=0.46 age=0.22 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.27) |g|=2.4e+02 (245s)
+  [057] J=320.6161 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.26) |g|=5.1e+00 (253s)
+  [058] J=320.6130 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.26) |g|=2.8e+00 (241s)
+  [059] J=320.6120 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.26) |g|=7.3e+00 (241s)
+  [060] J=320.6102 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.26) |g|=3.3e+00 (268s)
+  [061] J=320.6055 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.26) |g|=6.6e+00 (269s)
+  [062] J=320.5985 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.26) |g|=1.3e+01 (268s)
+  [063] J=320.5856 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.22 v_x11n0=0.26) |g|=1.8e+01 (274s)
+  [064] J=320.5616 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.21 v_x11n0=0.26) |g|=2.3e+01 (271s)
+  [065] J=320.5441 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.21 v_x11n0=0.26) |g|=1.3e+01 (265s)
+  [066] J=320.5348 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.21 v_x11n0=0.26) |g|=1.1e+01 (279s)
+  [067] J=320.5723 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.21 v_x11n0=0.25) |g|=5.6e+01 (270s)
+  [068] J=320.5296 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.21 v_x11n0=0.25) |g|=8.6e+00 (267s)
+  [069] J=320.5271 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.21 v_x11n0=0.25) |g|=5.9e+00 (267s)
+  [070] J=320.5275 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.21 v_x11n0=0.25) |g|=2.8e+01 (259s)
+  [071] J=320.5248 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.21 v_x11n0=0.25) |g|=1.6e+01 (261s)
+  [072] J=320.5210 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.21 v_x11n0=0.25) |g|=6.3e+00 (267s)
+  [073] J=320.5167 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.21 v_x11n0=0.25) |g|=4.4e+00 (268s)
+  [074] J=320.5134 (rho=0.46 age=0.19 dage=2.21 T=0.41 v_x17s2=0.21 v_x11n0=0.25) |g|=4.9e+00 (263s)
+
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT  J=320.5134  -> /home/andrew/projects/firngrain/experiments/southpole/results/sp_r10v_pair.json
+  hl_k0         = 1.0818e+01
+  hl_k1         = 6.7013e+02
+  hl_Ea1        = 1.0073e+04
+  hl_Ea2        = 2.2162e+04
+  k_snow_scale  = 1.2985e+00
+  k_firn_scale  = 9.7666e-01
+  G_base        = -4.2280e-03
+  ezz_yr        = -7.9120e-05
+  s2_shape      = 7.6444e-01
+  b_off         = -1.9493e-02

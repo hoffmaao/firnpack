@@ -1,0 +1,11 @@
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/firedrake/petsc.py:96: UserWarning: No external package for parmetis, ptscotch, chaco found, defaulting to PETSc simple partitioner. This may not be optimal.
+  warn(
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/pyadjoint/drivers.py:73: FutureWarning: compute_gradient is deprecated in favour of compute_derivative.
+  warn("compute_gradient is deprecated in favour of compute_derivative.",
+velocity block[zeising]: site x11n6, differenced + n(rho)-registered (16 pts, ref z=37.0 m)
+seasonal block: USP50 ln-amplitude ratios (12 pts, ref z=1.23 m), k_snow prior WIDENED
+  replay J1=342.90939805 J2=342.90939805 match=True
+  rms: rho=0.47 age=0.24 dage=2.22 T=0.40 v=1.45 seas=0.92
+    k_snow_scale adj=+9.280e+00 FD=+9.280e+00 ratio=+1.0000
+    ezz_yr       adj=+2.415e+05 FD=+2.413e+05 ratio=+1.0007
+    b1960        adj=-4.269e+00 FD=-4.268e+00 ratio=+1.0001

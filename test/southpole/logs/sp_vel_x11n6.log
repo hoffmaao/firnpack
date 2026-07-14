@@ -1,0 +1,62 @@
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/firedrake/petsc.py:96: UserWarning: No external package for parmetis, ptscotch, chaco found, defaulting to PETSc simple partitioner. This may not be optimal.
+  warn(
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/pyadjoint/drivers.py:73: FutureWarning: compute_gradient is deprecated in favour of compute_derivative.
+  warn("compute_gradient is deprecated in favour of compute_derivative.",
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/pyadjoint/drivers.py:73: FutureWarning: compute_gradient is deprecated in favour of compute_derivative.
+  warn("compute_gradient is deprecated in favour of compute_derivative.",
+velocity block: site x11n6, differenced + n(rho)-registered (11 pts, ref z=37.0 m)
+
+Optimize SouthPole (L-BFGS-B, 38 ctrls, max 30):
+  [001] J=330.8282 (rho=0.47 age=0.24 dage=2.22 T=0.40 v=1.34) |g|=6.9e+01 (323s)
+  *** field blowup: non-finite state
+  [002] J=100000000.0000 (rho=0.47 age=0.24 dage=2.22 T=0.40 v=1.34) |g|=7.3e+02 (14s)
+  [003] J=330.8280 (rho=0.47 age=0.24 dage=2.22 T=0.40 v=1.34) |g|=6.9e+01 (324s)
+  [004] J=2600.8253 (rho=3.11 age=2.32 dage=5.71 T=2.48 v=0.68) |g|=1.6e+03 (319s)
+  [005] J=357.9685 (rho=0.64 age=0.43 dage=2.29 T=0.40 v=1.16) |g|=2.0e+03 (322s)
+  [006] J=330.7554 (rho=0.47 age=0.24 dage=2.22 T=0.40 v=1.33) |g|=6.3e+01 (321s)
+  [007] J=330.7140 (rho=0.47 age=0.25 dage=2.22 T=0.40 v=1.33) |g|=3.6e+01 (321s)
+  [008] J=330.6929 (rho=0.47 age=0.25 dage=2.22 T=0.40 v=1.32) |g|=6.8e+00 (317s)
+  [009] J=330.6914 (rho=0.47 age=0.25 dage=2.22 T=0.40 v=1.32) |g|=7.0e+00 (322s)
+  [010] J=330.6865 (rho=0.47 age=0.25 dage=2.22 T=0.40 v=1.32) |g|=1.0e+01 (323s)
+  [011] J=330.6627 (rho=0.47 age=0.25 dage=2.22 T=0.40 v=1.32) |g|=2.2e+01 (325s)
+  [012] J=330.6209 (rho=0.47 age=0.25 dage=2.22 T=0.40 v=1.31) |g|=3.3e+01 (328s)
+  [013] J=330.5291 (rho=0.48 age=0.25 dage=2.22 T=0.41 v=1.30) |g|=4.6e+01 (317s)
+  [014] J=330.4041 (rho=0.48 age=0.25 dage=2.22 T=0.40 v=1.28) |g|=4.5e+01 (327s)
+  [015] J=330.2424 (rho=0.49 age=0.24 dage=2.22 T=0.41 v=1.26) |g|=3.8e+01 (322s)
+  [016] J=330.0927 (rho=0.49 age=0.24 dage=2.22 T=0.40 v=1.25) |g|=2.6e+01 (321s)
+  [017] J=329.9518 (rho=0.50 age=0.23 dage=2.22 T=0.40 v=1.24) |g|=2.0e+01 (324s)
+  [018] J=329.9258 (rho=0.50 age=0.24 dage=2.22 T=0.40 v=1.23) |g|=2.1e+01 (326s)
+  [019] J=332.2958 (rho=0.50 age=0.21 dage=2.22 T=0.40 v=1.25) |g|=6.5e+02 (329s)
+  [020] J=329.9194 (rho=0.50 age=0.23 dage=2.22 T=0.40 v=1.24) |g|=1.8e+01 (322s)
+  [021] J=329.8892 (rho=0.50 age=0.24 dage=2.22 T=0.40 v=1.23) |g|=1.4e+01 (325s)
+  [022] J=329.8595 (rho=0.50 age=0.24 dage=2.22 T=0.40 v=1.23) |g|=8.3e+00 (322s)
+  [023] J=329.7811 (rho=0.50 age=0.24 dage=2.22 T=0.40 v=1.22) |g|=1.4e+01 (329s)
+  [024] J=329.6840 (rho=0.50 age=0.24 dage=2.22 T=0.40 v=1.20) |g|=1.7e+01 (326s)
+  [025] J=329.6878 (rho=0.52 age=0.24 dage=2.22 T=0.40 v=1.17) |g|=3.5e+01 (333s)
+  [026] J=329.6587 (rho=0.51 age=0.24 dage=2.22 T=0.40 v=1.19) |g|=1.7e+01 (326s)
+  [027] J=329.6249 (rho=0.51 age=0.24 dage=2.22 T=0.40 v=1.19) |g|=9.5e+00 (320s)
+  [028] J=329.5990 (rho=0.51 age=0.24 dage=2.22 T=0.40 v=1.19) |g|=7.4e+00 (329s)
+  [029] J=329.5528 (rho=0.51 age=0.24 dage=2.22 T=0.40 v=1.18) |g|=2.0e+01 (319s)
+  [030] J=329.4832 (rho=0.51 age=0.24 dage=2.22 T=0.40 v=1.17) |g|=2.2e+01 (321s)
+  [031] J=329.3647 (rho=0.51 age=0.24 dage=2.22 T=0.40 v=1.16) |g|=3.1e+01 (328s)
+  [032] J=329.6759 (rho=0.51 age=0.26 dage=2.22 T=0.40 v=1.13) |g|=2.6e+02 (328s)
+  [033] J=329.3515 (rho=0.51 age=0.24 dage=2.22 T=0.40 v=1.15) |g|=2.8e+01 (331s)
+  [034] J=329.2838 (rho=0.51 age=0.24 dage=2.22 T=0.40 v=1.14) |g|=1.6e+01 (320s)
+  [035] J=329.2364 (rho=0.51 age=0.24 dage=2.22 T=0.40 v=1.14) |g|=1.0e+01 (324s)
+  [036] J=329.1778 (rho=0.51 age=0.24 dage=2.22 T=0.40 v=1.13) |g|=1.3e+01 (319s)
+  [037] J=329.0314 (rho=0.51 age=0.24 dage=2.22 T=0.40 v=1.12) |g|=2.9e+01 (317s)
+  [038] J=328.8254 (rho=0.50 age=0.25 dage=2.22 T=0.40 v=1.09) |g|=2.5e+01 (320s)
+  [039] J=329.5850 (rho=0.51 age=0.28 dage=2.22 T=0.43 v=0.95) |g|=1.8e+02 (333s)
+  [040] J=328.6688 (rho=0.50 age=0.26 dage=2.22 T=0.41 v=1.05) |g|=6.3e+01 (318s)
+
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT  J=328.6688  -> /home/andrew/projects/firngrain/experiments/southpole/results/sp_vel_x11n6.json
+  hl_k0         = 1.2813e+01
+  hl_k1         = 4.5692e+02
+  hl_Ea1        = 1.0256e+04
+  hl_Ea2        = 2.1409e+04
+  k_snow_scale  = 1.2983e+00
+  k_firn_scale  = 9.7650e-01
+  G_base        = -4.3322e-03
+  ezz_yr        = 2.6622e-05
+  s2_shape      = 8.2842e-01
+  b_off         = -9.3083e-02

@@ -1,0 +1,86 @@
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/firedrake/petsc.py:96: UserWarning: No external package for parmetis, ptscotch, chaco found, defaulting to PETSc simple partitioner. This may not be optimal.
+  warn(
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/pyadjoint/drivers.py:73: FutureWarning: compute_gradient is deprecated in favour of compute_derivative.
+  warn("compute_gradient is deprecated in favour of compute_derivative.",
+/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/pyadjoint/drivers.py:73: FutureWarning: compute_gradient is deprecated in favour of compute_derivative.
+  warn("compute_gradient is deprecated in favour of compute_derivative.",
+seasonal block: USP50 ln-amplitude ratios (12 pts, ref z=1.23 m), k_snow prior WIDENED
+
+Optimize SouthPole (L-BFGS-B, 38 ctrls, max 50):
+  [001] J=320.7326 (rho=0.45 age=0.14 dage=2.20 T=0.39 seas=0.68) |g|=2.9e+01 (284s)
+  *** Nonlinear solve failed to converge after 0 nonlinear iterations.
+Reason:
+   DIVERGED_LINEAR_SOLVE
+  [002] J=100000000.0000 (rho=0.45 age=0.14 dage=2.20 T=0.39 seas=0.68) |g|=1.0e+03 (1s)
+  [003] J=320.7326 (rho=0.45 age=0.14 dage=2.20 T=0.39 seas=0.68) |g|=2.9e+01 (284s)
+  *** field blowup: non-finite state
+  [004] J=100000000.0000 (rho=0.45 age=0.14 dage=2.20 T=0.39 seas=0.68) |g|=5.2e+02 (12s)
+  [005] J=320.7326 (rho=0.45 age=0.14 dage=2.20 T=0.39 seas=0.68) |g|=2.9e+01 (280s)
+  [006] J=320.7224 (rho=0.45 age=0.13 dage=2.20 T=0.39 seas=0.68) |g|=4.0e+01 (281s)
+  [007] J=320.7075 (rho=0.46 age=0.13 dage=2.20 T=0.39 seas=0.68) |g|=3.4e+01 (289s)
+  [008] J=320.6586 (rho=0.46 age=0.13 dage=2.20 T=0.39 seas=0.68) |g|=1.2e+01 (297s)
+  [009] J=320.6488 (rho=0.46 age=0.13 dage=2.20 T=0.39 seas=0.68) |g|=1.3e+01 (296s)
+  [010] J=320.5765 (rho=0.46 age=0.14 dage=2.20 T=0.39 seas=0.67) |g|=2.1e+01 (284s)
+  [011] J=320.5432 (rho=0.46 age=0.14 dage=2.20 T=0.39 seas=0.67) |g|=1.3e+01 (277s)
+  [012] J=320.5281 (rho=0.45 age=0.14 dage=2.20 T=0.39 seas=0.67) |g|=5.4e+00 (282s)
+  [013] J=320.5214 (rho=0.45 age=0.14 dage=2.20 T=0.39 seas=0.67) |g|=8.2e+00 (286s)
+  [014] J=320.5061 (rho=0.45 age=0.14 dage=2.20 T=0.39 seas=0.67) |g|=1.8e+01 (274s)
+  [015] J=320.4802 (rho=0.45 age=0.14 dage=2.20 T=0.39 seas=0.66) |g|=2.8e+01 (262s)
+  [016] J=320.4211 (rho=0.45 age=0.13 dage=2.20 T=0.39 seas=0.66) |g|=4.0e+01 (276s)
+  [017] J=320.3341 (rho=0.45 age=0.13 dage=2.20 T=0.40 seas=0.64) |g|=4.6e+01 (261s)
+  [018] J=325.2966 (rho=0.46 age=0.28 dage=2.21 T=0.40 seas=0.61) |g|=9.7e+02 (276s)
+  [019] J=320.3311 (rho=0.45 age=0.14 dage=2.20 T=0.40 seas=0.64) |g|=3.4e+01 (271s)
+  [020] J=320.2557 (rho=0.45 age=0.14 dage=2.20 T=0.40 seas=0.63) |g|=2.2e+01 (286s)
+  [021] J=320.2035 (rho=0.45 age=0.14 dage=2.20 T=0.40 seas=0.62) |g|=1.1e+01 (282s)
+  [022] J=320.1324 (rho=0.45 age=0.14 dage=2.20 T=0.40 seas=0.61) |g|=2.3e+01 (277s)
+  [023] J=320.0722 (rho=0.45 age=0.14 dage=2.20 T=0.40 seas=0.60) |g|=3.5e+01 (272s)
+  [024] J=319.9537 (rho=0.45 age=0.14 dage=2.20 T=0.40 seas=0.59) |g|=4.2e+01 (279s)
+  [025] J=319.8058 (rho=0.45 age=0.14 dage=2.20 T=0.40 seas=0.56) |g|=2.7e+01 (279s)
+  [026] J=319.6891 (rho=0.45 age=0.14 dage=2.20 T=0.40 seas=0.54) |g|=1.0e+01 (277s)
+  [027] J=319.6187 (rho=0.45 age=0.14 dage=2.20 T=0.40 seas=0.52) |g|=2.5e+01 (283s)
+  [028] J=319.5361 (rho=0.45 age=0.14 dage=2.20 T=0.40 seas=0.51) |g|=4.0e+01 (263s)
+  [029] J=319.4137 (rho=0.45 age=0.14 dage=2.20 T=0.40 seas=0.49) |g|=4.4e+01 (268s)
+  [030] J=320.5551 (rho=0.46 age=0.10 dage=2.21 T=0.41 seas=0.46) |g|=5.5e+02 (287s)
+  [031] J=319.3996 (rho=0.45 age=0.13 dage=2.20 T=0.40 seas=0.49) |g|=8.2e+01 (270s)
+  [032] J=319.2866 (rho=0.45 age=0.14 dage=2.20 T=0.41 seas=0.47) |g|=4.9e+01 (275s)
+  [033] J=319.2063 (rho=0.45 age=0.14 dage=2.20 T=0.41 seas=0.45) |g|=2.1e+01 (264s)
+  [034] J=319.1466 (rho=0.45 age=0.14 dage=2.20 T=0.41 seas=0.43) |g|=1.3e+01 (271s)
+  [035] J=319.1058 (rho=0.45 age=0.14 dage=2.20 T=0.41 seas=0.42) |g|=1.9e+01 (280s)
+  [036] J=319.0274 (rho=0.45 age=0.14 dage=2.20 T=0.41 seas=0.41) |g|=2.1e+01 (274s)
+  [037] J=319.2142 (rho=0.45 age=0.14 dage=2.20 T=0.41 seas=0.39) |g|=3.4e+01 (268s)
+  [038] J=318.9823 (rho=0.45 age=0.14 dage=2.20 T=0.41 seas=0.39) |g|=1.3e+01 (273s)
+  [039] J=318.9235 (rho=0.45 age=0.14 dage=2.20 T=0.41 seas=0.38) |g|=1.2e+01 (259s)
+  [040] J=318.8767 (rho=0.45 age=0.13 dage=2.20 T=0.41 seas=0.38) |g|=1.7e+01 (272s)
+  [041] J=318.8225 (rho=0.45 age=0.13 dage=2.20 T=0.41 seas=0.39) |g|=2.9e+01 (267s)
+  [042] J=318.7374 (rho=0.45 age=0.13 dage=2.20 T=0.41 seas=0.39) |g|=3.1e+01 (274s)
+  [043] J=323.4700 (rho=0.48 age=0.12 dage=2.22 T=0.42 seas=0.33) |g|=9.7e+02 (267s)
+  [044] J=318.7341 (rho=0.45 age=0.13 dage=2.20 T=0.41 seas=0.39) |g|=5.0e+01 (270s)
+  [045] J=318.6700 (rho=0.45 age=0.13 dage=2.20 T=0.41 seas=0.39) |g|=3.0e+01 (261s)
+  [046] J=318.6378 (rho=0.45 age=0.13 dage=2.20 T=0.41 seas=0.37) |g|=6.6e+00 (271s)
+  [047] J=318.6302 (rho=0.45 age=0.13 dage=2.20 T=0.41 seas=0.37) |g|=8.7e+00 (266s)
+  [048] J=318.6189 (rho=0.45 age=0.13 dage=2.20 T=0.41 seas=0.37) |g|=1.3e+01 (259s)
+  [049] J=318.5925 (rho=0.45 age=0.14 dage=2.20 T=0.41 seas=0.36) |g|=1.9e+01 (264s)
+  [050] J=318.5420 (rho=0.45 age=0.14 dage=2.20 T=0.41 seas=0.35) |g|=2.3e+01 (262s)
+  [051] J=318.5237 (rho=0.46 age=0.14 dage=2.20 T=0.41 seas=0.34) |g|=1.6e+01 (266s)
+  [052] J=318.4580 (rho=0.46 age=0.14 dage=2.20 T=0.41 seas=0.34) |g|=5.3e+00 (275s)
+  [053] J=318.4363 (rho=0.46 age=0.14 dage=2.20 T=0.41 seas=0.33) |g|=6.6e+00 (285s)
+  [054] J=318.4763 (rho=0.46 age=0.14 dage=2.20 T=0.41 seas=0.34) |g|=3.4e+01 (285s)
+  [055] J=318.4244 (rho=0.46 age=0.14 dage=2.20 T=0.41 seas=0.34) |g|=8.1e+00 (261s)
+  [056] J=318.4198 (rho=0.46 age=0.14 dage=2.20 T=0.41 seas=0.34) |g|=2.7e+01 (287s)
+  [057] J=318.4111 (rho=0.46 age=0.14 dage=2.20 T=0.41 seas=0.33) |g|=1.0e+01 (286s)
+  [058] J=318.4066 (rho=0.46 age=0.14 dage=2.20 T=0.41 seas=0.33) |g|=9.3e+00 (293s)
+  [059] J=318.3986 (rho=0.46 age=0.14 dage=2.20 T=0.41 seas=0.34) |g|=1.2e+01 (263s)
+  [060] J=318.4481 (rho=0.46 age=0.14 dage=2.20 T=0.41 seas=0.32) |g|=4.9e+01 (278s)
+  [061] J=318.3936 (rho=0.46 age=0.14 dage=2.20 T=0.41 seas=0.34) |g|=5.8e+00 (275s)
+
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT  J=318.3936  -> /home/andrew/projects/firngrain/experiments/southpole/results/sp_r10_novel.json
+  hl_k0         = 1.1889e+01
+  hl_k1         = 6.6594e+02
+  hl_Ea1        = 1.0222e+04
+  hl_Ea2        = 2.2146e+04
+  k_snow_scale  = 1.1372e+00
+  k_firn_scale  = 1.2315e+00
+  G_base        = -3.1009e-03
+  ezz_yr        = -6.6213e-05
+  s2_shape      = 7.8072e-01
+  b_off         = -4.4854e-03
