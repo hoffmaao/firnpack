@@ -63,9 +63,9 @@ except Exception:  # pragma: no cover
         taylor_test,
     )
 
-from firn.constants import year
-from firn.models.firn import FirnModel, FirnParameters
-from firn.solvers.firn_solver import FirnColumnSolver
+from firnpack.constants import year
+from firnpack.models.firn import FirnModel, FirnParameters
+from firnpack.solvers.firn_solver import FirnColumnSolver
 
 
 # ----------------------------------------------------------------------------
@@ -225,7 +225,7 @@ def scalar_from_checkpoint(control_fn: fd.Function) -> float:
 def main():
     if SUPPRESS_SOLVER_PRINTS:
         try:
-            mod = importlib.import_module("firn.solvers.firn_solver")
+            mod = importlib.import_module("firnpack.solvers.firn_solver")
             mod.print = lambda *args, **kwargs: None  # type: ignore[attr-defined]
         except Exception:
             pass

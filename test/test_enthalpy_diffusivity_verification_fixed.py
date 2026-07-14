@@ -22,7 +22,7 @@ from __future__ import annotations
 import numpy as np
 import firedrake as fd
 
-from firn.models.firn import FirnModel, FirnParameters
+from firnpack.models.firn import FirnModel, FirnParameters
 
 
 def enthalpy_from_T(params: FirnParameters, T_K: float) -> float:

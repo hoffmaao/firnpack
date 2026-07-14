@@ -3,7 +3,7 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "firn"
+name = "firnpack"
 version = "0.1.0"
 description = "FirnGrain: a 1D firn densification, thermal, and accumulation inverse model in Firedrake"
 requires-python = ">=3.10"
@@ -23,7 +23,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["test"]
 markers = [
     "slow: long-running end-to-end tests (deselect with '-m \"not slow\"')",
 ]

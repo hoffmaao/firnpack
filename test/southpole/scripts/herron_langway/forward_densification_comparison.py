@@ -17,9 +17,9 @@ import numpy as np
 import pandas as pd
 import firedrake as fd
 
-from firn.models.firn import FirnParameters
-from firn.constants import year as YEAR_S
-from firn.physics.densification import arthern_ligtenberg, herron_langway
+from firnpack.models.firn import FirnParameters
+from firnpack.constants import year as YEAR_S
+from firnpack.physics.densification import arthern_ligtenberg, herron_langway
 
 # =============================================================================
 # Paths

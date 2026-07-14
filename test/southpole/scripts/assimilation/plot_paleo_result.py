@@ -11,9 +11,9 @@ from pathlib import Path
 import numpy as np, pandas as pd
 import firedrake as fd
 from firedrake.adjoint import stop_annotating
-from firn.models.firn import FirnParameters, FirnModel
-from firn.physics.densification import herron_langway as _hl
-from firn.constants import year as YEAR_S
+from firnpack.models.firn import FirnParameters, FirnModel
+from firnpack.physics.densification import herron_langway as _hl
+from firnpack.constants import year as YEAR_S
 herron_langway = functools.partial(_hl, smooth=True)
 
 PROC = Path(__file__).parent.parent.parent / "processed"

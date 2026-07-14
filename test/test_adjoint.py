@@ -14,7 +14,7 @@ Requirements
 ------------
 - Firedrake
 - firedrake-adjoint (pyadjoint)
-- Your firn package (firn.models.firn, firn.solvers.firn_solver, firn.constants)
+- Your firn package (firnpack.models.firn, firnpack.solvers.firn_solver, firnpack.constants)
 
 Notes
 -----
@@ -50,9 +50,9 @@ from firedrake_adjoint import (
     minimize,
 )
 
-from firn.constants import year
-from firn.models.firn import FirnModel, FirnParameters
-from firn.solvers.firn_solver import FirnColumnSolver
+from firnpack.constants import year
+from firnpack.models.firn import FirnModel, FirnParameters
+from firnpack.solvers.firn_solver import FirnColumnSolver
 
 
 # -----------------------------------------------------------------------------
@@ -160,7 +160,7 @@ def main():
     # Optionally silence prints inside the FirnColumnSolver implementation.
     if SUPPRESS_SOLVER_PRINTS:
         try:
-            mod = importlib.import_module("firn.solvers.firn_solver")
+            mod = importlib.import_module("firnpack.solvers.firn_solver")
             mod.print = lambda *args, **kwargs: None  # type: ignore[attr-defined]
         except Exception:
             # If the module path differs in your install, you can comment this out

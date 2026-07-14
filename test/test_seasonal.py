@@ -3,9 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from math import sin, pi
 
-from firn.constants import year
-from firn.models.firn import FirnModel, FirnParameters
-from firn.solvers.firn_solver import FirnColumnSolver
+from firnpack.constants import year
+from firnpack.models.firn import FirnModel, FirnParameters
+from firnpack.solvers.firn_solver import FirnColumnSolver
 
 
 # --------------------------------------------------------

@@ -3,11 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from math import sin, pi
 
-from firn.constants import year
-from firn.models.firn import FirnModel, FirnParameters
-from firn.solvers.firn_solver import FirnColumnSolver
-from firn.models.hydrology import HydrologyModel, HydrologyParameters
-from firn.solvers.hydrology_solver import HydrologySolver
+from firnpack.constants import year
+from firnpack.models.firn import FirnModel, FirnParameters
+from firnpack.solvers.firn_solver import FirnColumnSolver
+from firnpack.models.hydrology import HydrologyModel, HydrologyParameters
+from firnpack.solvers.hydrology_solver import HydrologySolver
 
 # --------------------------------------------------------
 #  Setup mesh and function spaces

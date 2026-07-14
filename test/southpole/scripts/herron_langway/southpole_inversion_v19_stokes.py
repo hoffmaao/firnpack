@@ -23,10 +23,10 @@ from firedrake.adjoint import (
     stop_annotating, get_working_tape,
 )
 from gadopt.inverse import MinimizationProblem, LinMoreOptimiser, minimisation_parameters
-from firn.models.firn import FirnParameters, FirnModel
-from firn.solvers.firn_solver import FirnColumnSolver
-from firn.physics.densification import stokes_compressible
-from firn.constants import year as YEAR_S
+from firnpack.models.firn import FirnParameters, FirnModel
+from firnpack.solvers.firn_solver import FirnColumnSolver
+from firnpack.physics.densification import stokes_compressible
+from firnpack.constants import year as YEAR_S
 
 _HERE = Path(__file__).parent
 _SP = _HERE.parent.parent

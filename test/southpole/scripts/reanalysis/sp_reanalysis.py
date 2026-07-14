@@ -25,9 +25,9 @@ import functools, json, os, sys, time
 from pathlib import Path
 import numpy as np
 import firedrake as fd
-from firn.models.firn import FirnParameters, FirnModel
-from firn.physics.densification import herron_langway as _hl
-from firn.constants import year as YEAR_S
+from firnpack.models.firn import FirnParameters, FirnModel
+from firnpack.physics.densification import herron_langway as _hl
+from firnpack.constants import year as YEAR_S
 herron_langway = functools.partial(_hl, smooth=True)
 sys.stdout.reconfigure(line_buffering=True)
 

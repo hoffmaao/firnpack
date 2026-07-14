@@ -20,10 +20,10 @@ import numpy as np
 import pandas as pd
 import firedrake as fd
 
-from firn.models.firn import FirnParameters, FirnModel
-from firn.solvers.firn_solver import FirnColumnSolver
-from firn.physics.densification import herron_langway
-from firn.constants import year as YEAR_S
+from firnpack.models.firn import FirnParameters, FirnModel
+from firnpack.solvers.firn_solver import FirnColumnSolver
+from firnpack.physics.densification import herron_langway
+from firnpack.constants import year as YEAR_S
 
 # Paths
 _HERE = Path(__file__).parent

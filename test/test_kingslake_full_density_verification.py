@@ -50,8 +50,8 @@ except Exception as exc:  # pragma: no cover
     ) from exc
 
 # Local patched modules (drop these into your repo, or adjust imports to your package)
-from firn.models.firn import FirnModel, FirnParameters
-from firn.solvers.firn_solver import FirnColumnSolver
+from firnpack.models.firn import FirnModel, FirnParameters
+from firnpack.solvers.firn_solver import FirnColumnSolver
 
 
 YEAR_S = 365.25 * 24 * 3600

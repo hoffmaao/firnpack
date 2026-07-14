@@ -7,7 +7,7 @@ Derive the densification physics by assimilating REAL South Pole data:
   * (ApRES vertical velocity — added once rho+age+T is validated)
 
 Forward model = Evan Cummings (H, rho, w, age) firn column + Herron-Langway
-densification (firn.models.firn + firn.physics.densification).  Verified in
+densification (firnpack.models.firn + firnpack.physics.densification).  Verified in
 forward_basics_diagnostic.py to reproduce SP19 age + velocity exactly and
 density to within a uniform +35..65 kg/m3 high bias at literature params.
 
@@ -42,10 +42,10 @@ from firedrake.adjoint import (
     Control, continue_annotation, pause_annotation, stop_annotating,
     get_working_tape)
 from pyadjoint import compute_gradient
-from firn.models.firn import FirnParameters, FirnModel
-from firn.solvers.firn_solver import FirnColumnSolver
-from firn.physics.densification import herron_langway as _hl
-from firn.constants import year as YEAR_S
+from firnpack.models.firn import FirnParameters, FirnModel
+from firnpack.solvers.firn_solver import FirnColumnSolver
+from firnpack.physics.densification import herron_langway as _hl
+from firnpack.constants import year as YEAR_S
 
 herron_langway = functools.partial(_hl, smooth=True)
 sys.stdout.reconfigure(line_buffering=True)

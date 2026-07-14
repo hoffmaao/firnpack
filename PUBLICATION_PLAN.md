@@ -16,18 +16,18 @@ inventory (not a sketch).
   (`test/southpole/results/sp_joint_r8.json`, J=81.3, all misfits ≤1σ).
 - **Phase 1 (skeleton + deletions): DONE** — git init (local, not pushed),
   README/LICENSE-TBD/gitignore/requirements/pyproject, 7 dead versions deleted,
-  experiments/{synthetic,southpole,summit}/ with data + provenance READMEs.
-- **Phase 2 (shared inverse engine): DONE + VALIDATED** — `src/firn/inverse/`
-  (config.py + engine.py). `experiments/southpole/run.py` reproduces r8 EXACTLY
+  tutorials/{synthetic,southpole,summit}/ with data + provenance READMEs.
+- **Phase 2 (shared inverse engine): DONE + VALIDATED** — `src/firnpack/inverse/`
+  (config.py + engine.py). `tutorials/southpole/run.py` reproduces r8 EXACTLY
   (forward J 81.306). The engine is the through-line for all three cases.
-- **Phase 5 (Summit): inversion DONE** — `experiments/summit/run.py` recovers
+- **Phase 5 (Summit): inversion DONE** — `tutorials/summit/run.py` recovers
   Summit's law; matches SP (stage-2 rate ratio 1.00, params 1–9%). Data staged
   (FirnCover+Fourteau density, GISP2 age, FirnCover firn-T).
   `results/law_comparison.png` = the transferability figure.
-- **Phase 3 (synthetic OSSE): IN PROGRESS** — `experiments/synthetic/run.py`
+- **Phase 3 (synthetic OSSE): IN PROGRESS** — `tutorials/synthetic/run.py`
   built + verified (FD clean); full recovery run + `plot_recovery.py` figure.
 - **REMAINING**: SP reanalysis+UQ at r8 (Phase 0 tail); distill SP to
-  experiments/southpole (Phase 4); LICENSE choice; CI + provenance polish
+  tutorials/southpole (Phase 4); LICENSE choice; CI + provenance polish
   (Phase 6). Summit refinements: σ_dage inflation, endpoint b-knot.
 
 Nothing destructive done; git is local-only (not pushed).
@@ -38,10 +38,10 @@ Nothing destructive done; git is local-only (not pushed).
 
 The South Pole work reimplements its adjoint stepper + Gaussian-kernel misfits +
 priors + optimizer loop **inline in each of ~15 scripts** (the package
-`src/firn/solvers/FirnColumnSolver` is NOT used by the assimilation — the lean
+`src/firnpack/solvers/FirnColumnSolver` is NOT used by the assimilation — the lean
 adjoint stepper lives in the scripts). To make three *tests of one framework*
 rather than three divergent scripts, pull that machinery into
-`src/firn/inverse/` behind a config-driven `assimilate(SiteConfig)`. Then
+`src/firnpack/inverse/` behind a config-driven `assimilate(SiteConfig)`. Then
 synthetic / South Pole / Summit are thin configs (data paths, knot layouts,
 priors, which observables are present) over one validated engine.
 
@@ -49,7 +49,7 @@ Target layout:
 ```
 firngrain/
   README.md  LICENSE  .gitignore  pyproject.toml  requirements.txt (pinned, incl firedrake)
-  src/firn/
+  src/firnpack/
     constants.py  mesh.py
     physics/densification.py          # arthern_ligtenberg, herron_langway, kingslake, stokes
     models/firn.py                    # FirnParameters, FirnModel, Calonne conductivity
@@ -59,7 +59,7 @@ firngrain/
       observables.py# Gaussian-kernel scalar misfits; d(age)/dz; ApRES velocity operator
       priors.py     # log/linear controls, knot brackets, time-varying forcing (fresh-Constant)
       driver.py     # assimilate(SiteConfig) -> MAP; hessian(); sensitivities()
-  experiments/
+  tutorials/
     synthetic/    # OSSE: truth -> synthetic obs -> recover (test #1)
     southpole/    # config + data + results + figures (test #2)
     summit/       # config + data + results + figures (test #3)
@@ -89,15 +89,15 @@ Cleaning while the science moves is how things break. Open SP items:
 - Densification law (rates, invariant 7×) + T-history are ALREADY robust and
   datum-corrected; they are not blocked by the accumulation item.
 
-Deliverable: one locked `experiments/southpole/results/sp_final.json` + figures.
+Deliverable: one locked `tutorials/southpole/results/sp_final.json` + figures.
 
 ## Phase 1 — Repo skeleton + safe deletions (non-destructive to science)
 
 - `git init` (repo is currently NOT under git — clean slate, no history to scrub).
 - Add README, LICENSE (pick one), .gitignore (outputs, *.h5, *.npz, __pycache__),
   pinned requirements.
-- DELETE (zero references, agent-verified): `src/firn/models/firn_v2..v4.py`,
-  `src/firn/solvers/firn_solver_v2..v5.py` (7 files), `src/firn/statistics/`
+- DELETE (zero references, agent-verified): `src/firnpack/models/firn_v2..v4.py`,
+  `src/firnpack/solvers/firn_solver_v2..v5.py` (7 files), `src/firnpack/statistics/`
   (empty stub).
 - Move `test/archive/` (88 dev scripts) OUT of the release tree (keep as a
   git tag / separate `history/` branch — it's the dev record, not deleted).
@@ -105,13 +105,13 @@ Deliverable: one locked `experiments/southpole/results/sp_final.json` + figures.
   only) → fold into the lowercase curated dirs; delete the stray tmp* scrape
   files. Move root-level stray PNG/NPZ (synthetic_gadopt_*, w_*.png, etc.) into
   experiment results dirs.
-- Trim `src/firn/__init__.py` eager imports if dropping solvers/mesh/data (it
+- Trim `src/firnpack/__init__.py` eager imports if dropping solvers/mesh/data (it
   currently imports them transitively — see agent note).
 
 ## Phase 2 — Extract the shared inverse engine (highest value / highest risk)
 
 - Refactor `sp_joint_assimilate_r5.py` (the most complete driver) into
-  `src/firn/inverse/`. Validate: engine reproduces the locked SP MAP bit-for-bit.
+  `src/firnpack/inverse/`. Validate: engine reproduces the locked SP MAP bit-for-bit.
 - Config object carries: mesh/spinup, knot layouts, priors, which observables
   are present (density/age/dagedz/T/velocity/deep-T), datum shift, conductivity
   law. South Pole becomes the first `SiteConfig`.
@@ -129,7 +129,7 @@ Deliverable: one locked `experiments/southpole/results/sp_final.json` + figures.
 
 ## Phase 4 — Distill South Pole (test #2)
 
-- Collapse ~15 exploratory scripts → one `experiments/southpole/run.py` (config
+- Collapse ~15 exploratory scripts → one `tutorials/southpole/run.py` (config
   + engine) + results + figures. The hard-won lessons become methods/discussion:
   borehole-T datum correction, ERA5 accum bias, Calonne vs quadratic
   conductivity, the d(age)/dz resolution limit, the isothermal-site (k,Ea)

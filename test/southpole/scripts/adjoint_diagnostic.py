@@ -15,9 +15,9 @@ from firedrake.adjoint import (
     Control, ReducedFunctional, continue_annotation, pause_annotation,
     stop_annotating, get_working_tape,
 )
-from firn.models.firn import FirnParameters, FirnModel
-from firn.solvers.firn_solver import FirnColumnSolver
-from firn.constants import year as YEAR_S
+from firnpack.models.firn import FirnParameters, FirnModel
+from firnpack.solvers.firn_solver import FirnColumnSolver
+from firnpack.constants import year as YEAR_S
 
 # Use a VERY short run: 10-year spinup, 5-year ERA5
 SPINUP_YEARS_DIAG = 10

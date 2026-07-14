@@ -66,12 +66,12 @@ except Exception:  # pragma: no cover
 
 
 try:
-    from firn.models.firn import FirnModel, FirnParameters
-    from firn.solvers.firn_solver import FirnColumnSolver
-    from firn.constants import year
+    from firnpack.models.firn import FirnModel, FirnParameters
+    from firnpack.solvers.firn_solver import FirnColumnSolver
+    from firnpack.constants import year
 except ModuleNotFoundError:  # pragma: no cover
     # Running from a flat directory with local files.
-    from firn import FirnModel, FirnParameters  # type: ignore
+    from firnpack import FirnModel, FirnParameters  # type: ignore
     from firn_solver import FirnColumnSolver  # type: ignore
     from constants import year  # type: ignore
 

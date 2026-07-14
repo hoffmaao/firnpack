@@ -29,11 +29,11 @@ import pandas as pd
 
 import firedrake as fd
 from firedrake.adjoint import stop_annotating  # only to be safe; not annotating
-from firn.models.firn import FirnParameters, FirnModel
-from firn.solvers.firn_solver import FirnColumnSolver
-from firn.physics.densification import (
+from firnpack.models.firn import FirnParameters, FirnModel
+from firnpack.solvers.firn_solver import FirnColumnSolver
+from firnpack.physics.densification import (
     herron_langway as _hl, arthern_ligtenberg as _al)
-from firn.constants import year as YEAR_S
+from firnpack.constants import year as YEAR_S
 
 _HERE = Path(__file__).parent
 PROC = _HERE.parent.parent / "processed"

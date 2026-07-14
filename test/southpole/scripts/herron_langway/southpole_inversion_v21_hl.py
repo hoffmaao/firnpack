@@ -23,11 +23,11 @@ from firedrake.adjoint import (
     stop_annotating, get_working_tape,
 )
 from pyadjoint import compute_gradient
-from firn.models.firn import FirnParameters, FirnModel
-from firn.solvers.firn_solver import FirnColumnSolver
-from firn.physics.densification import herron_langway as _herron_langway
+from firnpack.models.firn import FirnParameters, FirnModel
+from firnpack.solvers.firn_solver import FirnColumnSolver
+from firnpack.physics.densification import herron_langway as _herron_langway
 herron_langway = functools.partial(_herron_langway, smooth=True)
-from firn.constants import year as YEAR_S
+from firnpack.constants import year as YEAR_S
 
 _HERE = Path(__file__).parent
 _SP = _HERE.parent.parent
