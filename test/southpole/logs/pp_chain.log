@@ -1,5 +1,0 @@
-[chain] 2026-07-03 13:16:23 pp optimize (FIRN_MAX_ITER=50)
-[chain] 2026-07-03 17:18:44 pp Hessian (93 gradient evals)
-[chain] 2026-07-03 23:40:32 pp attribution sensitivities
-[chain] 2026-07-03 23:59:45 combine
-[chain] 2026-07-03 23:59:45 CHAIN_COMPLETE

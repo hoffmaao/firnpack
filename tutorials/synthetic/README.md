@@ -30,7 +30,7 @@ dated-layer obs, multi-control inversion + UQ) but uses the older grain-based
 Kingslake controls — reuse its shape, not its model.
 
 Seeds:
-- `test/southpole/scripts/diagnostics/clean_stepper_taylor.py` — the lean
+- `archive/southpole/scripts/diagnostics/clean_stepper_taylor.py` — the lean
   adjoint stepper + Taylor test matching the production assimilation architecture.
 - `test/test_adjoint.py`, `test/test_adjoint_sparse_obs.py` — single-parameter
   twin experiments (dense / sparse obs) that recover a known `kg`.

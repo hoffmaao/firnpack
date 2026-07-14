@@ -25,5 +25,18 @@ here:
 | Roadmap, phase status, publication plan | `PUBLICATION_PLAN.md` |
 | How to run a case study | `tutorials/<site>/run.py` and the root `README.md` |
 | Observation provenance for a site | `tutorials/<site>/data/README.md` |
-| South Pole inversion history + adjoint rules | `test/southpole/` |
+| South Pole inversion history (r5→r8/r10) | `southpole_inversion_handoff.md` |
+| South Pole adjoint rules and gotchas | `southpole_adjoint_notes.md` |
+| Superseded scripts, logs, and raw data | `archive/` (untracked; see root `README.md`) |
 | Repo layout | root `README.md` |
+
+## Contents
+
+- `southpole_inversion_handoff.md` - the South Pole inversion history and the
+  pyadjoint rules the engine depends on. Rescued from the pre-engine script
+  tree when that history moved to `archive/`.
+- `southpole_adjoint_notes.md` - South Pole working notes and adjoint gotchas,
+  rescued from the same place.
+
+Both describe the flagship case study and predate the shared engine, so read
+them alongside `src/firnpack/inverse/` rather than as a description of it.

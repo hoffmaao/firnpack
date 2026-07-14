@@ -14,7 +14,7 @@ import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 HERE = Path(__file__).parent
 FIGS = HERE/"figures"; FIGS.mkdir(exist_ok=True)
 su = json.load(open(HERE/"results/summit_invert.json"))
-sp = json.load(open(HERE.parent.parent/"test/southpole/results/sp_joint_r8.json"))
+sp = json.load(open(HERE.parent/"southpole/results/sp_joint_r8.json"))
 ms, mp = su["m_map"], sp["m_map"]
 R, RHO_I, RHO_M = 8.314, 917.0, 550.0
 

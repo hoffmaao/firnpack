@@ -43,7 +43,7 @@ FIRNMICE_RUN_FULL=1 pytest test/test_firnmice_checkpoint.py
 Four top-level parts (see the root `README.md` for the full tree):
 
 - **`src/firnpack/`** - the package; everything importable (`import firnpack`)
-- **`test/`** - pytest tests, plus per-site script history, run logs, staged data
+- **`test/`** - tests only: the pytest suites (`test_*.py`)
 - **`tutorials/`** - the three case studies (synthetic, southpole, summit), each a
   thin config over `firnpack.inverse`. Each holds `run.py`, `plot_*.py`,
   `data/` (tracked), `results/` (MAP JSONs, ignored), `figures/` (ignored)
@@ -80,4 +80,23 @@ The codebase follows a **model-solver separation pattern**:
 
 ### Test Directory
 
-`test/` contains both pytest-style tests (`test_*.py`) and standalone experimental scripts (`forward_*.py`, `*_inversion.py`, `*_checkpoint.py`). Real field data for Summit (Greenland), WAIS Divide, and South Pole are staged under `test/summit/`, `test/WAIS/`, and `test/SouthPole/`.
+`test/` is tests only: the pytest suites (`test_*.py`). They are self-contained -
+they generate their own outputs into `tmp_path` and do not read the case-study
+data. The FirnMICE benchmark runners and plot scripts contain no tests and now
+live in `archive/firnmice/`.
+
+Curated observation data now lives with the case that uses it, in
+`tutorials/<site>/data/`, with provenance in that directory's `README.md`.
+
+### Archive
+
+`archive/` is an untracked parking lot for everything outside the four-part
+structure: superseded run outputs, staged raw downloads, and the South Pole
+script/log history that predates the shared engine (`archive/southpole/`).
+
+Nothing in `archive/` is on the critical path, and nothing should import from
+it. It is untracked but not deleted, and every file remains recoverable from
+git history. Two things were deliberately rescued out of it before archiving:
+the frozen reference MAPs (now `tutorials/southpole/results/sp_joint_r8.json`
+and `usp50_k_snow_fit.json`, both tracked) and the SP write-ups (now
+`doc/southpole_inversion_handoff.md` and `doc/southpole_adjoint_notes.md`).

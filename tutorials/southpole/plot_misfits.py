@@ -23,7 +23,7 @@ FIGS = HERE/"figures"; FIGS.mkdir(exist_ok=True)
 # for the dense temporal-probe MAP).
 import os
 MAP_PATH = os.environ.get("FIRN_MAP_JSON",
-                          str(HERE.parent.parent/"test/southpole/results/sp_joint_r8.json"))
+                          str(HERE/"results/sp_joint_r8.json"))
 MAP_NAME = Path(MAP_PATH).stem
 ns = {"__file__": str(HERE/"run.py"), "__name__": "cfgbuild"}
 src = open(HERE/"run.py").read().split("warm = json.load")[0]

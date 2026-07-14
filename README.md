@@ -84,10 +84,20 @@ tutorials/         the three case studies, each a thin config over the engine
     results/       MAP JSONs from long runs - expensive             [ignored]
     figures/       rebuilt any time from results/ by plot_*.py      [ignored]
 
-test/              pytest unit tests (adjoint FD/Taylor, conservation, MMS)
-                   plus per-site script history, run logs, and staged data
+  Two exceptions are tracked inside southpole/results/: the frozen reference
+  MAPs sp_joint_r8.json and usp50_k_snow_fit.json. They are results by
+  provenance but inputs by use - run.py warm-starts from r8 and the plot
+  scripts compare against it - so they are version-controlled deliberately.
+
+test/              tests, and only tests: the pytest suites (adjoint FD/Taylor,
+                   conservation, MMS), each self-contained
 
 doc/               methods notes, derivations, and paper-facing documentation
+
+archive/           parking lot, untracked - superseded outputs, staged raw
+                   data, and the South Pole script/log history that predates
+                   the shared engine. Nothing on the critical path; every
+                   file is still recoverable from git history.
 
 PUBLICATION_PLAN.md  roadmap + repo-cleanup status
 ```

@@ -19,7 +19,7 @@ from firnpack.constants import year as YEAR_S
 
 HERE = Path(__file__).parent
 DATA = HERE / "data"
-SP_RESULTS = HERE.parent.parent / "test/southpole/results"   # frozen r8 lives here
+SP_RESULTS = HERE / "results"                                # frozen r8 lives here
 OUT = str(HERE / "results")
 MODE = os.environ.get("FIRN_MODE", "validate")
 # Resolution knobs (discretization-sensitivity study): defaults = r8 numerics.

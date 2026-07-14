@@ -31,7 +31,7 @@ herron_langway = functools.partial(_hl, smooth=True)
 
 HERE = Path(__file__).parent
 DATA = HERE / "data"
-SP_RESULTS = HERE.parent.parent / "test/southpole/results"   # frozen SP MAP lives here
+SP_RESULTS = HERE.parent / "southpole/results"               # frozen SP MAP lives here
 OUT = HERE / "results"; OUT.mkdir(exist_ok=True)
 SP_MAP = os.environ.get("FIRN_SP_MAP", "sp_joint_r8.json")
 

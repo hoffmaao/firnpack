@@ -18,7 +18,7 @@ import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 
 HERE = Path(__file__).parent
 FIGS = HERE/"figures"; FIGS.mkdir(exist_ok=True)
-R8 = json.load(open(HERE.parent.parent/"test/southpole/results/sp_joint_r8.json"))
+R8 = json.load(open(HERE/"results/sp_joint_r8.json"))
 DN = json.load(open(HERE/"results/sp_engine_dense.json"))
 RHO_I = 917.0
 

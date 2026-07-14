@@ -13,7 +13,7 @@ import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 
 HERE = Path(__file__).parent
 FIGS = HERE/"figures"; FIGS.mkdir(exist_ok=True)
-CASES = [("r8 (NZ=100, dt=5)", HERE.parent.parent/"test/southpole/results/sp_joint_r8.json", "#111827", "-"),
+CASES = [("r8 (NZ=100, dt=5)", HERE/"results/sp_joint_r8.json", "#111827", "-"),
          ("NZ=200, dt=5",      HERE/"results/sp_engine_nz200.json", "#2563EB", "--"),
          ("NZ=100, dt=2.5",    HERE/"results/sp_engine_dt25.json", "#EA580C", ":")]
 R, TSITE = 8.314, 222.35  # -50.8 C

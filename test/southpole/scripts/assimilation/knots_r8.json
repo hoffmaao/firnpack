@@ -1,7 +1,0 @@
-{
-  "comment": "Round-8 COARSE knots — the final SP layout. From the r7 layer-fit diagnostic: the d(age)/dz operator smears sub-decadal b(t) (null space), so dense b-knots collect noise. Coarse multidecadal b (15) matches what the layers actually constrain; sparse-deep/moderate-instrumental T (13). Paired with FIRN_SIG_DAGE_SCALE=2.2 (fine layer structure is unfittable), FIRN_B_CLIM=0.096 (de-biased, no ERA5, no seam), corrected datum (T_SHIFT=-5.8), k_snow pinned 1.29.",
-  "knot_years": [1000, 1300, 1550, 1750, 1850, 1900, 1930, 1955, 1975, 1990,
-                 2000, 2008, 2015],
-  "b_knot_years": [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1850,
-                   1900, 1930, 1960, 1990, 2015]
-}

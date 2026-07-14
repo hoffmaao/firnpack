@@ -22,7 +22,7 @@ import numpy as np
 import pandas as pd
 
 HERE = Path(__file__).parent
-FIT = json.load(open(HERE.parent.parent / "test/southpole/results/usp50_k_snow_fit.json"))
+FIT = json.load(open(HERE / "results/usp50_k_snow_fit.json"))
 RHO_I, C_I, T_K = 917.0, 2009.0, 222.25
 KF, SSTAR = 0.987, FIT["s_snow"]
 YEAR_S = 365.25 * 86400.0

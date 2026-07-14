@@ -1,8 +1,0 @@
-/home/andrew/venv-firedrake-2026/lib/python3.10/site-packages/firedrake/petsc.py:96: UserWarning: No external package for parmetis, ptscotch, chaco found, defaulting to PETSc simple partitioner. This may not be optimal.
-  warn(
-tsfc:WARNING Estimated quadrature degree 11 more than tenfold greater than any argument/coefficient degree (max 1)
-tsfc:WARNING Estimated quadrature degree 11 more than tenfold greater than any argument/coefficient degree (max 1)
-time-varying bdot from sp_joint_r5b.json: [0.0740, 0.1282] m/yr
-corr(binned density residual, Buizert accum anomaly) = -0.36  (n=33 bins)
-Buizert accum over record: 0.024-0.100 m/yr vs model constant 0.085
-Saved /home/andrew/projects/firngrain/test/southpole/results/sp_midrecord_diagnostic_r5b.png
