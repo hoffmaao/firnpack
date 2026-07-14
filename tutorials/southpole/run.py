@@ -1,4 +1,4 @@
-"""experiments/southpole/run.py — South Pole assimilation via the shared engine.
+"""tutorials/southpole/run.py — South Pole assimilation via the shared engine.
 
 Reproduces the frozen r8 MAP (sp_joint_r8.json) through firnpack.inverse.assimilate,
 validating the engine refactor. Same config as round 8: coarse knots
@@ -8,7 +8,7 @@ per-point chi^2, sigma_dage x2.2.
 
 Modes (env FIRN_MODE): "validate" (default; forward J at the r8 MAP, compare
 81.31), "verify" (replay + FD), "optimize" (full run, warm from r8).
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> experiments/southpole/run.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/run.py
 """
 from __future__ import annotations
 import json, math, os

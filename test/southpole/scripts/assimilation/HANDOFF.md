@@ -527,7 +527,7 @@ smooth 0.075–0.099, mean 0.087 = stake-farm band). Rates INVARIANT 8th time
 s2 0.805, ezz −3.3e-5 (kinematic), b_off −0.099. T(1000)=−51.24, peak
 −50.24@1975. corr(ρ-res,Buizert) −0.26. **THIS is the SP result for the
 paper.** Next SP: reanalysis + UQ at r8 (unblocked), then distill to
-`experiments/southpole/`.
+`tutorials/southpole/`.
 
 **⚠ r7 VERDICT (2026-07-06 20:36): DE-BIAS REFUTED the artifact hypothesis —
 the spike is a d(age)/dz NULL-SPACE mode, not the prior.** `sp_joint_r7.json`:

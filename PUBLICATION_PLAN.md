@@ -47,7 +47,7 @@ priors, which observables are present) over one validated engine.
 
 Target layout:
 ```
-firngrain/
+firnpack/
   README.md  LICENSE  .gitignore  pyproject.toml  requirements.txt (pinned, incl firedrake)
   src/firnpack/
     constants.py  mesh.py

@@ -1,4 +1,4 @@
-"""experiments/synthetic/run.py — Observing System Simulation Experiment (OSSE).
+"""tutorials/synthetic/run.py — Observing System Simulation Experiment (OSSE).
 
 Method-credibility anchor: set a KNOWN truth (densification law + conductivity +
 surface-T history + accumulation history), generate synthetic density / depth-age
@@ -10,7 +10,7 @@ Uses firnpack.inverse (the shared engine) for both the truth-forward and the
 inversion — identical machinery to South Pole / Summit.
 
 Modes (env FIRN_MODE): "verify" (truth recovery FD check), "optimize" (default).
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> experiments/synthetic/run.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/synthetic/run.py
 """
 from __future__ import annotations
 import math, os

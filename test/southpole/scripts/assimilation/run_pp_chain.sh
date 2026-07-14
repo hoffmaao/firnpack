@@ -4,7 +4,7 @@
 #            > test/southpole/logs/pp_chain.log 2>&1 &
 # Logs land in test/southpole/logs/ (repo-side, survives sessions).
 set -e
-cd /home/andrew/projects/firngrain
+cd /home/andrew/projects/firnpack
 export PYTHONPATH=src OMP_NUM_THREADS=1
 PY=/home/andrew/venv-firedrake-2026/bin/python
 L=test/southpole/logs

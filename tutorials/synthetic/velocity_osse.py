@@ -33,7 +33,7 @@ densification-law parameters / histories relative to vco.
 
 Run one case:
   PYTHONPATH=src OMP_NUM_THREADS=1 FIRN_VCASE=vmis \
-    <venv-python> experiments/synthetic/velocity_osse.py
+    <venv-python> tutorials/synthetic/velocity_osse.py
 Driver: run_velocity_osse.sh. Output: results/vosse_<case>.json.
 """
 from __future__ import annotations

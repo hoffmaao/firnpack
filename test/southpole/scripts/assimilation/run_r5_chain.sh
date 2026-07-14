@@ -4,7 +4,7 @@
 # Launch: nohup bash test/southpole/scripts/assimilation/run_r5_chain.sh \
 #            > test/southpole/logs/r5_chain.log 2>&1 &
 set -e
-cd /home/andrew/projects/firngrain
+cd /home/andrew/projects/firnpack
 export PYTHONPATH=src OMP_NUM_THREADS=1
 PY=/home/andrew/venv-firedrake-2026/bin/python
 L=test/southpole/logs

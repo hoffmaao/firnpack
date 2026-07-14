@@ -1,4 +1,4 @@
-"""experiments/summit/run.py — Summit (Greenland) inversion via the shared engine.
+"""tutorials/summit/run.py — Summit (Greenland) inversion via the shared engine.
 
 Recovers Summit's OWN densification law + accumulation history from density
 (composite core) + depth-age (GISP2) + layer-gradient d(age)/dz, under a
@@ -11,7 +11,7 @@ No velocity/ApRES and no deep borehole T at Summit -> those observables and the
 ezz / conductivity / Q_base controls are simply dropped (fixed).
 
 Modes (env FIRN_MODE): "verify" (replay + FD), "optimize" (default).
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> experiments/summit/run.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/summit/run.py
 """
 from __future__ import annotations
 import math, os

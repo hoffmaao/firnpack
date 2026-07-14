@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 # --- Load data ---
 df = pd.read_csv(
-    "/home/andrew/projects/firngrain/test/southpole/processed/"
+    "/home/andrew/projects/firnpack/test/southpole/processed/"
     "apres_vertical_velocity_processed.csv"
 )
 
@@ -66,7 +66,7 @@ fig.suptitle("South Pole ApRES dR/dt — all 10 sites", fontsize=13, y=0.98)
 fig.tight_layout(rect=[0, 0, 1, 0.95])
 
 outpath = (
-    "/home/andrew/projects/firngrain/test/southpole/results/"
+    "/home/andrew/projects/firnpack/test/southpole/results/"
     "apres_all_sites_comparison.png"
 )
 fig.savefig(outpath, dpi=150)

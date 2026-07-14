@@ -10,7 +10,7 @@ dJ_other = J_other(site) - J_other(none): a velocity profile consistent with
 the rest of the system costs ~nothing; an inconsistent one drags the physics
 and degrades the other fits. Also reports where each site pulls ezz.
 
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> experiments/southpole/score_vel_screen.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/score_vel_screen.py
 """
 from __future__ import annotations
 import json, os

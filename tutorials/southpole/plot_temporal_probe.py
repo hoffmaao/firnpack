@@ -8,7 +8,7 @@ dense 20T+34b on the identical clean configuration):
   (b) T(t): both recovered histories.
   (c) fit rms per observable + J for both — what the extra 26 controls bought.
 
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> experiments/southpole/plot_temporal_probe.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/plot_temporal_probe.py
 """
 from __future__ import annotations
 import json, os

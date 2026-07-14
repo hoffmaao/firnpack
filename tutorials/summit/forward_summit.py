@@ -8,13 +8,13 @@ SUMMIT forcing (T ~ -28.8 C, accumulation ~ 0.246 m ice/yr; 3x warmer-and-
 wetter than SP). Compares the prediction to Summit observations:
   * depth-age  vs GISP2 layer-counted timescale
   * firn temperature vs FirnCover RTD string (0.5-11.6 m)
-  * density vs a Summit density profile (if experiments/summit/data/summit_density.csv exists)
+  * density vs a Summit density profile (if tutorials/summit/data/summit_density.csv exists)
 
 This is the paper's Summit transferability figure in its simplest form (constant
 forcing, steady state). A Summit INVERSION (recover Summit's own law) is the next
 step. No adjoint — forward only.
 
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> experiments/summit/forward_summit.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/summit/forward_summit.py
 Env: FIRN_SP_MAP (default sp_joint_r8.json), FIRN_SUMMIT_T_C, FIRN_SUMMIT_B,
      FIRN_SPIN_YEARS (default 1200), FIRN_H (default 130).
 """

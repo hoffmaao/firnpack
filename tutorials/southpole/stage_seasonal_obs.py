@@ -13,7 +13,7 @@ correction; residual is second order in s away from s*), sigma = sqrt(0.075^2
 against the offline 1.291.
 
 Output: data/usp50_seasonal_lnratio.csv
-Run: <venv-python> experiments/southpole/stage_seasonal_obs.py   (numpy only)
+Run: <venv-python> tutorials/southpole/stage_seasonal_obs.py   (numpy only)
 """
 from __future__ import annotations
 import json, math

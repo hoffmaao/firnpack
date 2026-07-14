@@ -11,8 +11,8 @@ With truth known, "recovers finer structure" vs "invents noise" is measurable:
 compare recovered-vs-truth rms in multidecadal and decadal bands per case.
 
 Run one case:
-  PYTHONPATH=src:experiments/synthetic OMP_NUM_THREADS=1 FIRN_TR_CASE=dense \
-  <venv> experiments/synthetic/temporal_resolution.py
+  PYTHONPATH=src:tutorials/synthetic OMP_NUM_THREADS=1 FIRN_TR_CASE=dense \
+  <venv> tutorials/synthetic/temporal_resolution.py
 Output: results/tr_truth.json, results/tr_<case>.json
 """
 from __future__ import annotations

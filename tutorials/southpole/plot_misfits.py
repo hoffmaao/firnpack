@@ -6,7 +6,7 @@ velocity), the observations with their 1-sigma errors against the model's
 kernel predictions (the exact operators the objective uses), plus a combined
 standardized-residual panel. This is the paper's fit-quality figure.
 
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> experiments/southpole/plot_misfits.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/plot_misfits.py
 """
 from __future__ import annotations
 import json

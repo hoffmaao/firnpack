@@ -13,8 +13,8 @@ subsets without v demonstrate ezz is unobservable from the core system.
 (Non-co-located transfer experiments live in velocity_osse.py, not here.)
 
 Run (one subset):
-  PYTHONPATH=src:experiments/synthetic OMP_NUM_THREADS=1 \
-  FIRN_OBS_SUBSET=rho,age <venv> experiments/synthetic/observability.py
+  PYTHONPATH=src:tutorials/synthetic OMP_NUM_THREADS=1 \
+  FIRN_OBS_SUBSET=rho,age <venv> tutorials/synthetic/observability.py
 Driver for all nine: run_observability.sh
 Output: results/obsv_<slug>.json (+ shared results/obsv_truth_profiles.json)
 """
