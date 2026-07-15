@@ -1,10 +1,12 @@
 """plot_misfits.py — South Pole observation-vs-model fit at the frozen r8 MAP.
 
-Runs the engine forward at the r8 MAP and plots, for each assimilated
-observable (density, depth-age, layer gradient d(age)/dz, borehole T, ApRES
-velocity), the observations with their 1-sigma errors against the model's
-kernel predictions (the exact operators the objective uses), plus a combined
-standardized-residual panel. This is the paper's fit-quality figure.
+Runs the engine forward at the r8 MAP and plots, for each observable actually
+on the tape (density, layer gradient d(age)/dz, borehole T, and one panel per
+ApRES velocity block; plus depth-age when FIRN_AGE_BLOCK=1 restores it), the
+observations with their 1-sigma errors against the model's kernel predictions
+(the exact operators the objective uses), plus a combined standardized-residual
+panel. The panel grid and letters follow the blocks present. This is the
+paper's fit-quality figure.
 
 Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/plot_misfits.py
 """
