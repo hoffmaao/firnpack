@@ -29,7 +29,6 @@ USER SETTINGS
 """
 
 import os
-import urllib.request
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -38,11 +37,9 @@ import matplotlib.pyplot as plt
 # USER SETTINGS
 # --------------------------
 
-# Path to your ApRES strain .mat file (MATLAB v7.3 / HDF5)
+# Path to your ApRES strain .mat file (MATLAB v7.3 / HDF5). Not in the
+# repository; a copy exists under archive/.
 MAT_FILE = "G4-08-05_2023_2024_strain.mat"
-
-# Optional: if MAT_FILE does not exist, set a URL to download it
-DOWNLOAD_URL = None  # e.g. "https://.../G4-08-05_2023_2024_strain.mat"
 
 # Use only data in the firn region (range <= firn_depth from file) for plotting/mapping
 USE_FIRN_ONLY = True
@@ -88,15 +85,6 @@ WRITE_VTK = False  # requires Firedrake
 # ------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------
-
-def ensure_file(path: str, url: str | None) -> None:
-    if os.path.exists(path):
-        return
-    if url is None:
-        raise FileNotFoundError(f"Could not find {path!r} and DOWNLOAD_URL is None.")
-    print(f"Downloading {url} -> {path}")
-    urllib.request.urlretrieve(url, path)
-
 
 def read_apres_v73(mat_file: str, group: str = "vdat_strain") -> dict:
     """
@@ -261,7 +249,6 @@ def main():
         )
         return
 
-    ensure_file(MAT_FILE, DOWNLOAD_URL)
     data = read_apres_v73(MAT_FILE)
 
     range_m = data["range_m"]

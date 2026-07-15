@@ -19,11 +19,14 @@ PYTHONPATH=src OMP_NUM_THREADS=1 /home/andrew/venv-firedrake-2026/bin/python <sc
 # Install in development mode
 pip install -e .
 
-# Run all tests (testpaths = test/)
+# Run all tests (testpaths = test/). Fast tier only: addopts pins -m 'not slow'
 pytest test/
 
-# Run a specific test
-pytest test/test_firnmice_checkpoint.py
+# Opt into the full-fidelity tier (long integrations, FirnMICE spinup)
+pytest test/ -m slow
+
+# Run a specific test (-m slow is required for a slow-marked test)
+pytest test/test_firnmice_checkpoint.py -m slow
 
 # Run a case study, then rebuild its figures from results/
 PYTHONPATH=src OMP_NUM_THREADS=1 python tutorials/southpole/run.py
@@ -35,7 +38,7 @@ PYTHONPATH=src OMP_NUM_THREADS=1 python tutorials/summit/forward_summit.py
 
 Some test scripts use environment variables for control:
 ```bash
-FIRNMICE_RUN_FULL=1 pytest test/test_firnmice_checkpoint.py
+FIRNMICE_RUN_FULL=1 pytest test/test_firnmice_checkpoint.py -m slow
 ```
 
 ## Repository structure
