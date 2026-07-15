@@ -110,6 +110,45 @@ def _zeising_resid_sigma(rr, y, ee, deg=2):
     resid = y - G @ M
     return float(np.sqrt(np.var(resid, ddof=1))) if resid.size > 1 else 0.0
 
+# ---- ezz measured BELOW the firn -------------------------------------------
+# ezz is the vertical strain due to horizontal extension (less often
+# compression). It acts on FIRN AND ICE ALIKE — the model imposes it on the
+# whole column — but it is UNDIAGNOSABLE within the firn, where compaction
+# contributes to the same apparent vertical strain rate. The two enter the firn
+# velocity gradient as a SUM, so no amount of ApRES precision separates them;
+# that confound (not any operator bug) is why the inverted ezz flipped twice.
+#
+# Below close-off compaction ceases and n(z)=n_ice, so the reported range rate
+# dR/dt IS w(z) and ezz = d(dR/dt)/dz — a straight slope, with no densification
+# model, no refractive-index operator and no null space. Measure it there,
+# impose it on the whole column, and the firn dR/dt profile is freed to TEST
+# densification instead of fighting for ezz.
+#
+# Uncertainty by Zeising's own method (phase errors weight the fit, residual
+# scatter sets the covariance). Andrew 2026-07-14: pin it hard with the fit
+# error — i.e. adopt the selected column's measured strain as the core's.
+#
+# NOTE: Zeising's published vsr_per_year fits from cfg.firn_depth_m = 100 m
+# (apres/config.py:158), which is ABOVE SP's close-off (~127 m), so it still
+# carries ~27 m of firn compaction — that shifts x11n0 by 38%. We refit below
+# FIRN_EZZ_ZMIN. The deep fit is insensitive to the exact cut (127 vs 150 m
+# moves the clean sites <2%).
+EZZ_SITE = os.environ.get("FIRN_EZZ_SITE", "x11n6")   # nearest clean site, 9.05 km
+EZZ_ZMIN = float(os.environ.get("FIRN_EZZ_ZMIN", "127.0"))   # SP close-off, 830 kg/m3
+def ezz_below_firn(site, zmin=EZZ_ZMIN):
+    zei = pd.read_csv(DATA/"apres_zeising_processed.csv")
+    d = zei[(zei.site==site)&(zei.range_m>=zmin)].sort_values("range_m")
+    if len(d) < 10: raise ValueError(f"site {site}: only {len(d)} points below {zmin} m")
+    x = d.range_m.values; y = d.dRdt_myr.values; e = d.dRdt_err_myr.values
+    G = np.column_stack([np.ones_like(x), x - x.mean()])
+    w = np.where(np.isfinite(e) & (e > 0), 1.0/e**2, 1.0)
+    M = np.linalg.solve(G.T @ np.diag(w) @ G, G.T @ np.diag(w) @ y)
+    resid = y - G @ M
+    var = float(np.var(resid, ddof=1))
+    N = float(len(y))
+    cov = var*((N - 1.0)/max(1.0, N - 2.0))*np.linalg.inv(G.T @ G)
+    return float(M[1]), float(np.sqrt(cov[1, 1])), float(np.sqrt(var)), len(d)
+
 def site_vel_block_zeising(site, zref_range=30.0, label="v"):
     # Zeising raw-burst product (proper phase errors; no 25-m smoothing — the
     # pipeline-A smoothing biased firn gradients by up to 4x): 6-m fine windows
@@ -244,6 +283,15 @@ if os.environ.get("FIRN_SEAS", "0") == "1":
           f"ref z={obs[-1].ref_depth:.2f} m), k_snow prior WIDENED")
 
 # ---- controls ----
+if EZZ_SITE != "none":
+    _ez, _ez_e, _ez_sc, _ez_n = ezz_below_firn(EZZ_SITE)
+    print(f"ezz PINNED from {EZZ_SITE} below {EZZ_ZMIN:.0f} m: {_ez:.3e} +- {_ez_e:.1e} /yr "
+          f"({_ez_n} pts, deep scatter {_ez_sc*1000:.2f} mm/yr)")
+    _EZZ_CTRL = ScalarCtrl("ezz_yr", _ez, _ez, _ez_e, -3.0e-4, 2.0e-4)
+else:
+    # legacy: free ezz, diagnosed (badly) from the firn profile
+    _EZZ_CTRL = ScalarCtrl("ezz_yr", 0.0, 0.0, 1.0e-4, -3.0e-4, 2.0e-4)
+    print("ezz FREE (legacy: diagnosed from the firn, where it is confounded with compaction)")
 scalars=[
     ScalarCtrl("hl_k0",10.79,10.79,1.0,0.5,500,log=True),
     ScalarCtrl("hl_k1",570.7,570.7,1.0,10,50000,log=True),
@@ -262,7 +310,12 @@ scalars=[
     (ScalarCtrl("Q_base",0.0,0.0,0.05,-0.2,0.2)
      if os.environ.get("FIRN_BASAL","G")=="Q" else
      ScalarCtrl("G_base",-0.005,0.0,0.025,-0.1,0.1)),
-    ScalarCtrl("ezz_yr",0.0,0.0,1.0e-4,-3.0e-4,2.0e-4),
+    # ezz: PINNED to the below-firn strain of one column, at its own fit error
+    # (Andrew 2026-07-14). The old free control (center 0, sigma 1e-4) asked the
+    # firn to diagnose a quantity it cannot separate from compaction; with this
+    # pin, ezz is effectively known and the firn dR/dt profile becomes a clean
+    # test of densification. FIRN_EZZ_SITE=none restores the free control.
+    _EZZ_CTRL,
     ScalarCtrl("s2_shape",1.0,1.0,0.3,0.3,2.0,log=True),
     ScalarCtrl("b_off",0.0,0.0,0.25,-0.8,0.8),
 ]
