@@ -9,7 +9,7 @@ standardized-residual panel. This is the paper's fit-quality figure.
 Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/plot_misfits.py
 """
 from __future__ import annotations
-import json
+import json, math, string
 from pathlib import Path
 import numpy as np
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
@@ -48,7 +48,7 @@ def to_display(block):
     elif lab == "T":      o, s, p = o/C_I + T_REF - 273.15, s/C_I, p/C_I + T_REF - 273.15; unit = "T (°C)"
     elif lab == "rho":    unit = "density (kg m⁻³)"
     elif lab == "dage":   unit = "d(age)/dz (yr m⁻¹)"
-    elif lab == "v":      unit = "w (m yr⁻¹)"
+    elif lab.startswith("v"): unit = "w (m yr⁻¹)"
     else: unit = lab
     return d, o, s, p, unit
 
@@ -57,13 +57,23 @@ blocks = {b["label"]: b for b in r["obs"]}
 # restores it), and velocity is per-site now -- so take whatever is present.
 order = [l for l in ["rho", "age", "dage", "T"] if l in blocks] + \
         sorted(l for l in blocks if l.startswith("v"))
-titles = {"rho": "(a) density (SP19)", "age": "(b) depth–age (SP19)",
-          "dage": "(c) layer gradient d(age)/dz", "T": "(d) borehole temperature",
-          "v": "(e) vertical velocity (ApRES)"}
+# per-site velocity blocks are labelled v_<site>; they all key on "v"
+def base(lab): return "v" if lab.startswith("v") else lab
+titles = {"rho": "density (SP19)", "age": "depth–age (SP19)",
+          "dage": "layer gradient d(age)/dz", "T": "borehole temperature",
+          "v": "vertical velocity (ApRES)"}
+def title(lab):
+    t = titles[base(lab)]
+    return f"{t} — {lab[2:]}" if lab.startswith("v_") else t
 C_O, C_M, C_R = "#111827", "#2563EB", "#EA580C"
 
-fig, AX = plt.subplots(2, 3, figsize=(15, 9))
-for ax, lab in zip(AX.flat[:5], order):
+# grid and panel letters follow the blocks actually present (+1 residual panel),
+# so deleting or adding a block never leaves a hole or a mislabelled panel
+NPAN = len(order) + 1
+NC = min(3, NPAN); NR = math.ceil(NPAN/NC)
+fig, AX = plt.subplots(NR, NC, figsize=(5*NC, 4.5*NR), squeeze=False)
+axes = list(AX.flat)
+for i, (ax, lab) in enumerate(zip(axes, order)):
     d, o, s, p, unit = to_display(blocks[lab])
     ax.errorbar(o, d, xerr=s, fmt="o", ms=3.5, color=C_O, elinewidth=0.7,
                 capsize=0, alpha=0.75, label="observations ±1σ")
@@ -72,19 +82,21 @@ for ax, lab in zip(AX.flat[:5], order):
     ax.invert_yaxis(); ax.set_ylim(132, 0)
     ax.set_xlabel(unit); ax.set_ylabel("depth (m)")
     rms = r["diag"]["rms_"+lab]
-    ax.set_title(f"{titles[lab]} — rms {rms:.2f}σ", fontsize=10.5)
+    ax.set_title(f"({string.ascii_lowercase[i]}) {title(lab)} — rms {rms:.2f}σ", fontsize=10.5)
     ax.legend(fontsize=8); ax.grid(alpha=0.3)
 
-# (f) all standardized residuals vs depth
-ax = AX.flat[5]
+# final panel: all standardized residuals vs depth
+ax = axes[len(order)]
+for j in range(NPAN, len(axes)): axes[j].set_visible(False)
 cols = {"rho": "#2563EB", "age": "#EA580C", "dage": "#059669", "T": "#7C3AED", "v": "#B45309"}
 for lab in order:
     d, o, s, p, _ = to_display(blocks[lab])
-    ax.plot((p-o)/s, d, "o", ms=3.5, color=cols[lab], alpha=0.75, label=lab)
+    ax.plot((p-o)/s, d, "o", ms=3.5, color=cols[base(lab)], alpha=0.75, label=lab)
 ax.axvline(0, color="k", lw=0.8); ax.axvspan(-1, 1, color="gray", alpha=0.12, lw=0)
 ax.invert_yaxis(); ax.set_ylim(132, 0); ax.set_xlim(-3.2, 3.2)
 ax.set_xlabel("(model − obs) / σ"); ax.set_ylabel("depth (m)")
-ax.set_title("(f) standardized residuals, all observables", fontsize=10.5)
+ax.set_title(f"({string.ascii_lowercase[len(order)]}) standardized residuals, "
+             f"all observables", fontsize=10.5)
 ax.legend(fontsize=8, ncol=2); ax.grid(alpha=0.3)
 
 fig.suptitle(f"South Pole joint assimilation — observations vs the {MAP_NAME} MAP "

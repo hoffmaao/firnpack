@@ -9,6 +9,7 @@ FirnGrain South Pole assimilation. All small; tracked in git for reproducibility
 | `sp19_depth_age.csv` | `depth_m, age, age_yrBP, year_CE` | SP19 depth–age scale (Winski et al. 2019 / Kahle et al. 2021) |
 | `spicecore_borehole_T.csv` | `depth_m, T_C`, 13–130 m | SPICEcore borehole temperature (upstream) |
 | `apres_vertical_velocity_processed.csv` | ApRES vertical velocity vs range | Stevens et al. 2022 (usap-dc 601525); Zeising processing |
+| `apres_site_locations.csv` | `site, latitude, longitude` for the ApRES array | Hills et al. 2022 ApRES acquisition metadata (usap-dc 601503, `raw/Acquisition_MetaData.txt`) |
 | `buizert2021_spice_accum.csv` | `age_yrBP, accum, year_CE` | Buizert et al. 2021 SPICE accumulation reconstruction (NOAA Paleo) |
 | `buizert2021_spice_temp.csv` | δ¹⁸O-derived cloud temperature | Buizert et al. 2021 (NOAA Paleo) |
 | `era5_monthly_point.csv` | `year, month, t2m_K, net_accum_m_iceeq_month` | ERA5 monthly, SP gridpoint (Copernicus CDS) |

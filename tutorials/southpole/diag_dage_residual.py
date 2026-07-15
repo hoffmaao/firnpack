@@ -17,9 +17,14 @@ Split the residual by SCALE rather than by site:
               dominates -> representativeness, not error: the honest fix is
               the error model, not the physics.
 
-Also: is the residual WHITE at the 1-m sampling (lag-1 autocorrelation)? The
-stated sigma is a window-fit s.e. + 4% floor and contains NO representativeness
-term, which is the leading hypothesis for the 2.2x.
+Also: is the residual WHITE at the 1-m sampling (lag-1 autocorrelation)?
+
+HISTORICAL: this diagnostic was run against the PRE-FIX error model, whose
+sigma was a window-fit s.e. + 4% floor with NO representativeness term -- the
+leading hypothesis for the 2.2x, and the one it confirmed. run.py now carries
+that term (sqrt(sigma_meas^2 + sigma_repr^2)), so re-running this against a MAP
+produced under the new sigma should show rms near 1 and the inflation factor
+below near 1.
 
 Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diag_dage_residual.py
 """
@@ -34,7 +39,8 @@ MAP_PATH = os.environ.get("FIRN_WARM_JSON", str(R / "sp_r10_final.json"))
 LEN_M = float(os.environ.get("FIRN_SMOOTH_M", "10.0"))   # coherence length
 
 os.environ.update(FIRN_VEL_SITE="x17s2+x11n0+x11n2+x11n6+x11s2",
-                  FIRN_VEL_SRC="zeising", FIRN_SEAS="1", FIRN_HCOL="300")
+                  FIRN_VEL_SRC="zeising", FIRN_SEAS="1", FIRN_HCOL="300",
+                  FIRN_EZZ_SITE="none")   # r10 ran with ezz free; score it as it ran
 ns = {"__file__": str(HERE / "run.py"), "__name__": "cfgbuild"}
 exec(open(HERE / "run.py").read().split("warm = json.load")[0], ns)
 

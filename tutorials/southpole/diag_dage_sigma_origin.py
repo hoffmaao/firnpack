@@ -3,7 +3,14 @@
 MODEL-FREE. Uses only sp19_depth_age.csv (already in use) and no external
 uncertainty column, no Desroziers, no MAP. The question is internal:
 
-run.py builds sigma_dage as the standard error of a straight-line fit through
+HISTORICAL: this is the diagnostic that FOUND the sigma_dage fix, so it rebuilds
+the PRE-FIX sigma (the window s.e. floored at 4% of the slope) and measures what
+it missed. run.py no longer builds sigma that way -- it now uses
+sqrt(sigma_meas^2 + sigma_repr^2), which is this script's conclusion applied
+(FIRN_SIG_DAGE_LEGACY=1 restores the old form). Read this as the record of the
+argument, not as a description of the current error model.
+
+The pre-fix sigma_dage was the standard error of a straight-line fit through
 the ~12 annual layers inside a +-0.6 m window (floored at 4% of the slope).
 That is NOT a measurement error -- it is an estimate of interannual layer
 variability, but ONLY at the sub-1.2 m scale.
@@ -35,7 +42,9 @@ a["age_yr"] = 2015.0 - a.year_CE
 a = a.query("depth_m<=@H0 and age_yr>=0").sort_values("depth_m").reset_index(drop=True)
 ad, aa = a.depth_m.values, a.age_yr.values
 
-# ---- 1. rebuild run.py's observable AND its sigma, verbatim ---------------
+# ---- 1. rebuild the observable, and the PRE-FIX (legacy) sigma -------------
+# The observable is still run.py's; the sigma is the old floored form this
+# script exists to indict, NOT the sqrt(dse^2 + repr^2) run.py now uses.
 cent = np.arange(6.0, H0 - 1.0 + 1e-9, 1.0)
 obs, sig, nwin = [], [], []
 for c in cent:
@@ -49,10 +58,11 @@ for c in cent:
         obs.append(coef[0]); sig.append(max(se, 0.04 * abs(coef[0]))); nwin.append(nn)
 z = cent[:len(obs)]; obs = np.array(obs); sig = np.array(sig); nwin = np.array(nwin)
 
-print(f"rebuilt run.py's dage block: {len(z)} pts, {z.min():.0f}-{z.max():.0f} m")
+print(f"rebuilt the dage block with the LEGACY sigma: {len(z)} pts, "
+      f"{z.min():.0f}-{z.max():.0f} m")
 print(f"  layers per +-0.6 m window : median {np.median(nwin):.0f}")
 print(f"  d(age)/dz                 : median {np.median(obs):.2f} yr/m")
-print(f"  run.py sigma (window s.e.): median {np.median(sig):.3f} yr/m "
+print(f"  legacy sigma (window s.e.): median {np.median(sig):.3f} yr/m "
       f"({100*np.median(sig/obs):.1f}% of the value)")
 print(f"  fraction of points on the 4% FLOOR (not the s.e.): "
       f"{100*np.mean(sig <= 0.04*np.abs(obs)+1e-12):.0f}%")
@@ -75,10 +85,10 @@ for L in (2, 4, 7, 10, 15, 20, 30, 50):
 # ---- 3. the comparison that matters ---------------------------------------
 sig_med = float(np.median(sig))
 print(f"\n===== the origin of the 2.2x =====")
-print(f"run.py's sigma samples ONLY the +-0.6 m window: {sig_med:.3f} yr/m")
+print(f"the legacy sigma samples ONLY the +-0.6 m window: {sig_med:.3f} yr/m")
 for L, yrs, sd in rows:
     print(f"  variability below {L:2d} m (~{yrs:4.0f} yr): {sd:.3f} yr/m "
-          f"= {sd/sig_med:5.2f}x the sigma in use")
+          f"= {sd/sig_med:5.2f}x the legacy sigma")
 
 # the model's b-knots are ~68 yr apart (15 knots over 1015 yr) -> in metres:
 knot_m = 68.0 / float(np.median(obs))
@@ -86,7 +96,7 @@ print(f"\nthe b-knots resolve ~68 yr = ~{knot_m:.1f} m of core, so EVERYTHING")
 print(f"below ~{knot_m:.1f} m is unfittable and must live in sigma.")
 Lb = min(rows, key=lambda r: abs(r[0] - knot_m))
 print(f"  variability below ~{Lb[0]} m = {Lb[2]:.3f} yr/m "
-      f"-> sigma should be ~{Lb[2]/sig_med:.2f}x what run.py uses")
+      f"-> sigma should be ~{Lb[2]/sig_med:.2f}x the legacy one (run.py now does this)")
 print("\nThis is an INTERNAL account of the misfit: the sigma and the model's")
 print("representativeness gap are measured at different scales. It uses no")
 print("external uncertainty column and no Desroziers step.")

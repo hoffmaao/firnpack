@@ -19,8 +19,12 @@ HERE = Path(__file__).parent
 R = HERE / "results"
 MAP_PATH = os.environ.get("FIRN_WARM_JSON", str(R / "sp_r10_final.json"))
 
+# Score the MAP under the error model it was PRODUCED with: r10 ran with ezz
+# free, so pinning it here would charge r10's firn-diagnosed ezz a large prior
+# penalty and swamp the very shares this table exists to show.
 os.environ.update(FIRN_VEL_SITE="x17s2+x11n0+x11n2+x11n6+x11s2",
-                  FIRN_VEL_SRC="zeising", FIRN_SEAS="1", FIRN_HCOL="300")
+                  FIRN_VEL_SRC="zeising", FIRN_SEAS="1", FIRN_HCOL="300",
+                  FIRN_EZZ_SITE="none")
 ns = {"__file__": str(HERE / "run.py"), "__name__": "cfgbuild"}
 exec(open(HERE / "run.py").read().split("warm = json.load")[0], ns)
 

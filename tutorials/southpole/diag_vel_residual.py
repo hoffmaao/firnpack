@@ -30,7 +30,8 @@ SITES = os.environ.get("FIRN_DIAG_SITES", "x17s2+x11n0+x11n2+x11n6+x11s2")
 MAP_PATH = os.environ.get("FIRN_WARM_JSON", str(R / "sp_r10_final.json"))
 
 os.environ.update(FIRN_VEL_SITE=SITES, FIRN_VEL_SRC="zeising",
-                  FIRN_SEAS="1", FIRN_HCOL="300")   # H300 verified for r10
+                  FIRN_SEAS="1", FIRN_HCOL="300",   # H300 verified for r10
+                  FIRN_EZZ_SITE="none")             # r10 ran with ezz free
 ns = {"__file__": str(HERE / "run.py"), "__name__": "cfgbuild"}
 exec(open(HERE / "run.py").read().split("warm = json.load")[0], ns)
 
@@ -77,8 +78,10 @@ print(f"  site-specific <dev^2>    = {v_site:6.3f}   "
       f"({100*v_site/(v_common+v_site):4.1f}%)")
 print(f"  -> the residual is {'MOSTLY OURS (model/operator)' if v_common > v_site else 'MOSTLY THE ARRAY (site variation)'}")
 
+_sig_med = float(np.median(np.concatenate([np.array(b["sig"]) for b in vb])))*1000.0
 print(f"\ncommon-mode in physical units: rms {np.sqrt(np.mean((Mm.mean(0))**2)):.2f} mm/yr"
-      f"  (assumed sigma_shape 3.5 mm/yr)")
+      f"  (vs the in-use sigma, median {_sig_med:.2f} mm/yr across these blocks —"
+      f" per-site now, not a single assumed 3.5)")
 print(f"peak |common| = {np.abs(Mm.mean(0)).max():.2f} mm/yr at z = "
       f"{Z[np.argmax(np.abs(Mm.mean(0)))]:.1f} m")
 

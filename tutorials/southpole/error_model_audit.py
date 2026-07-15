@@ -8,7 +8,9 @@ strict stated/derived measurement errors:
   age      : 3 + 0.5% yr     (layer-counting scale in the upper core)
   dage     : window-fit s.e. (no 4% floor)
   T        : 0.04 C          (empirical profile noise / sensor spec)
-  velocity : ApRES stated v_unc_m_yr (median of the used bins; outlier-filtered)
+  velocity : zeising blocks -> the builder's own phase errors (via run.py's
+             _zeising_site_points, so this tracks the error model in use);
+             pooled/pipeline-A -> stated v_unc_m_yr (median of the used bins)
 
 Also reports the implied representation error per block,
   sigma_repr = sqrt(max(<r^2> - sigma_meas^2, 0)),
@@ -58,14 +60,16 @@ def stated_sigma(lab, d, o):
             ses.append(max(se, 1e-3))
         return np.array(ses)
     if lab.startswith("v"):   # any per-site velocity block (v, v_x17s2, ...)
-        if os.environ.get("FIRN_VEL_SRC", "authors") == "zeising":
-            # The zeising builder sets sig^2 = ee^2 + eref^2 + sig_shape^2, so
-            # the pure MEASUREMENT part is the in-use sigma with the cross-site
-            # shape systematic removed. (Do NOT use pipeline-A's v_unc_m_yr
+        if ns["VEL_SITE"] != "pooled" and ns["VEL_SRC"] == "zeising":
+            # Ask run.py's own builder for the measurement part (the stated phase
+            # errors, incl. the reference's), rather than reconstructing it by
+            # subtracting a constant from the in-use sigma -- that is what went
+            # wrong before: the builder moved to a per-site sigma_repr and this
+            # audit kept subtracting the retired sig_shape = 3.5 mm/yr, which
+            # drove the answer negative. (Do NOT use pipeline-A's v_unc_m_yr
             # here: different product, and its tail is pathological -> 1.3e6.)
-            SIG_SHAPE = 3.5e-3
-            s_use = np.array(blocks[lab]["sig"])
-            return np.sqrt(np.maximum(s_use**2 - SIG_SHAPE**2, (1e-6)**2))
+            site = lab[2:] if lab.startswith("v_") else ns["VEL_SITE"]
+            return ns["_zeising_site_points"](site)["sig_meas"]
         ap = pd.read_csv(HERE/"data/apres_vertical_velocity_processed.csv")
         ap = ap[(ap.range_m<=130) & ap.v_smooth_m_yr.notna() & (ap.coherence>0.5)]
         u = ap.v_unc_m_yr.values; u = u[np.isfinite(u) & (u < 0.1)]
