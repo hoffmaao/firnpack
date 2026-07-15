@@ -114,4 +114,13 @@ each `tutorials/<site>/data/README.md`.
 
 ## License
 
-_TBD_ (decision pending).
+Copyright (C) 2026 Andrew Hoffman <ah301@rice.edu>, Rice University.
+
+FirnGrain is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version. The full text is in [LICENSE](LICENSE), or at
+<https://www.gnu.org/licenses/>.
+
+This matches [icepack](https://github.com/icepack/icepack), which FirnGrain
+builds on.
