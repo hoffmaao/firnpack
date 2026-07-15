@@ -88,8 +88,9 @@ tutorials/         the three case studies, each a thin config over the engine
   provenance but inputs by use - run.py warm-starts from r8 and the plot
   scripts compare against it - so they are version-controlled deliberately.
 
-test/              tests, and only tests: the pytest suites (adjoint FD/Taylor,
-                   conservation, MMS), each self-contained
+test/              the pytest suites (adjoint FD/Taylor, conservation, MMS),
+                   each self-contained, plus three parked scripts that assert
+                   nothing and are not collected - see CLAUDE.md
 
 doc/               methods notes, derivations, and paper-facing documentation
 

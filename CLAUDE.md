@@ -83,10 +83,28 @@ The codebase follows a **model-solver separation pattern**:
 
 ### Test Directory
 
-`test/` is tests only: the pytest suites (`test_*.py`). They are self-contained -
-they generate their own outputs into `tmp_path` and do not read the case-study
-data. The FirnMICE benchmark runners and plot scripts contain no tests and now
-live in `archive/firnmice/`.
+`test/` holds the pytest suites (`test_*.py`) plus `conftest.py`. The suites are
+self-contained - they generate their own outputs into `tmp_path` and do not read
+the case-study data. The FirnMICE benchmark runners and plot scripts contain no
+tests and now live in `archive/firnmice/`.
+
+Three files under `test/` are **parked**: they are the original scripts, they
+assert nothing, and they are not collected as tests. Each keeps a `__main__`
+guard so importing or collecting it runs nothing - that guard is load-bearing,
+because these used to execute their whole simulation at import time, which hung
+collection. Each file's module docstring says why it is parked and what
+unblocking it needs; do not convert one without reading that first:
+
+- `test_hydrology.py` - melt path unresolved (`W_surf` pinned at 0)
+- `test_apres_strain_to_mesh_dynamics_corrected.py` - needs data under `archive/`
+- `test_kingslake_full_density_verification.py` - `FirnParameters` kwargs never
+  matched the model; has never run
+
+`conftest.py` pins the Agg matplotlib backend (a `plt.show()` in a collected
+module blocks the run forever) and owns the shared column-construction helpers.
+Anything that tapes a forward run must use its `adjoint_tape` fixture: the
+pyadjoint tape is process-global, so a test that fails without unpausing
+annotation silently taps every later test in the session.
 
 Curated observation data now lives with the case that uses it, in
 `tutorials/<site>/data/`, with provenance in that directory's `README.md`.
