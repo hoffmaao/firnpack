@@ -25,8 +25,14 @@ an UPPER BOUND on information. A knot can look informed here and still be
 degenerate with its neighbour. Low dchi2 is conclusive (invisible); high dchi2
 is necessary but not sufficient. A full Hessian is the way to settle trades. ***
 
-Run at the CORRECTED sigma_dage, else dage's 4.84x over-weighting inflates
-every sensitivity and the ranking just measures the bug (see task #9).
+This must run at the CORRECTED sigma_dage, else dage's over-weighting inflates
+every sensitivity and the ranking just measures the bug. That correction now
+lives in run.py itself (sigma_dage = sqrt(sigma_meas^2 + sigma_repr^2), ~2.18x
+the old 4% floor natively), so NO scale factor is applied here. Earlier runs of
+this script passed FIRN_SIG_DAGE_SCALE=2.26 because run.py then built the floor
+and the correction had to be supplied from outside; doing that now would apply
+it twice (~4.9x the floor) and deflate every sensitivity by ~4.75x, since
+dchi2 goes as 1/sigma^2.
 
 Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diag_knot_sensitivity.py
 """
@@ -38,8 +44,8 @@ import numpy as np
 HERE = Path(__file__).parent
 R = HERE / "results"
 MAP_PATH = os.environ.get("FIRN_WARM_JSON", str(R / "sp_r10_final.json"))
-# structure-function value (diag_dage_sigma_origin.py); r8 used 2.2 -- immaterial
-SIG_DAGE = os.environ.get("FIRN_SIG_DAGE_SCALE", "2.26")
+# run.py's sigma_dage is already the corrected one: no scale on top (see header)
+SIG_DAGE = os.environ.get("FIRN_SIG_DAGE_SCALE", "1.0")
 
 os.environ.update(FIRN_VEL_SITE="x17s2+x11n0+x11n2+x11n6+x11s2",
                   FIRN_VEL_SRC="zeising", FIRN_SEAS="1", FIRN_HCOL="300",

@@ -12,7 +12,8 @@ from __future__ import annotations
 import json, math, string
 from pathlib import Path
 import numpy as np
-import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
+import matplotlib; matplotlib.use("Agg")
+import matplotlib.pyplot as plt, matplotlib.colors as mcolors
 
 HERE = Path(__file__).parent
 FIGS = HERE/"figures"; FIGS.mkdir(exist_ok=True)
@@ -89,9 +90,18 @@ for i, (ax, lab) in enumerate(zip(axes, order)):
 ax = axes[len(order)]
 for j in range(NPAN, len(axes)): axes[j].set_visible(False)
 cols = {"rho": "#2563EB", "age": "#EA580C", "dage": "#059669", "T": "#7C3AED", "v": "#B45309"}
+# every per-site velocity block gets its own legend entry, so it must get its own
+# color: a ramp off the base hue keeps them readable as one family
+VLABS = [l for l in order if base(l) == "v"]
+def color(lab):
+    if base(lab) != "v" or len(VLABS) < 2:
+        return cols[base(lab)]
+    h, s, v = mcolors.rgb_to_hsv(mcolors.to_rgb(cols["v"]))
+    f = VLABS.index(lab)/(len(VLABS) - 1)
+    return mcolors.hsv_to_rgb((h, s*(1.0 - 0.6*f), min(1.0, v*(0.72 + 0.52*f))))
 for lab in order:
     d, o, s, p, _ = to_display(blocks[lab])
-    ax.plot((p-o)/s, d, "o", ms=3.5, color=cols[base(lab)], alpha=0.75, label=lab)
+    ax.plot((p-o)/s, d, "o", ms=3.5, color=color(lab), alpha=0.75, label=lab)
 ax.axvline(0, color="k", lw=0.8); ax.axvspan(-1, 1, color="gray", alpha=0.12, lw=0)
 ax.invert_yaxis(); ax.set_ylim(132, 0); ax.set_xlim(-3.2, 3.2)
 ax.set_xlabel("(model − obs) / σ"); ax.set_ylabel("depth (m)")

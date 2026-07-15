@@ -147,30 +147,56 @@ def _zeising_resid_sigma(rr, y, ee, deg=2):
 # pin is hard, so the value and the error both have to survive scrutiny; three
 # corrections to the first cut (2026-07-15), each of which loosened it:
 #
-#  1. DEPTH WINDOW. dR/dt is not linear over 127-864 m: the 127-300 m slope is
-#     13 sigma from the full-column one. ezz is applied to the FIRN, so the
-#     relevant strain is the one just below close-off, not a 737 m average
-#     dominated by ice the firn never sees. Fit 127 m -> FIRN_EZZ_ZMAX.
+#  1. DEPTH WINDOW. dR/dt is not linear over the whole column: the 127-300 m
+#     slope is 13 sigma from the 127-864 m one. So the window is a real choice,
+#     and it is FIRN_EZZ_ZMIN -> FIRN_EZZ_ZMAX. See the window note below.
 #  2. SANDWICH COVARIANCE. The estimator is WEIGHTED least squares, so the
 #     covariance must be too. Zeising's menke_fit uses inv(G'G) — the OLS normal
 #     matrix — and we deliberately depart from it here: his weights would have to
-#     be near-uniform for that to hold, and ours span ~60x in this window.
+#     be near-uniform for that to hold, and ours span ~45x in this window.
 #  3. AUTOCORRELATION. The range bins are 6 m windows stepped 2 m, i.e. ~3x
-#     oversampled, so the raw residuals are correlated (lag-1 ~0.56 here) and
+#     oversampled, so the raw residuals are correlated (lag-1 0.59 here) and
 #     an i.i.d. variance would understate the slope error. We THIN [::3] to
 #     independent samples — the same choice the firn velocity block already
 #     makes — rather than inflating by a rho-dependent factor, because thinning
 #     is checkable: the printed lag-1 of the thinned residuals shows whether it
-#     worked (it lands near 0). The cost is N, which the sigma then reflects.
+#     worked (it lands at -0.22). The cost is N, which the sigma then reflects.
 #
 # NOTE: Zeising's published vsr_per_year fits from cfg.firn_depth_m = 100 m
 # (apres/config.py:158), which is ABOVE SP's close-off (~127 m), so it still
-# carries ~27 m of firn compaction — that shifts x11n0 by 38%. We refit below
-# FIRN_EZZ_ZMIN. The deep fit is insensitive to the exact cut (127 vs 150 m
-# moves the clean sites <2%).
+# carries ~27 m of firn compaction — that shifts x11n0 by 38%. Hence our own
+# refit over a deeper window.
+#
+# ---- THE WINDOW: 250-500 m (Andrew 2026-07-15). Measured, not assumed. ------
+# Why not start at close-off (~127 m)? Because 127 m is OUR OWN MODELLED
+# close-off — an output of the very density solution ezz feeds into — so a hard
+# pin anchored there rests on a number we chose. It is also a real lever, not a
+# nominal one: over a 127-300 m window, moving zmin 127 -> 150 moves x11n6 by
+# 18% (1.8 sigma of that pin). Starting at 250 m sits clear of the close-off
+# transition entirely and removes that circularity.
+#
+# What 250-500 m costs, stated plainly: it is FAR from the firn the pin is
+# applied to, and ezz demonstrably has depth structure, so we are buying
+# independence from our own close-off estimate at the price of extrapolating a
+# deeper strain rate up into the firn. The size of that price is measurable:
+# the 250-500 m slope (-1.157e-4) and the near-firn 127-300 m slope (-1.321e-4)
+# differ by 1.06 combined sigma, i.e. they are consistent but not identical. A
+# quadratic over 250-500 m buys nothing (weighted rss 9.78e6 -> 9.60e6), so a
+# straight line is adequate THERE; that is not evidence it extrapolates.
+#
+# Sensitivity of the new window, measured for x11n6 (sigma of the pin = 7.9e-6):
+#   zmax 400/450/500/550/600 -> -1.230e-4 .. -1.137e-4, all within 1 sigma.
+#     The zmax half IS insensitive.
+#   zmin 200/225/250/275/300 -> -1.086e-4 .. -8.66e-5; zmin=300 sits +3.7 sigma
+#     from the default. The zmin half is NOT insensitive, and this comment does
+#     not claim it is. The sub-windows stay mutually consistent given their own
+#     (larger) errors — zmin=300 is -1.4 sigma from the default on its own
+#     sigma of 1.9e-5 — but the pin's sigma does NOT span the zmin choice.
+#     250 m is chosen for independence from the modelled close-off, NOT because
+#     the answer is insensitive to it. It is not.
 EZZ_SITE = os.environ.get("FIRN_EZZ_SITE", "x11n6")   # nearest clean site, 9.05 km
-EZZ_ZMIN = float(os.environ.get("FIRN_EZZ_ZMIN", "127.0"))   # SP close-off, 830 kg/m3
-EZZ_ZMAX = float(os.environ.get("FIRN_EZZ_ZMAX", "300.0"))   # ezz is not constant with depth
+EZZ_ZMIN = float(os.environ.get("FIRN_EZZ_ZMIN", "250.0"))   # clear of the close-off transition
+EZZ_ZMAX = float(os.environ.get("FIRN_EZZ_ZMAX", "500.0"))   # ezz is not constant with depth
 def ezz_below_firn(site, zmin=EZZ_ZMIN, zmax=EZZ_ZMAX):
     zei = pd.read_csv(DATA/"apres_zeising_processed.csv")
     d = zei[(zei.site==site)&(zei.range_m>=zmin)&(zei.range_m<=zmax)].sort_values("range_m")
@@ -204,9 +230,9 @@ def _zeising_site_points(site, zref_range=30.0):
     stepped 2 m -> thin [::3] for independent samples.
       sigma_meas = the stated phase errors (~0.003 mm/yr — negligible, but free)
       sigma_repr = residual scatter about a smooth curve, per Zeising's own
-                   menke_fit. Per-site: 2.86 (x11n6) .. 5.07 (x17s2) mm/yr —
+                   menke_fit. Per-site: 3.06 (x11n6) .. 5.42 (x17s2) mm/yr —
                    a 1.8x spread the old single 3.5 could not express. The
-                   broken sites convict themselves here: x5n2 66.6, x8n0 86.6.
+                   broken sites convict themselves here: x5n2 71.2, x8n0 92.6.
     """
     zei = pd.read_csv(DATA/"apres_zeising_processed.csv")
     d = zei[(zei.site==site)&(zei.range_m>=12.0)&(zei.range_m<=112.0)].sort_values("range_m")
