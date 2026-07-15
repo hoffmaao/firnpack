@@ -7,6 +7,11 @@ __pycache__/
 build/
 dist/
 
+# --- VTK output ---
+# The test/ scripts write these into whatever directory they are run from.
+*.pvd
+*.vtu
+
 # --- Environments ---
 venv*/
 .venv/

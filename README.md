@@ -5,10 +5,9 @@ A 1D firn column model — densification, heat/enthalpy transport, and accumulat
 assimilating ice-core and geophysical observations to recover firn physics and
 climate history.
 
-> **Status: research code being prepared for publication.** The canonical model
-> is stable; the inverse framework and the three case studies below are being
-> consolidated into a clean, reproducible layout. See `PUBLICATION_PLAN.md` for
-> the roadmap and current state.
+> **Status: research code.** The canonical model is stable; the inverse
+> framework and the three case studies below are being consolidated into a
+> clean, reproducible layout.
 
 ## What it does
 
@@ -34,8 +33,8 @@ uncertainty quantification.
 | **South Pole** | multi-observable real-data assimilation (flagship) | cold, low-accumulation |
 | **Summit, Greenland** | transferability to a contrasting site | warm, high-accumulation |
 
-Each is a thin configuration over one shared inverse engine (see
-`PUBLICATION_PLAN.md`, Phase 2).
+Each is a thin configuration over one shared inverse engine
+(`src/firnpack/inverse/`).
 
 ## Install
 
@@ -89,8 +88,9 @@ tutorials/         the three case studies, each a thin config over the engine
   provenance but inputs by use - run.py warm-starts from r8 and the plot
   scripts compare against it - so they are version-controlled deliberately.
 
-test/              tests, and only tests: the pytest suites (adjoint FD/Taylor,
-                   conservation, MMS), each self-contained
+test/              the pytest suites (adjoint FD/Taylor, conservation, MMS),
+                   each self-contained, plus three parked scripts that assert
+                   nothing and are not collected - see CLAUDE.md
 
 doc/               methods notes, derivations, and paper-facing documentation
 
@@ -99,7 +99,6 @@ archive/           parking lot, untracked - superseded outputs, staged raw
                    the shared engine. Nothing on the critical path; every
                    file is still recoverable from git history.
 
-PUBLICATION_PLAN.md  roadmap + repo-cleanup status
 ```
 
 `results/` and `figures/` are both regenerable and untracked, but they are not
@@ -116,4 +115,13 @@ each `tutorials/<site>/data/README.md`.
 
 ## License
 
-_TBD_ — see `PUBLICATION_PLAN.md` (decision pending).
+Copyright (C) 2026 Andrew Hoffman <ah301@rice.edu>, Rice University.
+
+FirnGrain is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version. The full text is in [LICENSE](LICENSE), or at
+<https://www.gnu.org/licenses/>.
+
+This matches [icepack](https://github.com/icepack/icepack), which FirnGrain
+builds on.

@@ -1,206 +1,112 @@
-"""test_adjoint.py
+"""Adjoint correctness and kg recovery from dense velocity observations.
 
-Twin experiment: infer the firn densification parameter *kg* (grain-growth factor)
-from synthetic observations of vertical velocity w(t, z).
+A twin experiment: generate synthetic w(t, z) from a known ``kg``, then check
+that (a) the pyadjoint gradient through the time loop is correct, and (b)
+L-BFGS-B recovers the true ``kg``.
 
-This is intentionally patterned after the G-ADOPT adjoint tutorial (adjoint.py):
-- clear tape
-- time loop with cumulative misfit
-- ReducedFunctional
-- Taylor test
-- minimise
+The two claims cost very different amounts. Gradient correctness is
+*resolution-independent* -- a Taylor test on a coarse mesh over a few steps
+exercises exactly the same adjoint code path as a fine one -- so it runs in the
+default tier. Parameter recovery genuinely needs the long integration to make
+``kg`` identifiable, so it is marked slow.
 
-Requirements
-------------
-- Firedrake
-- firedrake-adjoint (pyadjoint)
-- Your firn package (firnpack.models.firn, firnpack.solvers.firn_solver, firnpack.constants)
-
-Notes
------
-1) Your FirnModel uses kg in the Arthern/Ligtenberg densification law as a divisor.
-   That makes it a good first scalar control parameter.
-2) DO NOT use w at the surface as an observation here, because w(surface) is
-   imposed as a Dirichlet BC derived from accumulation and rho_s.
-   We instead use an L2 misfit over the *interior* profile (or optionally base only).
-
-Run
----
-python test_adjoint.py
-
-Then inspect the printed recovered kg and (optionally) the written VTK files.
+Surface w is not usable as an observation: it is a Dirichlet BC derived from
+accumulation and rho_s, so the misfit is taken over the interior profile.
 """
 
 from __future__ import annotations
 
-import importlib
 import numpy as np
+import pytest
 
-import firedrake as fd
+try:
+    import firedrake as fd
+except Exception:  # pragma: no cover
+    fd = None
 
-# Importing firedrake_adjoint turns on pyadjoint overloading/taping.
-# (Same idea as `from gadopt.inverse import *` in the demo.)
-from firedrake_adjoint import (
-    Control,
-    ReducedFunctional,
-    get_working_tape,
-    pause_annotation,
-    stop_annotating,
-    taylor_test,
-    minimize,
-)
+if fd is not None:
+    from firedrake.adjoint import (
+        Control,
+        ReducedFunctional,
+        continue_annotation,
+        minimize,
+        pause_annotation,
+        stop_annotating,
+        taylor_test,
+    )
 
-from firnpack.constants import year
-from firnpack.models.firn import FirnModel, FirnParameters
-from firnpack.solvers.firn_solver import FirnColumnSolver
+    from firnpack.constants import year
+    from firnpack.models.firn import FirnModel, FirnParameters
+    from firnpack.solvers.firn_solver import FirnColumnSolver
 
+from conftest import build_stretched_mesh, make_bcs, make_real, real_value
 
-# -----------------------------------------------------------------------------
-# User-tunable experiment settings
-# -----------------------------------------------------------------------------
-
-# Geometry / discretisation
 H0 = 40.0
-nz = 80
-mesh_stretch_p = 3.0
+MESH_STRETCH_P = 3.0
 
-# Forcing assumptions (held fixed during inversion)
-accum_m_iceeq_per_yr = 0.3
-rho_surface = 300.0
-Ts_K = 248.0
+ACCUM_M_ICEEQ_PER_YR = 0.3
+RHO_SURFACE = 300.0
+TS_K = 248.0
+DT_DAYS = 10.0
 
-# Time stepping
-# Keep this short for a first inverse test: you will run many forward replays.
-dt_days = 10.0
-nsteps = 60
+KG_TRUE = 2.0e-7
+KG_INITIAL_GUESS = 1.0e-7
+KG_LOWER = 1.0e-8
+KG_UPPER = 1.0e-6
 
-# Synthetic "truth" and initial guess for inversion
-kg_true = 2.0e-7
-kg_initial_guess = 1.0e-7
+# Fast tier: enough to exercise the adjoint, small enough to run in seconds.
+FAST_NZ = 20
+FAST_NSTEPS = 8
 
-# Bounds for kg in optimisation
-kg_lower = 1.0e-8
-kg_upper = 1.0e-6
-
-# Observation operator choice
-#   "profile" : L2 misfit over entire depth profile each timestep
-#   "base"    : misfit of basal velocity only (boundary integral)
-OBS_OPERATOR = "profile"
-
-# Synthetic noise level (set to 0.0 to start)
-NOISE_REL = 0.0  # e.g. 0.02 = 2% relative Gaussian noise
-
-# Suppress the very verbose diagnostics prints inside firn_solver.py
-SUPPRESS_SOLVER_PRINTS = True
+# Slow tier: the original script's fidelity, where kg is identifiable.
+FULL_NZ = 80
+FULL_NSTEPS = 60
 
 
-# -----------------------------------------------------------------------------
-# Helpers
-# -----------------------------------------------------------------------------
-
-def build_stretched_mesh(H0: float, nz: int, p: float) -> fd.Mesh:
-    """Interval mesh on [0, H0] with vertical clustering near the surface."""
-    mesh = fd.IntervalMesh(nz, 0.0, 1.0)
-    xi = fd.SpatialCoordinate(mesh)[0]
-    z_expr = H0 * (1.0 - (1.0 - xi) ** p)
-
-    coord_fs = mesh.coordinates.function_space()
-    new_coords = fd.Function(coord_fs).interpolate(fd.as_vector([z_expr]))
-    mesh.coordinates.assign(new_coords)
-    return mesh
-
-
-def initial_conditions(V: fd.FunctionSpace, params: FirnParameters, Ts: fd.Constant):
+def _initial_conditions(V, params, Ts):
     """Create and initialise H, rho, w for a forward run."""
     H = fd.Function(V, name="enthalpy")
     rho = fd.Function(V, name="density")
     w = fd.Function(V, name="firn_velocity")
 
-    H_init = params.c_i * (float(Ts) - params.T_ref)
+    H_init = params.c_i * (real_value(Ts) - params.T_ref)
 
     H.assign(H_init)
-    rho.assign(300.0)
+    rho.assign(RHO_SURFACE)
     w.assign(0.0)
 
     return H, rho, w, float(H_init)
 
 
-def make_bcs(V: fd.FunctionSpace, params: FirnParameters, accum: fd.Constant, rho_s: fd.Constant,
-             Hs_bc: fd.Constant, surface_id: int = 2):
-    """Dirichlet BCs matching test.py: H, rho, and w imposed at the surface."""
-    w_surf = -accum * params.rho_i / rho_s / year
+def _build_reduced_functional(nz: int, nsteps: int):
+    """Tape the kg->misfit map against a synthetic twin.
 
-    bc_H = fd.DirichletBC(V, Hs_bc, surface_id)
-    bc_rho = fd.DirichletBC(V, rho_s, surface_id)
-    bc_w = fd.DirichletBC(V, w_surf, surface_id)
-
-    return [bc_H, bc_rho, bc_w]
-
-
-def apply_relative_noise(f: fd.Function, rel: float, rng: np.random.Generator) -> fd.Function:
-    """Return a deepcopy of f with optional relative Gaussian noise added."""
-    g = f.copy(deepcopy=True)
-    if rel <= 0.0:
-        return g
-
-    data = g.dat.data
-    scale = rel * np.max(np.abs(data))
-    if scale == 0.0:
-        return g
-
-    data[:] = data + scale * rng.standard_normal(size=data.shape)
-    return g
-
-
-# -----------------------------------------------------------------------------
-# Main
-# -----------------------------------------------------------------------------
-
-def main():
-    # Optionally silence prints inside the FirnColumnSolver implementation.
-    if SUPPRESS_SOLVER_PRINTS:
-        try:
-            mod = importlib.import_module("firnpack.solvers.firn_solver")
-            mod.print = lambda *args, **kwargs: None  # type: ignore[attr-defined]
-        except Exception:
-            # If the module path differs in your install, you can comment this out
-            # and just edit firn_solver.py directly.
-            pass
-
-    # ------------------------------------------------------------------
-    # Mesh / spaces / fixed forcings
-    # ------------------------------------------------------------------
-    mesh = build_stretched_mesh(H0, nz, mesh_stretch_p)
+    Returns the reduced functional and its control. The reference twin runs
+    under ``stop_annotating`` so only the second forward lands on the tape.
+    """
+    mesh = build_stretched_mesh(H0, nz, MESH_STRETCH_P)
     V = fd.FunctionSpace(mesh, "CG", 1)
-
+    # pyadjoint needs mesh-attached scalars: Real-space Functions, not Constants.
+    R = fd.FunctionSpace(mesh, "R", 0)
     dx = fd.dx(domain=mesh)
-    ds = fd.ds(domain=mesh)
 
     surface_id = 2
-    base_id = 1
 
-    accum = fd.Constant(accum_m_iceeq_per_yr,domain=mesh)
-    rho_s = fd.Constant(rho_surface,domain=mesh)
-    Ts = fd.Constant(Ts_K,domain=mesh)
-    dt = fd.Constant(dt_days * 86400.0,domain=mesh)
-
-    # ------------------------------------------------------------------
-    # 1) Reference twin: generate synthetic observations w_obs[k]
-    # ------------------------------------------------------------------
-    rng = np.random.default_rng(1234)
+    accum = make_real(R, ACCUM_M_ICEEQ_PER_YR, "accum")
+    rho_s = make_real(R, RHO_SURFACE, "rho_s")
+    Ts = make_real(R, TS_K, "Ts")
+    dt = make_real(R, DT_DAYS * 86400.0, "dt")
 
     with stop_annotating():
-        params_ref = FirnParameters(kg=kg_true)
-        model_ref = FirnModel(params_ref)
-        solver_ref = FirnColumnSolver(model_ref)
+        params_ref = FirnParameters(kg=KG_TRUE)
+        solver_ref = FirnColumnSolver(FirnModel(params_ref))
 
-        H_ref, rho_ref, w_ref, H_init_ref = initial_conditions(V, params_ref, Ts)
-        Hs_bc_ref = fd.Constant(H_init_ref,domain=mesh)
-        bcs_ref = make_bcs(V, params_ref, accum, rho_s, Hs_bc_ref, surface_id=surface_id)
+        H_ref, rho_ref, w_ref, H_init_ref = _initial_conditions(V, params_ref, Ts)
+        Hs_bc_ref = make_real(R, H_init_ref, "Hs_bc_ref")
+        bcs_ref = make_bcs(V, params_ref, accum, rho_s, Hs_bc_ref, surface_id)
 
-        w_obs: list[fd.Function] = []
-
-        for k in range(nsteps):
+        w_obs = []
+        for _ in range(nsteps):
             H_ref, rho_ref, w_ref = solver_ref.prognostic_solve(
                 enthalpy=H_ref,
                 density=rho_ref,
@@ -212,35 +118,26 @@ def main():
                 surface_temperature=Ts,
                 enthalpy_bc_constant=Hs_bc_ref,
             )
+            w_obs.append(w_ref.copy(deepcopy=True))
 
-            w_obs.append(apply_relative_noise(w_ref, NOISE_REL, rng))
+        # w is O(1e-8) m/s, so the raw misfit is O(1e-12). L-BFGS-B tests ftol
+        # against max(|J|, 1), so an unscaled J looks converged at step one.
+        # Normalising to O(1) is what makes the optimiser actually move.
+        obs_norm = sum(float(fd.assemble((wk**2) * dx)) for wk in w_obs) + 1.0e-30
 
-    # ------------------------------------------------------------------
-    # 2) Clear tape (as in the G-ADOPT adjoint demo)
-    # ------------------------------------------------------------------
-    tape = get_working_tape()
-    tape.clear_tape()
+    continue_annotation()
 
-    # ------------------------------------------------------------------
-    # 3) Set up the inversion problem (kg as the Control)
-    # ------------------------------------------------------------------
-    kg = fd.Constant(kg_initial_guess,domain=mesh)
-
+    kg = make_real(R, KG_INITIAL_GUESS, "kg")
     params = FirnParameters(kg=kg)
-    model = FirnModel(params)
-    solver = FirnColumnSolver(model)
+    solver = FirnColumnSolver(FirnModel(params))
 
-    H, rho, w, H_init = initial_conditions(V, params, Ts)
-    Hs_bc = fd.Constant(H_init,domain=mesh)
-    bcs = make_bcs(V, params, accum, rho_s, Hs_bc, surface_id=surface_id)
+    H, rho, w, H_init = _initial_conditions(V, params, Ts)
+    Hs_bc = make_real(R, H_init, "Hs_bc")
+    bcs = make_bcs(V, params, accum, rho_s, Hs_bc, surface_id)
 
     control = Control(kg)
 
-    # ------------------------------------------------------------------
-    # 4) Time-dependent objective: accumulate w-misfit over timesteps
-    # ------------------------------------------------------------------
     J = 0.0
-
     for k in range(nsteps):
         H, rho, w = solver.prognostic_solve(
             enthalpy=H,
@@ -253,81 +150,62 @@ def main():
             surface_temperature=Ts,
             enthalpy_bc_constant=Hs_bc,
         )
+        J += 0.5 * fd.assemble((w - w_obs[k]) ** 2 * dx)
 
-        if OBS_OPERATOR == "profile":
-            # L2 misfit of full depth profile
-            J += 0.5 * fd.assemble((w - w_obs[k]) ** 2 * dx)
-        elif OBS_OPERATOR == "base":
-            # boundary misfit at the base only (single scalar per timestep)
-            J += 0.5 * fd.assemble((w - w_obs[k]) ** 2 * ds(base_id))
-        else:
-            raise ValueError(f"Unknown OBS_OPERATOR={OBS_OPERATOR!r}")
-
-    # Optional weak regularisation / prior on kg (helps if data are noisy)
-    # (Keep alpha small; start with 0.0)
-    alpha = 0.0
-    kg_prior = 1.3e-7
-    if alpha > 0.0:
-        J += 0.5 * alpha * (kg - kg_prior) ** 2
-
-    # ------------------------------------------------------------------
-    # 5) Reduced functional + pause annotation
-    # ------------------------------------------------------------------
-    rf = ReducedFunctional(J, control)
-
-    # Stop any further taping (same pattern as the demo)
+    rf = ReducedFunctional(J / obs_norm, control)
     pause_annotation()
 
-    # ------------------------------------------------------------------
-    # 6) Gradient check (Taylor test)
-    # ------------------------------------------------------------------
-    # For a scalar Constant control, a simple direction is fine.
-    dkg = fd.Constant(1.0,domain=mesh)
-    print("Running Taylor test for dJ/dkg ...")
+    return rf, kg, R
+
+
+def test_gradient_passes_taylor_test(firedrake, adjoint_tape):
+    """dJ/dkg from the tape matches finite differences at second order.
+
+    pyadjoint's first-order Taylor remainder converges at rate 2 when the
+    gradient is right, and at rate 1 when it is wrong, so the 1.9 threshold
+    cleanly separates the two.
+    """
+    rf, kg, R = _build_reduced_functional(FAST_NZ, FAST_NSTEPS)
+
+    # The direction must be scaled to the control. taylor_test perturbs by
+    # eps*dkg with eps=0.01, so a unit direction would drive kg to ~0.01 and
+    # diverge the solve; scaling by kg makes it a 1% relative step.
+    dkg = make_real(R, KG_INITIAL_GUESS, "dkg")
     rate = taylor_test(rf, kg, dkg)
-    print(f"  Taylor test convergence rate: {rate}")
 
-    # ------------------------------------------------------------------
-    # 7) Optimisation
-    # ------------------------------------------------------------------
-    J_hist: list[float] = []
-    kg_hist: list[float] = []
+    assert rate > 1.9
 
-    def record_eval(Jval, mval):
-        # Jval is usually an AdjFloat, but casts to float.
-        J_hist.append(float(Jval))
-        kg_hist.append(float(mval))
-        print(f"  J = {float(Jval):.6e} ; kg = {float(mval):.6e}")
 
-    rf.eval_cb_post = record_eval
+def test_true_kg_beats_the_initial_guess(firedrake, adjoint_tape):
+    """The objective actually prefers the truth: J(kg_true) < J(kg_guess).
 
-    kg_lb = fd.Constant(kg_lower,domain=mesh)
-    kg_ub = fd.Constant(kg_upper,domain=mesh)
+    Without noise the twin is exact, so J at the truth should be ~0. If this
+    fails, recovery cannot work and the misfit itself is misdefined.
+    """
+    rf, kg, R = _build_reduced_functional(FAST_NZ, FAST_NSTEPS)
 
-    print("\nStarting optimisation...")
-    print(f"  true kg         = {kg_true:.6e}")
-    print(f"  initial guess kg = {kg_initial_guess:.6e}")
-    print(f"  bounds           = [{kg_lower:.2e}, {kg_upper:.2e}]")
+    J_guess = float(rf(make_real(R, KG_INITIAL_GUESS, "kg_guess")))
+    J_true = float(rf(make_real(R, KG_TRUE, "kg_true")))
 
-    # L-BFGS-B is usually the most robust default for 1-parameter problems.
+    assert J_true < J_guess
+    assert J_true == pytest.approx(0.0, abs=1e-12)
+
+
+@pytest.mark.slow
+def test_kg_is_recovered_from_dense_velocity_observations(
+    firedrake, adjoint_tape
+):
+    """L-BFGS-B recovers kg_true from noise-free dense w observations."""
+    rf, kg, R = _build_reduced_functional(FULL_NZ, FULL_NSTEPS)
+
+    # kg ~ 1e-7 makes dJ/dkg ~ 1e7, and the default ftol/gtol are absolute, so
+    # the defaults declare convergence before taking a real step.
     kg_opt = minimize(
         rf,
         method="L-BFGS-B",
-        bounds=(kg_lb, kg_ub),
-        options={"maxiter": 25},
+        bounds=(make_real(R, KG_LOWER, "kg_lb"), make_real(R, KG_UPPER, "kg_ub")),
+        options={"maxiter": 25, "ftol": 1.0e-14, "gtol": 1.0e-12},
     )
 
-    print("\nDone.")
-    print(f"Recovered kg: {float(kg_opt):.6e}")
-
-    # ------------------------------------------------------------------
-    # 8) (Optional) write out the time history of J and kg
-    # ------------------------------------------------------------------
-    with open("kg_inversion_history.txt", "w") as f:
-        f.write("iter,J,kg\n")
-        for i, (Jv, kv) in enumerate(zip(J_hist, kg_hist)):
-            f.write(f"{i},{Jv},{kv}\n")
-
-
-if __name__ == "__main__":
-    main()
+    kg_recovered = float(kg_opt.dat.data_ro[0]) if hasattr(kg_opt, "dat") else float(kg_opt)
+    assert kg_recovered == pytest.approx(KG_TRUE, rel=5e-2)

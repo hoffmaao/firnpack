@@ -1,10 +1,21 @@
 """test_kingslake_full_density_verification.py
 
-Verification harness for the Firedrake full-density + grain-size model against
-reduced ODE solutions in Kingslake et al. (2022).
+PARKED, not a test: this file asserts nothing, and in its current form it
+cannot run. The ``main()`` pipeline sits behind a ``__main__`` guard, so
+importing or collecting this module runs nothing.
 
-What this does
---------------
+It is not converted because its parameter names never matched the model. The
+``FirnParameters(...)`` call below passes ``firn_alpha``, ``dt``, ``rho_s``,
+``kcHh``, ``kcLw``, ``K`` and ``grain``; none of them are fields of
+``FirnParameters`` (see ``src/firnpack/models/firn.py``), so construction
+raises ``TypeError`` immediately. ``firn_alpha`` appears exactly once in the
+whole repo -- on that line, since the initial commit -- so there is no prior
+art to recover the intent from. Repairing this needs a human decision on what
+``firn_alpha`` and ``K`` were meant to be; in a file whose whole purpose is
+catching sign and factor bugs, a wrong guess is worse than no test at all.
+
+What it is meant to do
+----------------------
 1) Runs a 1D firn column to (quasi) steady state under constant forcing
    (isothermal Ts, constant accumulation b), using the FULL-DENSITY solver
    with prognostic (rho, sigma, r^2).
@@ -23,13 +34,10 @@ of constant grain size, the issue is very likely in one of:
 
 Run
 ---
-Activate your Firedrake environment, then:
+Not runnable as-is; fix the parameter names above first. Once repaired it is
+intended to be run directly, writing PNG figures to ./kingslake_verify_outputs/:
 
-    python test_kingslake_full_density_verification.py
-
-Outputs
--------
-PNG figures are written to ./kingslake_verify_outputs/
+    PYTHONPATH=src OMP_NUM_THREADS=1 python test/test_kingslake_full_density_verification.py
 
 You can tweak beta_list, dt_years, and spinup_years at the bottom.
 """

@@ -22,7 +22,6 @@ here:
 
 | Looking for | Go to |
 |---|---|
-| Roadmap, phase status, publication plan | `PUBLICATION_PLAN.md` |
 | How to run a case study | `tutorials/<site>/run.py` and the root `README.md` |
 | Observation provenance for a site | `tutorials/<site>/data/README.md` |
 | South Pole inversion history (r5→r8/r10) | `southpole_inversion_handoff.md` |

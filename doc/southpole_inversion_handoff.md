@@ -11,6 +11,12 @@ T-history reshaped under denser knots (exactly the prior-bound soft modes the
 Laplace UQ flagged; honest error bars pending the per-point round). Modern-era
 rate additionally hostage to the Buizert↔ERA5 accum datum seam (see 2026-07-03).
 
+> **NOTE (historical document).** Paths, and statements about the repository and
+> its environment, describe the state at the time of writing and are preserved as
+> a record of it - do not read any of them as current fact. In particular the repo
+> *is* now git-tracked, and the `test/southpole/` material referenced below now
+> lives under `archive/southpole/`.
+
 ## Environment (essential for resuming)
 ```bash
 # venv + editable firn package on PYTHONPATH; ALWAYS set OMP_NUM_THREADS=1
@@ -435,9 +441,9 @@ FIRN_WARM_FILE=sp_joint_r5.json FIRN_TAG=sp_joint_r5b` (k_snow refit at
 the corrected site T: **1.29 ± 0.02**, F(T) at 222.25 K). Verify: replay
 deterministic (J=486.84); warm-start rms = the predicted datum signature
 (T carries over at 0.45σ; ρ 1.10/age 1.01 = rate deficit at colder anchor
-→ prefactors re-anchor, expect k0 +~15%, k1 +~35%). CLAUDE.md southpole
-carries a dated datum-correction banner; staged csv kept for
-reproducibility (scripts shift via FIRN_T_SHIFT). fit_stats +
+→ prefactors re-anchor, expect k0 +~15%, k1 +~35%). The datum correction is
+documented in `tutorials/southpole/data/README.md` (caveat 1); staged csv
+kept for reproducibility (scripts shift via FIRN_T_SHIFT). fit_stats +
 reanalysis_decomp now law-aware (+FIRN_T_SHIFT in fit_stats).
 **GOAL (Andrew): comprehensive firn reanalysis** — after r5b: dage-σ
 decision → UQ at final MAP (adapt hessian/sensitivity to 48-ctrl r5
@@ -543,8 +549,7 @@ offset at 13 m (model layers ~5% too thick; RHO_SURF=350 fixed). Trustworthy
 accum = the multidecadal ~0.09 where model-layer-b, raw obs b_app AND stakes
 agree. **⇒ accum approach: COARSER b-knots + σ_dage inflation (σ-inflation IS
 right — fine structure genuinely unfittable); densification+T-history UNAFFECTED.**
-See memory `sp_accum_prior_bias_finding.md` (corrected). Publication plan:
-repo-root `PUBLICATION_PLAN.md`.
+See memory `sp_accum_prior_bias_finding.md` (corrected).
 
 **⇒ ROUND 7 (de-biased prior) — superseded by the verdict above.** `FIRN_B_CLIM=0.096` (post-1950
 centers = independent Buizert climatology, no ERA5, no seam) +

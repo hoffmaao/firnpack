@@ -8,7 +8,9 @@ strict stated/derived measurement errors:
   age      : 3 + 0.5% yr     (layer-counting scale in the upper core)
   dage     : window-fit s.e. (no 4% floor)
   T        : 0.04 C          (empirical profile noise / sensor spec)
-  velocity : ApRES stated v_unc_m_yr (median of the used bins; outlier-filtered)
+  velocity : zeising blocks -> the builder's own phase errors (via run.py's
+             _zeising_site_points, so this tracks the error model in use);
+             pooled/pipeline-A -> stated v_unc_m_yr (median of the used bins)
 
 Also reports the implied representation error per block,
   sigma_repr = sqrt(max(<r^2> - sigma_meas^2, 0)),
@@ -58,6 +60,16 @@ def stated_sigma(lab, d, o):
             ses.append(max(se, 1e-3))
         return np.array(ses)
     if lab.startswith("v"):   # any per-site velocity block (v, v_x17s2, ...)
+        if ns["VEL_SITE"] != "pooled" and ns["VEL_SRC"] == "zeising":
+            # Ask run.py's own builder for the measurement part (the stated phase
+            # errors, incl. the reference's), rather than reconstructing it by
+            # subtracting a constant from the in-use sigma -- that is what went
+            # wrong before: the builder moved to a per-site sigma_repr and this
+            # audit kept subtracting the retired sig_shape = 3.5 mm/yr, which
+            # drove the answer negative. (Do NOT use pipeline-A's v_unc_m_yr
+            # here: different product, and its tail is pathological -> 1.3e6.)
+            site = lab[2:] if lab.startswith("v_") else ns["VEL_SITE"]
+            return ns["_zeising_site_points"](site)["sig_meas"]
         ap = pd.read_csv(HERE/"data/apres_vertical_velocity_processed.csv")
         ap = ap[(ap.range_m<=130) & ap.v_smooth_m_yr.notna() & (ap.coherence>0.5)]
         u = ap.v_unc_m_yr.values; u = u[np.isfinite(u) & (u < 0.1)]
@@ -67,7 +79,8 @@ def stated_sigma(lab, d, o):
 print(f"MAP: {Path(MAP_PATH).stem}   (forward J = {r['J']:.2f} under in-use sigmas)")
 print(f"{'block':6s} {'rms(in-use σ)':>14s} {'rms(stated σ)':>14s} {'σ_meas':>12s} {'σ_repr needed':>14s}")
 summary = {}
-for lab in ["rho", "age", "dage", "T"] + sorted(k for k in blocks if k.startswith("v")):
+for lab in [l for l in ["rho", "age", "dage", "T"] if l in blocks] \
+           + sorted(k for k in blocks if k.startswith("v")):
     b = blocks[lab]
     d = np.array(b["depths"]); o = np.array(b["obs"]); p = np.array(b["pred"])
     s_use = np.array(b["sig"]); s_st = stated_sigma(lab, d, o)
@@ -78,8 +91,9 @@ for lab in ["rho", "age", "dage", "T"] + sorted(k for k in blocks if k.startswit
     r2 = np.mean(res**2); sm2 = np.mean(s_st**2)
     s_repr = math.sqrt(max(r2 - sm2, 0.0))
     # display units
+    # multi-site velocity labels are v_<site>; they all convert as "v"
     conv = dict(rho=(1, "kg/m3"), age=(1/YEAR_S, "yr"), dage=(1, "yr/m"),
-                T=(1/C_I, "C"), v=(1, "m/yr"))[lab]
+                T=(1/C_I, "C"), v=(1, "m/yr"))["v" if lab.startswith("v") else lab]
     print(f"{lab:6s} {rms_use:14.2f} {rms_st:14.2f} "
           f"{np.median(s_st)*conv[0]:9.3g} {conv[1]:<4s} {s_repr*conv[0]:10.3g} {conv[1]}")
     summary[lab] = dict(rms_inuse=rms_use, rms_stated=rms_st,

@@ -1,108 +1,94 @@
-"""test_enthalpy_diffusivity_verification.py
+"""Verification of the enthalpy solver against exact diffusion behaviour.
 
-Small verification harness for the firn enthalpy/temperature solver.
+Three claims, each with an analytic reference:
 
-Goal
-----
-1) Verify that enthalpy_from_T and temperature_from_enthalpy are consistent.
-2) Verify that the enthalpy weak form in FirnModel.enthalpy_form gives the expected
-   diffusion behaviour for a simple 1D column when w=0 (pure diffusion).
-3) Demonstrate how to force a constant thermal diffusivity κ (m^2/s) via the same
-   monkey-patch pattern used in the adjoint scripts.
+1. ``enthalpy_from_T`` and ``temperature_from_enthalpy`` are exact inverses.
+2. With ``w = 0`` and constant kappa, the linear profile is the exact steady
+   state of pure diffusion, so one step must leave it invariant.
+3. A ``sin(pi z / H0)`` perturbation of that steady state is the first
+   eigenmode of the Laplacian on [0, H0] with homogeneous Dirichlet ends, so
+   it must decay as ``exp(-kappa (pi/H0)^2 t)``.
 
-This test is *not* tied to ApRES/ERA5 – it is purely a physics/unit check.
-
-Run
----
-python test_enthalpy_diffusivity_verification.py
+Claim 3 is the sharp one: it pins the decay *rate*, so it fails if the
+diffusivity is not kappa or the operator is not the Laplacian. The former
+script only printed "should decrease", which passes for any decaying operator
+regardless of rate.
 """
 
 from __future__ import annotations
 
 import numpy as np
-import firedrake as fd
+import pytest
 
-from firnpack.models.firn import FirnModel, FirnParameters
+try:
+    import firedrake as fd
+except Exception:  # pragma: no cover
+    fd = None
+
+if fd is not None:
+    from firnpack.models.firn import FirnModel, FirnParameters
 
 
-def enthalpy_from_T(params: FirnParameters, T_K: float) -> float:
-    """H = c_i (T - T_ref) (units: J/kg)."""
+# Column and forcing shared by the diffusion tests.
+H0 = 100.0  # m
+NZ = 200
+KAPPA = 1.0e-6  # m^2/s, order of ice diffusivity
+TS_TOP = 250.0  # K
+TS_BOT = 260.0  # K
+DT_SECONDS = 30.0 * 86400.0
+NSTEPS = 24  # 2 years at 30-day steps
+
+
+def enthalpy_from_T(params, T_K: float) -> float:
+    """H = c_i (T - T_ref), in J/kg."""
     return float(params.c_i) * (float(T_K) - float(params.T_ref))
 
 
-def apply_constant_thermal_diffusivity(model: FirnModel, kappa_const: fd.Function) -> None:
-    """Override model.thermal_diffusivity(H, rho) to return constant κ (m^2/s)."""
-
-    def _kappa(_H, _rho):
-        return kappa_const
-
-    model.thermal_diffusivity = _kappa
+def _constant_thermal_diffusivity(model, kappa_const) -> None:
+    """Override model.thermal_diffusivity to return a constant kappa."""
+    model.thermal_diffusivity = lambda _H, _rho: kappa_const
 
 
-def main():
-    # -------------------------------------------------------------------------
-    # Basic parameter sanity
-    # -------------------------------------------------------------------------
-    p = FirnParameters()
-    model = FirnModel(p)
+def _build_diffusion_solver():
+    """A pure-diffusion column (w=0, constant kappa) started from steady state.
 
-    T_test = 250.0
-    H_test = enthalpy_from_T(p, T_test)
-    T_roundtrip = float(model.temperature_from_enthalpy(H_test))
-    print("Roundtrip check:")
-    print(f"  T_in  = {T_test:.3f} K")
-    print(f"  H     = {H_test:.3f} J/kg")
-    print(f"  T_out = {T_roundtrip:.3f} K  (should match T_in)\n")
+    Returns the solver plus the fields and geometry the tests measure against.
+    """
+    params = FirnParameters()
+    model = FirnModel(params)
 
-    # -------------------------------------------------------------------------
-    # Diffusion-only enthalpy solve on a simple column
-    # -------------------------------------------------------------------------
-    H0 = 100.0  # m
-    nz = 200
-    mesh = fd.IntervalMesh(nz, 0.0, H0)
+    mesh = fd.IntervalMesh(NZ, 0.0, H0)
     V = fd.FunctionSpace(mesh, "CG", 1)
 
-    # No advection
     w = fd.Function(V, name="w").assign(0.0)
-
-    # Fixed density just to provide rho to thermal_diffusivity (not used if κ const)
     rho = fd.Function(V, name="rho").assign(500.0)
-    rho_old = fd.Function(V, name="rho_old").assign(500.0)
 
-    # Boundary temperatures (Dirichlet top+bottom so steady-state is linear)
-    Ts_top = 250.0
-    Ts_bot = 260.0
-    H_top = enthalpy_from_T(p, Ts_top)
-    H_bot = enthalpy_from_T(p, Ts_bot)
+    H_top = enthalpy_from_T(params, TS_TOP)
+    H_bot = enthalpy_from_T(params, TS_BOT)
 
-    # Constant κ (roughly ice diffusivity order ~1e-6 m^2/s)
-    kappa_val = 1.0e-6
     R = fd.FunctionSpace(mesh, "R", 0)
-    kappa_const = fd.Function(R, name="kappa").assign(kappa_val)
-    apply_constant_thermal_diffusivity(model, kappa_const)
+    kappa_const = fd.Function(R, name="kappa").assign(KAPPA)
+    _constant_thermal_diffusivity(model, kappa_const)
 
-    # Initial condition: exact steady-state linear enthalpy profile
     x = fd.SpatialCoordinate(mesh)[0]
     H = fd.Function(V, name="H")
     H_old = fd.Function(V, name="H_old")
+
+    # Exact steady state of pure diffusion with Dirichlet ends: linear in z.
     H.interpolate(H_bot + (H_top - H_bot) * (x / H0))
     H_old.assign(H)
 
-    # Time step (seconds)
-    dt = fd.Constant(30.0 * 86400.0)  # 30 days
-
+    dt = fd.Constant(DT_SECONDS)
     psi = fd.TestFunction(V)
     F_H = model.enthalpy_form(H, H_old, rho, w, psi, dt)
-    J_H = fd.derivative(F_H, H)
 
-    bcs = [
-        fd.DirichletBC(V, fd.Constant(H_bot), 1),
-        fd.DirichletBC(V, fd.Constant(H_top), 2),
-    ]
-
-    prob = fd.NonlinearVariationalProblem(F_H, H, bcs=bcs, J=J_H)
+    problem = fd.NonlinearVariationalProblem(
+        F_H, H, bcs=[fd.DirichletBC(V, fd.Constant(H_bot), 1),
+                     fd.DirichletBC(V, fd.Constant(H_top), 2)],
+        J=fd.derivative(F_H, H),
+    )
     solver = fd.NonlinearVariationalSolver(
-        prob,
+        problem,
         solver_parameters={
             "snes_type": "newtonls",
             "snes_max_it": 25,
@@ -110,32 +96,85 @@ def main():
             "pc_type": "lu",
         },
     )
+    return solver, model, params, V, x, H, H_old, H_top, H_bot
 
-    # One step should preserve the steady-state solution (within solver tolerance)
+
+@pytest.mark.parametrize("T_test", [230.0, 250.0, 273.15])
+def test_enthalpy_temperature_roundtrip_is_exact(T_test):
+    """T -> H -> T recovers the input to round-off."""
+    if fd is None:
+        pytest.skip("firedrake not available")
+
+    params = FirnParameters()
+    model = FirnModel(params)
+
+    H_test = enthalpy_from_T(params, T_test)
+    T_roundtrip = float(model.temperature_from_enthalpy(H_test))
+
+    assert T_roundtrip == pytest.approx(T_test, rel=1e-12)
+
+
+def test_linear_profile_is_invariant_under_one_step():
+    """The linear profile is the exact steady state, so a step must not move it.
+
+    A failure here is O(H_top - H_bot) ~ 2e4 J/kg, so the tolerance sits ten
+    orders of magnitude below any real defect while staying clear of the LU
+    solve's round-off.
+    """
+    if fd is None:
+        pytest.skip("firedrake not available")
+
+    solver, _model, _params, V, _x, H, H_old, _H_top, _H_bot = _build_diffusion_solver()
+
     solver.solve()
-    err_inf = float(fd.norm(H - H_old, norm_type="linf"))
-    print("Diffusion steady-state check (w=0, κ const, linear IC):")
-    print(f"  ||H - H_old||_inf = {err_inf:.3e}  (should be ~0)\n")
 
-    # Now perturb and show decay of the perturbation
+    err_inf = float(np.abs(fd.Function(V).interpolate(H - H_old).dat.data_ro).max())
+    assert err_inf < 1.0e-6
+
+
+def test_first_eigenmode_decays_at_the_analytic_rate():
+    """sin(pi z/H0) must decay as exp(-kappa (pi/H0)^2 t).
+
+    The rate is recovered by a log-linear fit over every step rather than from
+    the endpoint ratio. Over this window the mode decays only ~6%, so an
+    endpoint ratio is nearly blind: a 10% error in kappa moves it by 0.6%,
+    which no usable tolerance would catch. The fitted slope, by contrast, is
+    directly proportional to kappa, so the same error shows up as a 10% miss.
+
+    Crank-Nicolson (theta_H=0.5) is second order in dt and CG1 at dz=0.5 m
+    resolves the first mode to ~1e-5 relative, so both discretisation errors
+    sit far inside the 2% band.
+    """
+    if fd is None:
+        pytest.skip("firedrake not available")
+
+    solver, model, _params, V, x, H, H_old, H_top, H_bot = _build_diffusion_solver()
+
+    solver.solve()  # settle onto the discrete steady state
     H_old.assign(H)
+
+    # Perturb by the first eigenmode. It vanishes at both ends, so it is
+    # compatible with the Dirichlet BCs and excites exactly one mode.
     H.interpolate(H + 0.5 * (H_top - H_bot) * fd.sin(np.pi * x / H0))
     H_old.assign(H)
 
-    nsteps = 24  # 2 years at 30-day steps
+    baseline = fd.Function(V).interpolate(TS_BOT + (TS_TOP - TS_BOT) * (x / H0))
+
     amp = []
-    for _ in range(nsteps):
+    for _ in range(NSTEPS):
         solver.solve()
-        # measure amplitude of deviation from the linear baseline (rough proxy)
         T = model.temperature_from_enthalpy(H)
-        amp.append(float(fd.norm(T - fd.Function(V).interpolate(Ts_bot + (Ts_top - Ts_bot) * (x / H0)), norm_type="L2")))
+        amp.append(float(fd.norm(T - baseline, norm_type="L2")))
         H_old.assign(H)
 
-    print("Perturbation decay (L2 norm of T deviation from linear baseline):")
-    print(f"  first = {amp[0]:.3e}, last = {amp[-1]:.3e} (should decrease)\n")
+    amp = np.array(amp)
 
-    print("Done.")
+    assert np.all(np.diff(amp) < 0.0), "perturbation must decay monotonically"
 
+    # amp[k] = A0 exp(-rate t_k), so log(amp) is linear in t with slope -rate.
+    t = DT_SECONDS * np.arange(1, NSTEPS + 1)  # amp[0] is already one step in
+    slope = np.polyfit(t, np.log(amp), 1)[0]
+    fitted_rate = -slope
 
-if __name__ == "__main__":
-    main()
+    expected_rate = KAPPA * (np.pi / H0) ** 2  # s^-1
+    assert fitted_rate == pytest.approx(expected_rate, rel=2.0e-2)
