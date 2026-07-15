@@ -38,17 +38,29 @@ import numpy as np
 
 import firedrake as fd
 
-# Importing firedrake_adjoint turns on pyadjoint overloading/taping.
+# Importing the adjoint module turns on pyadjoint overloading/taping.
 # (Same idea as `from gadopt.inverse import *` in the demo.)
-from firedrake_adjoint import (
-    Control,
-    ReducedFunctional,
-    get_working_tape,
-    pause_annotation,
-    stop_annotating,
-    taylor_test,
-    minimize,
-)
+# Prefer the non-deprecated import path.
+try:
+    from firedrake.adjoint import (
+        Control,
+        ReducedFunctional,
+        get_working_tape,
+        pause_annotation,
+        stop_annotating,
+        taylor_test,
+        minimize,
+    )
+except Exception:  # pragma: no cover
+    from firedrake_adjoint import (  # type: ignore
+        Control,
+        ReducedFunctional,
+        get_working_tape,
+        pause_annotation,
+        stop_annotating,
+        taylor_test,
+        minimize,
+    )
 
 from firnpack.constants import year
 from firnpack.models.firn import FirnModel, FirnParameters

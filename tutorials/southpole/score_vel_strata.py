@@ -47,7 +47,7 @@ from firnpack.inverse import assimilate
 
 warm = json.load(open(MAP_PATH))
 print(f"scoring against {Path(MAP_PATH).name}  (J_logged={warm['J']:.2f}, "
-      f"{warm['message']})")
+      f"{warm.get('message', '')})")
 print(f"zeising sites: {' '.join(ZSITES)}\n")
 
 

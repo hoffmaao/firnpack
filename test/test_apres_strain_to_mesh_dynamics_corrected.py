@@ -242,6 +242,15 @@ def slope_through_point(z: np.ndarray, w: np.ndarray, z0: float) -> float:
 # Load data
 # ------------------------------------------------------------
 
+if not os.path.exists(MAT_FILE) and DOWNLOAD_URL is None:
+    import pytest
+
+    pytest.skip(
+        f"{MAT_FILE!r} is not in the repository and DOWNLOAD_URL is None; "
+        "point MAT_FILE at a local copy or set DOWNLOAD_URL to run this.",
+        allow_module_level=True,
+    )
+
 ensure_file(MAT_FILE, DOWNLOAD_URL)
 data = read_apres_v73(MAT_FILE)
 
@@ -409,7 +418,7 @@ if have_fd:
     eps_comp_fd.dat.data[:] = eps_comp_on_mesh
 
     if WRITE_VTK:
-        out = fd.File(os.path.join(OUTDIR, "apres_profiles_corrected.pvd"))
+        out = fd.VTKFile(os.path.join(OUTDIR, "apres_profiles_corrected.pvd"))
         out.write(w_raw_fd, w_comp_fd, eps_raw_fd, eps_comp_fd)
 
 # ------------------------------------------------------------

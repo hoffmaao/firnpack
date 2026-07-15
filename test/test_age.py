@@ -82,7 +82,7 @@ dt = fd.Constant(60.0 * 86400.0)   # 5 days
 t = 0.0
 t_end = 200.0 * float(year)
 
-out = fd.File("firn_column_with_age.pvd")
+out = fd.VTKFile("firn_column_with_age.pvd")
 out.write(H, rho, w, age, time=t)
 
 # depth below surface for plotting

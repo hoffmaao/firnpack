@@ -99,7 +99,7 @@ dt = fd.Constant(5.0 * 86400.0)   # 5 days
 t = 0.0
 t_end = 50.0 * float(year)        # 50 years – adjust as you like
 
-outfile = fd.File("firn_column_seasonal_output.pvd")
+outfile = fd.VTKFile("firn_column_seasonal_output.pvd")
 outfile.write(H, rho, w, time=t)
 
 
