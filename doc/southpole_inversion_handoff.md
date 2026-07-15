@@ -543,8 +543,7 @@ offset at 13 m (model layers ~5% too thick; RHO_SURF=350 fixed). Trustworthy
 accum = the multidecadal ~0.09 where model-layer-b, raw obs b_app AND stakes
 agree. **⇒ accum approach: COARSER b-knots + σ_dage inflation (σ-inflation IS
 right — fine structure genuinely unfittable); densification+T-history UNAFFECTED.**
-See memory `sp_accum_prior_bias_finding.md` (corrected). Publication plan:
-repo-root `PUBLICATION_PLAN.md`.
+See memory `sp_accum_prior_bias_finding.md` (corrected).
 
 **⇒ ROUND 7 (de-biased prior) — superseded by the verdict above.** `FIRN_B_CLIM=0.096` (post-1950
 centers = independent Buizert climatology, no ERA5, no seam) +

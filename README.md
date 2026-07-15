@@ -5,10 +5,9 @@ A 1D firn column model — densification, heat/enthalpy transport, and accumulat
 assimilating ice-core and geophysical observations to recover firn physics and
 climate history.
 
-> **Status: research code being prepared for publication.** The canonical model
-> is stable; the inverse framework and the three case studies below are being
-> consolidated into a clean, reproducible layout. See `PUBLICATION_PLAN.md` for
-> the roadmap and current state.
+> **Status: research code.** The canonical model is stable; the inverse
+> framework and the three case studies below are being consolidated into a
+> clean, reproducible layout.
 
 ## What it does
 
@@ -34,8 +33,8 @@ uncertainty quantification.
 | **South Pole** | multi-observable real-data assimilation (flagship) | cold, low-accumulation |
 | **Summit, Greenland** | transferability to a contrasting site | warm, high-accumulation |
 
-Each is a thin configuration over one shared inverse engine (see
-`PUBLICATION_PLAN.md`, Phase 2).
+Each is a thin configuration over one shared inverse engine
+(`src/firnpack/inverse/`).
 
 ## Install
 
@@ -99,7 +98,6 @@ archive/           parking lot, untracked - superseded outputs, staged raw
                    the shared engine. Nothing on the critical path; every
                    file is still recoverable from git history.
 
-PUBLICATION_PLAN.md  roadmap + repo-cleanup status
 ```
 
 `results/` and `figures/` are both regenerable and untracked, but they are not
@@ -116,4 +114,4 @@ each `tutorials/<site>/data/README.md`.
 
 ## License
 
-_TBD_ — see `PUBLICATION_PLAN.md` (decision pending).
+_TBD_ (decision pending).

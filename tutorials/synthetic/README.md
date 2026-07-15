@@ -35,4 +35,4 @@ Seeds:
 - `test/test_adjoint.py`, `test/test_adjoint_sparse_obs.py` — single-parameter
   twin experiments (dense / sparse obs) that recover a known `kg`.
 
-Status: to be built (Phase 3 of `PUBLICATION_PLAN.md`).
+Status: built — see `run.py` and the `plot_*.py` figure scripts here.

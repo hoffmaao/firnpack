@@ -13,7 +13,7 @@ FirnGrain South Pole assimilation. All small; tracked in git for reproducibility
 | `buizert2021_spice_temp.csv` | δ¹⁸O-derived cloud temperature | Buizert et al. 2021 (NOAA Paleo) |
 | `era5_monthly_point.csv` | `year, month, t2m_K, net_accum_m_iceeq_month` | ERA5 monthly, SP gridpoint (Copernicus CDS) |
 
-## ⚠ Two data caveats baked into the analysis (see PUBLICATION_PLAN / paper methods)
+## ⚠ Two data caveats baked into the analysis
 
 1. **Borehole-T datum (+5.8 °C error).** `spicecore_borehole_T.csv` reads
    −45.5 °C at depth, but the raw USP50 thermistors (and canonical SP 10-m firn
