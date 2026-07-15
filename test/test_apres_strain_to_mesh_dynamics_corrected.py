@@ -238,262 +238,279 @@ def slope_through_point(z: np.ndarray, w: np.ndarray, z0: float) -> float:
     return float(np.dot(dz, w) / denom)
 
 
-# ------------------------------------------------------------
-# Load data
-# ------------------------------------------------------------
 
-if not os.path.exists(MAT_FILE) and DOWNLOAD_URL is None:
-    _skip_reason = (
-        f"{MAT_FILE!r} is not in the repository and DOWNLOAD_URL is None; "
-        "point MAT_FILE at a local copy or set DOWNLOAD_URL to run this."
-    )
-    try:
-        import pytest
-    except ModuleNotFoundError:
-        # Run directly as a script: skip cleanly rather than fail on the import.
-        print(f"SKIP: {_skip_reason}")
-        raise SystemExit(0)
 
-    pytest.skip(_skip_reason, allow_module_level=True)
+def main():
+    """Run the ApRES strain -> mesh dynamics pipeline.
 
-ensure_file(MAT_FILE, DOWNLOAD_URL)
-data = read_apres_v73(MAT_FILE)
+    PARKED, not a test: this asserts nothing, so it is a plotting script
+    that happens to live under test/. Everything below used to execute at
+    module level, including a blocking plt.show(); the only thing keeping
+    that out of the test session was MAT_FILE failing to resolve.
+    """
+    if not os.path.exists(MAT_FILE):
+        print(
+            f"SKIP: {MAT_FILE!r} not found. Point MAT_FILE at a local copy "
+            "(one exists under archive/) to run this."
+        )
+        return
 
-range_m = data["range_m"]
-dh_m = data["dh_m"]
-dt_days = data["dt_days"]
-firn_depth_m = data["firn_depth_m"]
-H_m = data["H_m"]
-dhsurfaceRate_myr = data["dhsurfaceRate_myr"]
-zeroShiftDepth_m = data["zeroShiftDepth_m"]
-fit_start_m = data["fit_start_m"]
-fit_end_m = data["fit_end_m"]
-fit_z_m = data["fit_z_m"]
-fit_w_myr = data["fit_w_myr"]
+    if not os.path.exists(MAT_FILE) and DOWNLOAD_URL is None:
+        _skip_reason = (
+            f"{MAT_FILE!r} is not in the repository and DOWNLOAD_URL is None; "
+            "point MAT_FILE at a local copy or set DOWNLOAD_URL to run this."
+        )
+        try:
+            import pytest
+        except ModuleNotFoundError:
+            # Run directly as a script: skip cleanly rather than fail on the import.
+            print(f"SKIP: {_skip_reason}")
+            raise SystemExit(0)
 
-dt_years = dt_days / 365.25
-w_total = dh_m / dt_years  # NOTE: typically referenced/shifted by the MATLAB pipeline
+        pytest.skip(_skip_reason, allow_module_level=True)
 
-print("\nLoaded ApRES data:")
-print(f"  file: {MAT_FILE}")
-print(f"  dt:   {dt_days:.3f} days = {dt_years:.4f} years")
-print(f"  firn_depth in file: {firn_depth_m:.2f} m")
-if H_m is not None:
-    print(f"  ice thickness H in file: {H_m:.2f} m")
-print(f"  range min/max: {np.nanmin(range_m):.2f} / {np.nanmax(range_m):.2f} m")
-if zeroShiftDepth_m is not None:
-    print(f"  zeroShiftDepth (fit_ice): {zeroShiftDepth_m:.2f} m")
-if dhsurfaceRate_myr is not None:
-    print(f"  dhsurfaceRate: {dhsurfaceRate_myr:.3f} m/yr (interpretation depends on pipeline)")
-if fit_start_m is not None and fit_end_m is not None:
-    print(f"  fit_ice window in file: start={fit_start_m:.2f} m, end={fit_end_m:.2f} m")
-if fit_z_m is not None and fit_w_myr is not None:
-    print(f"  fit_ice arrays: {fit_z_m.size} points")
+    ensure_file(MAT_FILE, DOWNLOAD_URL)
+    data = read_apres_v73(MAT_FILE)
 
-# Near-surface availability warning
-shallowest = float(np.nanmin(range_m))
-if shallowest > 5.0:
-    print(f"WARNING: shallowest return is {shallowest:.2f} m; no <5 m near-surface ApRES returns in this file.")
-else:
-    print("Near-surface returns appear to be present (<5 m).")
+    range_m = data["range_m"]
+    dh_m = data["dh_m"]
+    dt_days = data["dt_days"]
+    firn_depth_m = data["firn_depth_m"]
+    H_m = data["H_m"]
+    dhsurfaceRate_myr = data["dhsurfaceRate_myr"]
+    zeroShiftDepth_m = data["zeroShiftDepth_m"]
+    fit_start_m = data["fit_start_m"]
+    fit_end_m = data["fit_end_m"]
+    fit_z_m = data["fit_z_m"]
+    fit_w_myr = data["fit_w_myr"]
 
-# ------------------------------------------------------------
-# Estimate ice-dynamics background strain rate and correct
-# ------------------------------------------------------------
+    dt_years = dt_days / 365.25
+    w_total = dh_m / dt_years  # NOTE: typically referenced/shifted by the MATLAB pipeline
 
-eps_dyn = 0.0
-w_dyn = np.zeros_like(w_total)
+    print("\nLoaded ApRES data:")
+    print(f"  file: {MAT_FILE}")
+    print(f"  dt:   {dt_days:.3f} days = {dt_years:.4f} years")
+    print(f"  firn_depth in file: {firn_depth_m:.2f} m")
+    if H_m is not None:
+        print(f"  ice thickness H in file: {H_m:.2f} m")
+    print(f"  range min/max: {np.nanmin(range_m):.2f} / {np.nanmax(range_m):.2f} m")
+    if zeroShiftDepth_m is not None:
+        print(f"  zeroShiftDepth (fit_ice): {zeroShiftDepth_m:.2f} m")
+    if dhsurfaceRate_myr is not None:
+        print(f"  dhsurfaceRate: {dhsurfaceRate_myr:.3f} m/yr (interpretation depends on pipeline)")
+    if fit_start_m is not None and fit_end_m is not None:
+        print(f"  fit_ice window in file: start={fit_start_m:.2f} m, end={fit_end_m:.2f} m")
+    if fit_z_m is not None and fit_w_myr is not None:
+        print(f"  fit_ice arrays: {fit_z_m.size} points")
 
-if APPLY_ICE_DYNAMICS_CORRECTION:
-    # Choose anchor depth
-    z0 = zeroShiftDepth_m if zeroShiftDepth_m is not None else firn_depth_m
-
-    # Choose fit dataset and fit window
-    if USE_FILE_FIT_ARRAYS_IF_AVAILABLE and (fit_z_m is not None) and (fit_w_myr is not None):
-        z_fit = np.asarray(fit_z_m, dtype=float)
-        w_fit = np.asarray(fit_w_myr, dtype=float)
-        mfit = np.isfinite(z_fit) & np.isfinite(w_fit)
-        z_fit = z_fit[mfit]
-        w_fit = w_fit[mfit]
-        fit_desc = "fit_ice/vertical_vel(_range) arrays from file"
+    # Near-surface availability warning
+    shallowest = float(np.nanmin(range_m))
+    if shallowest > 5.0:
+        print(f"WARNING: shallowest return is {shallowest:.2f} m; no <5 m near-surface ApRES returns in this file.")
     else:
-        z_fit = np.asarray(range_m, dtype=float)
-        w_fit = np.asarray(w_total, dtype=float)
+        print("Near-surface returns appear to be present (<5 m).")
 
-        zmin = firn_depth_m if FIT_DEPTH_MIN is None else float(FIT_DEPTH_MIN)
-        if FIT_DEPTH_MAX is None:
-            if H_m is not None:
-                zmax = 2.0 * float(H_m) / 3.0
-            else:
-                zmax = 0.7 * float(np.nanmax(z_fit))
-        else:
-            zmax = float(FIT_DEPTH_MAX)
+    # ------------------------------------------------------------
+    # Estimate ice-dynamics background strain rate and correct
+    # ------------------------------------------------------------
 
-        mfit = np.isfinite(z_fit) & np.isfinite(w_fit) & (z_fit >= zmin) & (z_fit <= zmax)
-        z_fit = z_fit[mfit]
-        w_fit = w_fit[mfit]
-        fit_desc = f"dh/dt over [{zmin:.1f}, {zmax:.1f}] m"
-
-    if z_fit.size < 3:
-        raise RuntimeError("Not enough points in fit window to estimate background strain rate.")
-
-    if ANCHOR_AT_Z0:
-        eps_dyn = slope_through_point(z_fit, w_fit, z0)
-        # dynamic component is linear and passes through (z0, 0)
-        w_dyn = eps_dyn * (range_m - z0)
-    else:
-        # free-intercept fit: w ≈ a + b z
-        b, a = np.polyfit(z_fit, w_fit, 1)
-        eps_dyn = float(b)
-        w_dyn = a + eps_dyn * range_m
-
-    print("\nIce-dynamics correction:")
-    print(f"  anchor depth z0 = {z0:.2f} m")
-    print(f"  fit used: {fit_desc}")
-    print(f"  estimated background vertical strain rate eps_dyn = dw/dz = {eps_dyn:.6e} 1/yr")
-    print("  (For incompressible ice in 2-D: horizontal strain rate eps_x ≈ -eps_dyn)")
-
-    # Build corrected velocity everywhere
-    w_comp = w_total - w_dyn
-else:
-    w_comp = w_total
-
-# ------------------------------------------------------------
-# Build observation arrays for plotting/mapping (firn-only optional)
-# ------------------------------------------------------------
-
-mask = np.isfinite(range_m) & np.isfinite(w_total)
-if USE_FIRN_ONLY:
-    mask &= (range_m <= firn_depth_m)
-
-z_obs = range_m[mask].astype(float)
-
-w_obs_raw = w_total[mask].astype(float)
-w_obs_comp = w_comp[mask].astype(float)
-
-# Sort by depth increasing
-order = np.argsort(z_obs)
-z_obs = z_obs[order]
-w_obs_raw = w_obs_raw[order]
-w_obs_comp = w_obs_comp[order]
-
-# Optional surface point handling
-if INCLUDE_SURFACE_POINT and (dhsurfaceRate_myr is not None):
-    z_obs = np.concatenate(([0.0], z_obs))
-    w_obs_raw = np.concatenate(([float(dhsurfaceRate_myr)], w_obs_raw))
+    eps_dyn = 0.0
+    w_dyn = np.zeros_like(w_total)
 
     if APPLY_ICE_DYNAMICS_CORRECTION:
-        # treat dhsurfaceRate as a "total" surface velocity and correct it consistently
+        # Choose anchor depth
         z0 = zeroShiftDepth_m if zeroShiftDepth_m is not None else firn_depth_m
-        w0_dyn = eps_dyn * (0.0 - z0) if ANCHOR_AT_Z0 else (w_dyn[np.nanargmin(np.abs(range_m - 0.0))])
-        w0_comp = float(dhsurfaceRate_myr) - float(w0_dyn)
-        w_obs_comp = np.concatenate(([w0_comp], w_obs_comp))
+
+        # Choose fit dataset and fit window
+        if USE_FILE_FIT_ARRAYS_IF_AVAILABLE and (fit_z_m is not None) and (fit_w_myr is not None):
+            z_fit = np.asarray(fit_z_m, dtype=float)
+            w_fit = np.asarray(fit_w_myr, dtype=float)
+            mfit = np.isfinite(z_fit) & np.isfinite(w_fit)
+            z_fit = z_fit[mfit]
+            w_fit = w_fit[mfit]
+            fit_desc = "fit_ice/vertical_vel(_range) arrays from file"
+        else:
+            z_fit = np.asarray(range_m, dtype=float)
+            w_fit = np.asarray(w_total, dtype=float)
+
+            zmin = firn_depth_m if FIT_DEPTH_MIN is None else float(FIT_DEPTH_MIN)
+            if FIT_DEPTH_MAX is None:
+                if H_m is not None:
+                    zmax = 2.0 * float(H_m) / 3.0
+                else:
+                    zmax = 0.7 * float(np.nanmax(z_fit))
+            else:
+                zmax = float(FIT_DEPTH_MAX)
+
+            mfit = np.isfinite(z_fit) & np.isfinite(w_fit) & (z_fit >= zmin) & (z_fit <= zmax)
+            z_fit = z_fit[mfit]
+            w_fit = w_fit[mfit]
+            fit_desc = f"dh/dt over [{zmin:.1f}, {zmax:.1f}] m"
+
+        if z_fit.size < 3:
+            raise RuntimeError("Not enough points in fit window to estimate background strain rate.")
+
+        if ANCHOR_AT_Z0:
+            eps_dyn = slope_through_point(z_fit, w_fit, z0)
+            # dynamic component is linear and passes through (z0, 0)
+            w_dyn = eps_dyn * (range_m - z0)
+        else:
+            # free-intercept fit: w ≈ a + b z
+            b, a = np.polyfit(z_fit, w_fit, 1)
+            eps_dyn = float(b)
+            w_dyn = a + eps_dyn * range_m
+
+        print("\nIce-dynamics correction:")
+        print(f"  anchor depth z0 = {z0:.2f} m")
+        print(f"  fit used: {fit_desc}")
+        print(f"  estimated background vertical strain rate eps_dyn = dw/dz = {eps_dyn:.6e} 1/yr")
+        print("  (For incompressible ice in 2-D: horizontal strain rate eps_x ≈ -eps_dyn)")
+
+        # Build corrected velocity everywhere
+        w_comp = w_total - w_dyn
     else:
-        w_obs_comp = np.concatenate(([float(dhsurfaceRate_myr)], w_obs_comp))
+        w_comp = w_total
 
-# Compute strain rates from raw and corrected velocities
-eps_obs_raw = moving_slope(z_obs, w_obs_raw, WINDOW_M)
-eps_obs_comp = moving_slope(z_obs, w_obs_comp, WINDOW_M)
+    # ------------------------------------------------------------
+    # Build observation arrays for plotting/mapping (firn-only optional)
+    # ------------------------------------------------------------
 
-# ------------------------------------------------------------
-# Map onto mesh (if Firedrake is available)
-# ------------------------------------------------------------
+    mask = np.isfinite(range_m) & np.isfinite(w_total)
+    if USE_FIRN_ONLY:
+        mask &= (range_m <= firn_depth_m)
 
-H0 = firn_depth_m if H0_MESH is None else float(H0_MESH)
-mesh, V, depth_dofs = build_stretched_depth_mesh(H0, NZ, STRETCH_P)
+    z_obs = range_m[mask].astype(float)
 
-have_fd = mesh is not None
-if have_fd:
-    # Interpolate observations onto mesh dofs (constant end extrapolation)
-    w_raw_on_mesh = np.interp(depth_dofs, z_obs, w_obs_raw, left=w_obs_raw[0], right=w_obs_raw[-1])
-    w_comp_on_mesh = np.interp(depth_dofs, z_obs, w_obs_comp, left=w_obs_comp[0], right=w_obs_comp[-1])
+    w_obs_raw = w_total[mask].astype(float)
+    w_obs_comp = w_comp[mask].astype(float)
 
-    eps_raw_on_mesh = np.interp(depth_dofs, z_obs, eps_obs_raw, left=eps_obs_raw[0], right=eps_obs_raw[-1])
-    eps_comp_on_mesh = np.interp(depth_dofs, z_obs, eps_obs_comp, left=eps_obs_comp[0], right=eps_obs_comp[-1])
+    # Sort by depth increasing
+    order = np.argsort(z_obs)
+    z_obs = z_obs[order]
+    w_obs_raw = w_obs_raw[order]
+    w_obs_comp = w_obs_comp[order]
 
-    import firedrake as fd
-    w_raw_fd = fd.Function(V, name="apres_w_raw_m_per_yr")
-    w_comp_fd = fd.Function(V, name="apres_w_comp_m_per_yr")
-    eps_raw_fd = fd.Function(V, name="apres_eps_raw_per_yr")
-    eps_comp_fd = fd.Function(V, name="apres_eps_comp_per_yr")
+    # Optional surface point handling
+    if INCLUDE_SURFACE_POINT and (dhsurfaceRate_myr is not None):
+        z_obs = np.concatenate(([0.0], z_obs))
+        w_obs_raw = np.concatenate(([float(dhsurfaceRate_myr)], w_obs_raw))
 
-    w_raw_fd.dat.data[:] = w_raw_on_mesh
-    w_comp_fd.dat.data[:] = w_comp_on_mesh
-    eps_raw_fd.dat.data[:] = eps_raw_on_mesh
-    eps_comp_fd.dat.data[:] = eps_comp_on_mesh
+        if APPLY_ICE_DYNAMICS_CORRECTION:
+            # treat dhsurfaceRate as a "total" surface velocity and correct it consistently
+            z0 = zeroShiftDepth_m if zeroShiftDepth_m is not None else firn_depth_m
+            w0_dyn = eps_dyn * (0.0 - z0) if ANCHOR_AT_Z0 else (w_dyn[np.nanargmin(np.abs(range_m - 0.0))])
+            w0_comp = float(dhsurfaceRate_myr) - float(w0_dyn)
+            w_obs_comp = np.concatenate(([w0_comp], w_obs_comp))
+        else:
+            w_obs_comp = np.concatenate(([float(dhsurfaceRate_myr)], w_obs_comp))
 
-    if WRITE_VTK:
-        out = fd.VTKFile(os.path.join(OUTDIR, "apres_profiles_corrected.pvd"))
-        out.write(w_raw_fd, w_comp_fd, eps_raw_fd, eps_comp_fd)
+    # Compute strain rates from raw and corrected velocities
+    eps_obs_raw = moving_slope(z_obs, w_obs_raw, WINDOW_M)
+    eps_obs_comp = moving_slope(z_obs, w_obs_comp, WINDOW_M)
 
-# ------------------------------------------------------------
-# Plotting
-# ------------------------------------------------------------
+    # ------------------------------------------------------------
+    # Map onto mesh (if Firedrake is available)
+    # ------------------------------------------------------------
 
-# 1) Velocity plot: raw vs corrected
-plt.figure()
-plt.plot(w_obs_raw, z_obs, linestyle="None", marker="o", label="ApRES velocity (raw)")
-plt.plot(w_obs_comp, z_obs, linestyle="None", marker="x", label="ApRES velocity (compaction-corrected)")
+    H0 = firn_depth_m if H0_MESH is None else float(H0_MESH)
+    mesh, V, depth_dofs = build_stretched_depth_mesh(H0, NZ, STRETCH_P)
 
-if APPLY_ICE_DYNAMICS_CORRECTION and not USE_FIRN_ONLY:
-    # show fitted dynamic line in the full-depth plot
-    z0 = zeroShiftDepth_m if zeroShiftDepth_m is not None else firn_depth_m
-    z_line = np.linspace(np.nanmin(range_m), np.nanmax(range_m), 200)
-    w_line = eps_dyn * (z_line - z0) if ANCHOR_AT_Z0 else (np.polyfit(z_fit, w_fit, 1)[1] + eps_dyn * z_line)
-    plt.plot(w_line, z_line, linewidth=1.5, label="Estimated ice-dynamic component (fit)")
+    have_fd = mesh is not None
+    if have_fd:
+        # Interpolate observations onto mesh dofs (constant end extrapolation)
+        w_raw_on_mesh = np.interp(depth_dofs, z_obs, w_obs_raw, left=w_obs_raw[0], right=w_obs_raw[-1])
+        w_comp_on_mesh = np.interp(depth_dofs, z_obs, w_obs_comp, left=w_obs_comp[0], right=w_obs_comp[-1])
 
-if have_fd:
-    idx = np.argsort(depth_dofs)
-    plt.plot(w_raw_on_mesh[idx], depth_dofs[idx], label="Raw mapped to mesh")
-    plt.plot(w_comp_on_mesh[idx], depth_dofs[idx], label="Corrected mapped to mesh")
+        eps_raw_on_mesh = np.interp(depth_dofs, z_obs, eps_obs_raw, left=eps_obs_raw[0], right=eps_obs_raw[-1])
+        eps_comp_on_mesh = np.interp(depth_dofs, z_obs, eps_obs_comp, left=eps_obs_comp[0], right=eps_obs_comp[-1])
 
-# depth markers
-plt.axhline(y=float(firn_depth_m), linewidth=0.8, linestyle="--", label="firn_depth (file)")
-if zeroShiftDepth_m is not None:
-    plt.axhline(y=float(zeroShiftDepth_m), linewidth=0.8, linestyle=":", label="zeroShiftDepth")
+        import firedrake as fd
+        w_raw_fd = fd.Function(V, name="apres_w_raw_m_per_yr")
+        w_comp_fd = fd.Function(V, name="apres_w_comp_m_per_yr")
+        eps_raw_fd = fd.Function(V, name="apres_eps_raw_per_yr")
+        eps_comp_fd = fd.Function(V, name="apres_eps_comp_per_yr")
 
-plt.gca().invert_yaxis()
-plt.xlabel("Vertical velocity w (m/yr)")
-plt.ylabel("Depth below surface (m)")
-plt.title("ApRES vertical velocity: raw vs compaction-corrected")
-plt.legend()
-apply_depth_limits()
-plt.tight_layout()
+        w_raw_fd.dat.data[:] = w_raw_on_mesh
+        w_comp_fd.dat.data[:] = w_comp_on_mesh
+        eps_raw_fd.dat.data[:] = eps_raw_on_mesh
+        eps_comp_fd.dat.data[:] = eps_comp_on_mesh
 
-vel_png = os.path.join(OUTDIR, "apres_velocity_raw_vs_corrected.png")
-if SAVE_PNG:
-    plt.savefig(vel_png, dpi=200)
-    print(f"Wrote {vel_png}")
+        if WRITE_VTK:
+            out = fd.VTKFile(os.path.join(OUTDIR, "apres_profiles_corrected.pvd"))
+            out.write(w_raw_fd, w_comp_fd, eps_raw_fd, eps_comp_fd)
 
-# 2) Strain-rate plot: raw vs corrected
-plt.figure()
-plt.plot(eps_obs_raw, z_obs, linestyle="None", marker="o", label="εzz from raw w(z)")
-plt.plot(eps_obs_comp, z_obs, linestyle="None", marker="x", label="εzz after ice-dynamics correction")
+    # ------------------------------------------------------------
+    # Plotting
+    # ------------------------------------------------------------
 
-if APPLY_ICE_DYNAMICS_CORRECTION:
-    # show constant background strain rate
-    plt.axvline(x=float(eps_dyn), linewidth=0.8, linestyle="--", label="ε_dyn (background)")
+    # 1) Velocity plot: raw vs corrected
+    plt.figure()
+    plt.plot(w_obs_raw, z_obs, linestyle="None", marker="o", label="ApRES velocity (raw)")
+    plt.plot(w_obs_comp, z_obs, linestyle="None", marker="x", label="ApRES velocity (compaction-corrected)")
 
-if have_fd:
-    idx = np.argsort(depth_dofs)
-    plt.plot(eps_raw_on_mesh[idx], depth_dofs[idx], label="Raw mapped to mesh")
-    plt.plot(eps_comp_on_mesh[idx], depth_dofs[idx], label="Corrected mapped to mesh")
+    if APPLY_ICE_DYNAMICS_CORRECTION and not USE_FIRN_ONLY:
+        # show fitted dynamic line in the full-depth plot
+        z0 = zeroShiftDepth_m if zeroShiftDepth_m is not None else firn_depth_m
+        z_line = np.linspace(np.nanmin(range_m), np.nanmax(range_m), 200)
+        w_line = eps_dyn * (z_line - z0) if ANCHOR_AT_Z0 else (np.polyfit(z_fit, w_fit, 1)[1] + eps_dyn * z_line)
+        plt.plot(w_line, z_line, linewidth=1.5, label="Estimated ice-dynamic component (fit)")
 
-plt.axhline(y=float(firn_depth_m), linewidth=0.8, linestyle="--", label="firn_depth (file)")
-if zeroShiftDepth_m is not None:
-    plt.axhline(y=float(zeroShiftDepth_m), linewidth=0.8, linestyle=":", label="zeroShiftDepth")
+    if have_fd:
+        idx = np.argsort(depth_dofs)
+        plt.plot(w_raw_on_mesh[idx], depth_dofs[idx], label="Raw mapped to mesh")
+        plt.plot(w_comp_on_mesh[idx], depth_dofs[idx], label="Corrected mapped to mesh")
 
-plt.gca().invert_yaxis()
-plt.xlabel("Vertical strain rate εzz = dw/dz (1/yr)")
-plt.ylabel("Depth below surface (m)")
-plt.title(f"ApRES vertical strain rate (window={WINDOW_M:g} m): raw vs corrected")
-plt.legend()
-apply_depth_limits()
-plt.tight_layout()
+    # depth markers
+    plt.axhline(y=float(firn_depth_m), linewidth=0.8, linestyle="--", label="firn_depth (file)")
+    if zeroShiftDepth_m is not None:
+        plt.axhline(y=float(zeroShiftDepth_m), linewidth=0.8, linestyle=":", label="zeroShiftDepth")
 
-eps_png = os.path.join(OUTDIR, "apres_strainrate_raw_vs_corrected.png")
-if SAVE_PNG:
-    plt.savefig(eps_png, dpi=200)
-    print(f"Wrote {eps_png}")
+    plt.gca().invert_yaxis()
+    plt.xlabel("Vertical velocity w (m/yr)")
+    plt.ylabel("Depth below surface (m)")
+    plt.title("ApRES vertical velocity: raw vs compaction-corrected")
+    plt.legend()
+    apply_depth_limits()
+    plt.tight_layout()
 
-plt.show()
+    vel_png = os.path.join(OUTDIR, "apres_velocity_raw_vs_corrected.png")
+    if SAVE_PNG:
+        plt.savefig(vel_png, dpi=200)
+        print(f"Wrote {vel_png}")
+
+    # 2) Strain-rate plot: raw vs corrected
+    plt.figure()
+    plt.plot(eps_obs_raw, z_obs, linestyle="None", marker="o", label="εzz from raw w(z)")
+    plt.plot(eps_obs_comp, z_obs, linestyle="None", marker="x", label="εzz after ice-dynamics correction")
+
+    if APPLY_ICE_DYNAMICS_CORRECTION:
+        # show constant background strain rate
+        plt.axvline(x=float(eps_dyn), linewidth=0.8, linestyle="--", label="ε_dyn (background)")
+
+    if have_fd:
+        idx = np.argsort(depth_dofs)
+        plt.plot(eps_raw_on_mesh[idx], depth_dofs[idx], label="Raw mapped to mesh")
+        plt.plot(eps_comp_on_mesh[idx], depth_dofs[idx], label="Corrected mapped to mesh")
+
+    plt.axhline(y=float(firn_depth_m), linewidth=0.8, linestyle="--", label="firn_depth (file)")
+    if zeroShiftDepth_m is not None:
+        plt.axhline(y=float(zeroShiftDepth_m), linewidth=0.8, linestyle=":", label="zeroShiftDepth")
+
+    plt.gca().invert_yaxis()
+    plt.xlabel("Vertical strain rate εzz = dw/dz (1/yr)")
+    plt.ylabel("Depth below surface (m)")
+    plt.title(f"ApRES vertical strain rate (window={WINDOW_M:g} m): raw vs corrected")
+    plt.legend()
+    apply_depth_limits()
+    plt.tight_layout()
+
+    eps_png = os.path.join(OUTDIR, "apres_strainrate_raw_vs_corrected.png")
+    if SAVE_PNG:
+        plt.savefig(eps_png, dpi=200)
+        print(f"Wrote {eps_png}")
+
+    plt.show()
+
+
+if __name__ == "__main__":
+    main()
