@@ -11,6 +11,12 @@ T-history reshaped under denser knots (exactly the prior-bound soft modes the
 Laplace UQ flagged; honest error bars pending the per-point round). Modern-era
 rate additionally hostage to the Buizert↔ERA5 accum datum seam (see 2026-07-03).
 
+> **NOTE (historical document).** Paths, and statements about the repository and
+> its environment, describe the state at the time of writing and are preserved as
+> a record of it - do not read any of them as current fact. In particular the repo
+> *is* now git-tracked, and the `test/southpole/` material referenced below now
+> lives under `archive/southpole/`.
+
 ## Environment (essential for resuming)
 ```bash
 # venv + editable firn package on PYTHONPATH; ALWAYS set OMP_NUM_THREADS=1
