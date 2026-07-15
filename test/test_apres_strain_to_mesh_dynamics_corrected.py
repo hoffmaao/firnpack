@@ -243,13 +243,18 @@ def slope_through_point(z: np.ndarray, w: np.ndarray, z0: float) -> float:
 # ------------------------------------------------------------
 
 if not os.path.exists(MAT_FILE) and DOWNLOAD_URL is None:
-    import pytest
-
-    pytest.skip(
+    _skip_reason = (
         f"{MAT_FILE!r} is not in the repository and DOWNLOAD_URL is None; "
-        "point MAT_FILE at a local copy or set DOWNLOAD_URL to run this.",
-        allow_module_level=True,
+        "point MAT_FILE at a local copy or set DOWNLOAD_URL to run this."
     )
+    try:
+        import pytest
+    except ModuleNotFoundError:
+        # Run directly as a script: skip cleanly rather than fail on the import.
+        print(f"SKIP: {_skip_reason}")
+        raise SystemExit(0)
+
+    pytest.skip(_skip_reason, allow_module_level=True)
 
 ensure_file(MAT_FILE, DOWNLOAD_URL)
 data = read_apres_v73(MAT_FILE)

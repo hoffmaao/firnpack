@@ -38,13 +38,14 @@ import numpy as np
 
 import firedrake as fd
 
-# Importing the adjoint module turns on pyadjoint overloading/taping.
-# (Same idea as `from gadopt.inverse import *` in the demo.)
+# Importing the adjoint module installs pyadjoint overloading; taping itself is
+# off until continue_annotation() is called before the forward we want to tape.
 # Prefer the non-deprecated import path.
 try:
     from firedrake.adjoint import (
         Control,
         ReducedFunctional,
+        continue_annotation,
         get_working_tape,
         pause_annotation,
         stop_annotating,
@@ -55,6 +56,7 @@ except Exception:  # pragma: no cover
     from firedrake_adjoint import (  # type: ignore
         Control,
         ReducedFunctional,
+        continue_annotation,
         get_working_tape,
         pause_annotation,
         stop_annotating,
@@ -122,13 +124,23 @@ def build_stretched_mesh(H0: float, nz: int, p: float) -> fd.Mesh:
     return mesh
 
 
-def initial_conditions(V: fd.FunctionSpace, params: FirnParameters, Ts: fd.Constant):
+def make_real(R: fd.FunctionSpace, value: float, name: str) -> fd.Function:
+    f = fd.Function(R, name=name)
+    f.assign(float(value))
+    return f
+
+
+def real_value(f: fd.Function) -> float:
+    return float(f.dat.data_ro[0])
+
+
+def initial_conditions(V: fd.FunctionSpace, params: FirnParameters, Ts: fd.Function):
     """Create and initialise H, rho, w for a forward run."""
     H = fd.Function(V, name="enthalpy")
     rho = fd.Function(V, name="density")
     w = fd.Function(V, name="firn_velocity")
 
-    H_init = params.c_i * (float(Ts) - params.T_ref)
+    H_init = params.c_i * (real_value(Ts) - params.T_ref)
 
     H.assign(H_init)
     rho.assign(300.0)
@@ -137,8 +149,8 @@ def initial_conditions(V: fd.FunctionSpace, params: FirnParameters, Ts: fd.Const
     return H, rho, w, float(H_init)
 
 
-def make_bcs(V: fd.FunctionSpace, params: FirnParameters, accum: fd.Constant, rho_s: fd.Constant,
-             Hs_bc: fd.Constant, surface_id: int = 2):
+def make_bcs(V: fd.FunctionSpace, params: FirnParameters, accum: fd.Function, rho_s: fd.Function,
+             Hs_bc: fd.Function, surface_id: int = 2):
     """Dirichlet BCs matching test.py: H, rho, and w imposed at the surface."""
     w_surf = -accum * params.rho_i / rho_s / year
 
@@ -184,6 +196,8 @@ def main():
     # ------------------------------------------------------------------
     mesh = build_stretched_mesh(H0, nz, mesh_stretch_p)
     V = fd.FunctionSpace(mesh, "CG", 1)
+    # pyadjoint requires mesh-attached scalars: Real-space Functions, not Constants.
+    R = fd.FunctionSpace(mesh, "R", 0)
 
     dx = fd.dx(domain=mesh)
     ds = fd.ds(domain=mesh)
@@ -191,10 +205,10 @@ def main():
     surface_id = 2
     base_id = 1
 
-    accum = fd.Constant(accum_m_iceeq_per_yr,domain=mesh)
-    rho_s = fd.Constant(rho_surface,domain=mesh)
-    Ts = fd.Constant(Ts_K,domain=mesh)
-    dt = fd.Constant(dt_days * 86400.0,domain=mesh)
+    accum = make_real(R, accum_m_iceeq_per_yr, "accum")
+    rho_s = make_real(R, rho_surface, "rho_s")
+    Ts = make_real(R, Ts_K, "Ts")
+    dt = make_real(R, dt_days * 86400.0, "dt")
 
     # ------------------------------------------------------------------
     # 1) Reference twin: generate synthetic observations w_obs[k]
@@ -207,7 +221,7 @@ def main():
         solver_ref = FirnColumnSolver(model_ref)
 
         H_ref, rho_ref, w_ref, H_init_ref = initial_conditions(V, params_ref, Ts)
-        Hs_bc_ref = fd.Constant(H_init_ref,domain=mesh)
+        Hs_bc_ref = make_real(R, H_init_ref, "Hs_bc_ref")
         bcs_ref = make_bcs(V, params_ref, accum, rho_s, Hs_bc_ref, surface_id=surface_id)
 
         w_obs: list[fd.Function] = []
@@ -227,23 +241,35 @@ def main():
 
             w_obs.append(apply_relative_noise(w_ref, NOISE_REL, rng))
 
+        # w is in m/s (~1e-8), so the raw misfit is ~1e-12. L-BFGS-B tests its
+        # ftol against max(|J|, 1), so an unscaled J looks converged at the
+        # first step. Normalise so J is O(1) and the optimiser actually runs.
+        obs_norm = 0.0
+        for k in range(nsteps):
+            if OBS_OPERATOR == "profile":
+                obs_norm += float(fd.assemble((w_obs[k] ** 2) * dx))
+            else:
+                obs_norm += float(fd.assemble((w_obs[k] ** 2) * ds(base_id)))
+        obs_norm = obs_norm + 1.0e-30
+
     # ------------------------------------------------------------------
-    # 2) Clear tape (as in the G-ADOPT adjoint demo)
+    # 2) Clear tape and resume annotation (as in the G-ADOPT adjoint demo)
     # ------------------------------------------------------------------
     tape = get_working_tape()
     tape.clear_tape()
+    continue_annotation()
 
     # ------------------------------------------------------------------
     # 3) Set up the inversion problem (kg as the Control)
     # ------------------------------------------------------------------
-    kg = fd.Constant(kg_initial_guess,domain=mesh)
+    kg = make_real(R, kg_initial_guess, "kg")
 
     params = FirnParameters(kg=kg)
     model = FirnModel(params)
     solver = FirnColumnSolver(model)
 
     H, rho, w, H_init = initial_conditions(V, params, Ts)
-    Hs_bc = fd.Constant(H_init,domain=mesh)
+    Hs_bc = make_real(R, H_init, "Hs_bc")
     bcs = make_bcs(V, params, accum, rho_s, Hs_bc, surface_id=surface_id)
 
     control = Control(kg)
@@ -275,6 +301,8 @@ def main():
         else:
             raise ValueError(f"Unknown OBS_OPERATOR={OBS_OPERATOR!r}")
 
+    J = J / obs_norm
+
     # Optional weak regularisation / prior on kg (helps if data are noisy)
     # (Keep alpha small; start with 0.0)
     alpha = 0.0
@@ -293,8 +321,10 @@ def main():
     # ------------------------------------------------------------------
     # 6) Gradient check (Taylor test)
     # ------------------------------------------------------------------
-    # For a scalar Constant control, a simple direction is fine.
-    dkg = fd.Constant(1.0,domain=mesh)
+    # The direction must be scaled to the control: kg ~ 1e-7, and taylor_test
+    # perturbs by eps*dkg with eps=0.01, so a unit direction would drive kg to
+    # 0.01 and diverge the solve. Scaling by kg gives a 1% relative step.
+    dkg = make_real(R, kg_initial_guess, "dkg")
     print("Running Taylor test for dJ/dkg ...")
     rate = taylor_test(rf, kg, dkg)
     print(f"  Taylor test convergence rate: {rate}")
@@ -307,14 +337,16 @@ def main():
 
     def record_eval(Jval, mval):
         # Jval is usually an AdjFloat, but casts to float.
+        # mval is a Real-space Function (or its checkpoint), not a plain scalar.
+        kg_now = float(mval.dat.data_ro[0]) if hasattr(mval, "dat") else float(mval)
         J_hist.append(float(Jval))
-        kg_hist.append(float(mval))
-        print(f"  J = {float(Jval):.6e} ; kg = {float(mval):.6e}")
+        kg_hist.append(kg_now)
+        print(f"  J = {float(Jval):.6e} ; kg = {kg_now:.6e}")
 
     rf.eval_cb_post = record_eval
 
-    kg_lb = fd.Constant(kg_lower,domain=mesh)
-    kg_ub = fd.Constant(kg_upper,domain=mesh)
+    kg_lb = make_real(R, kg_lower, "kg_lb")
+    kg_ub = make_real(R, kg_upper, "kg_ub")
 
     print("\nStarting optimisation...")
     print(f"  true kg         = {kg_true:.6e}")
@@ -322,15 +354,19 @@ def main():
     print(f"  bounds           = [{kg_lower:.2e}, {kg_upper:.2e}]")
 
     # L-BFGS-B is usually the most robust default for 1-parameter problems.
+    # kg ~ 1e-7 makes dJ/dkg ~ 1e7, and the default ftol/gtol are absolute, so
+    # the defaults declare convergence before taking a real step.
     kg_opt = minimize(
         rf,
         method="L-BFGS-B",
         bounds=(kg_lb, kg_ub),
-        options={"maxiter": 25},
+        options={"maxiter": 25, "ftol": 1.0e-14, "gtol": 1.0e-12},
     )
 
+    kg_opt_val = float(kg_opt.dat.data_ro[0]) if hasattr(kg_opt, "dat") else float(kg_opt)
+
     print("\nDone.")
-    print(f"Recovered kg: {float(kg_opt):.6e}")
+    print(f"Recovered kg: {kg_opt_val:.6e}")
 
     # ------------------------------------------------------------------
     # 8) (Optional) write out the time history of J and kg

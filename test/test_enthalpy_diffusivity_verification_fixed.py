@@ -113,7 +113,8 @@ def main():
 
     # One step should preserve the steady-state solution (within solver tolerance)
     solver.solve()
-    err_inf = float(fd.norm(H - H_old, norm_type="linf"))
+    # fd.norm has no max-norm; take it over the dofs (V is CG1, so nodal max).
+    err_inf = float(np.abs(fd.Function(V).interpolate(H - H_old).dat.data_ro).max())
     print("Diffusion steady-state check (w=0, κ const, linear IC):")
     print(f"  ||H - H_old||_inf = {err_inf:.3e}  (should be ~0)\n")
 
