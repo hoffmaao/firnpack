@@ -84,22 +84,54 @@ _r_of_z=np.cumsum(_n_z/_NICE)*(_zz[1]-_zz[0])
 def _z_true(rng): return float(np.interp(rng,_r_of_z,_zz))
 def _n_at(z): return float(np.interp(z,_zz,_n_z))
 VEL_SRC = os.environ.get("FIRN_VEL_SRC", "authors")  # authors (pipeline-A 25-m smoothed) | zeising (raw-burst reprocessing)
-def site_vel_block_zeising(site, zref_range=30.0, sig_shape=3.5e-3, label="v"):
+def _zeising_resid_sigma(rr, y, ee, deg=2):
+    """Per-site sigma by ZEISING'S OWN METHOD (apres/strain.py menke_fit).
+
+    His method: the phase errors WEIGHT the fit, but the uncertainty comes from
+    the RESIDUAL SCATTER about the fitted model --
+        M = solve(G'WG, G'Wy);  resid = y - G@M;  var = np.var(resid, ddof=1)
+    -- NOT from the phase errors, which are ~0.003 mm/yr and meaningless as an
+    observation sigma.
+
+    His fit_ice sets fit_start = firn_depth_m: it EXCLUDES the firn and fits
+    LINEAR ice. Our observable is entirely in the firn, where the profile is
+    curved, so we keep the METHOD and use the lowest-order smooth curve the
+    firn model can produce (deg 2; deg 3 moves the answer <2%, deg 1 inflates
+    it ~12% by mistaking real curvature for scatter).
+
+    This uses ONE site's data. It replaces the old sig_shape=3.5 mm/yr, which
+    was the CROSS-SITE shape scatter -- i.e. pooling across columns that are
+    genuinely different (real strain variation: reduced chi2 733 about the
+    5-site mean, vs stated errors).
+    """
+    G = np.column_stack([(rr - rr.mean())**k for k in range(deg + 1)])
+    w = np.where(np.isfinite(ee) & (ee > 0), 1.0/ee**2, 1.0)
+    M = np.linalg.solve(G.T @ np.diag(w) @ G, G.T @ np.diag(w) @ y)
+    resid = y - G @ M
+    return float(np.sqrt(np.var(resid, ddof=1))) if resid.size > 1 else 0.0
+
+def site_vel_block_zeising(site, zref_range=30.0, label="v"):
     # Zeising raw-burst product (proper phase errors; no 25-m smoothing — the
     # pipeline-A smoothing biased firn gradients by up to 4x): 6-m fine windows
-    # stepped 2 m -> thin [::3] for independent samples. sigma = phase error
-    # (~0.01 mm/yr, negligible) + cross-site shape systematic (3.2 mm/yr rms
-    # over the 5 mutually consistent sites, uniform in depth).
+    # stepped 2 m -> thin [::3] for independent samples.
+    # sigma^2 = sigma_meas^2 + sigma_repr^2, both from THIS site's data:
+    #   sigma_meas = the stated phase errors (~0.003 mm/yr — negligible, but free)
+    #   sigma_repr = residual scatter about a smooth curve, per Zeising's own
+    #                menke_fit. Per-site: 2.86 (x11n6) .. 5.07 (x17s2) mm/yr —
+    #                a 1.8x spread the old single 3.5 could not express. The
+    #                broken sites convict themselves here: x5n2 66.6, x8n0 86.6.
     zei = pd.read_csv(DATA/"apres_zeising_processed.csv")
     d = zei[(zei.site==site)&(zei.range_m>=12.0)&(zei.range_m<=112.0)].sort_values("range_m")
     rr = d.range_m.values[::3]; vv = d.dRdt_myr.values[::3]; ee = d.dRdt_err_myr.values[::3]
     if len(rr) < 6: raise ValueError(f"site {site}: only {len(rr)} zeising points")
     vref = float(np.interp(zref_range, rr, vv)); eref = float(np.interp(zref_range, rr, ee))
+    sig_repr = _zeising_resid_sigma(rr, vv, ee, deg=int(os.environ.get("FIRN_VEL_FITDEG","2")))
     keep = np.abs(rr - zref_range) > 3.0
     zt = np.array([_z_true(r) for r in rr[keep]]); zr = _z_true(zref_range)
     # LOCAL-index kinematics (Case & Kingslake 2022): dR/dt = n(z) w(z) / n_ice
     nfac = np.array([_n_at(z)/_NICE for z in zt])
-    sig = np.sqrt(ee[keep]**2 + eref**2 + sig_shape**2)
+    sig = np.sqrt(ee[keep]**2 + eref**2 + sig_repr**2)
+    print(f"  [{site}] sigma_repr = {sig_repr*1000:.2f} mm/yr (own scatter, Zeising method)")
     return ObsBlock("dRdt_diff", zt, vv[keep]-vref, sig, label=label, ref_depth=zr,
                     nfac=nfac, nfac_ref=_n_at(zr)/_NICE)
 def site_vel_block(site, zref_range=30.0, sig=0.012, label="v"):
@@ -114,30 +146,78 @@ def site_vel_block(site, zref_range=30.0, sig=0.012, label="v"):
     nfac=np.array([0.5*(_n_at(z)+_n_at(zr))/_NICE for z in zt])
     return ObsBlock("dRdt_diff", zt, vv[keep]-vref, np.full(keep.sum(),sig),
                     label=label, ref_depth=zr, nfac=nfac)
-# d(age)/dz slopes at full resolution. Sigma = the STATED per-point estimate
-# max(window-fit s.e., 4% floor); NO inflation (Andrew, 2026-07-10: use the
-# stated observation uncertainties — the model's inability to fit interannual
-# layer scatter should read as an honest ~2σ misfit, not be absorbed into σ).
-# NOTE: the archived r8 MAP was produced WITH x2.2 inflation; to reproduce its
-# J=81.31 exactly, set FIRN_SIG_DAGE_SCALE=2.2.
+# ---- d(age)/dz slopes at full resolution, with a DATA-DERIVED sigma --------
+# sigma^2 = sigma_meas^2 + sigma_repr^2, both from our own data, no external
+# uncertainty column and no hand-picked number:
+#
+#   sigma_meas : FORMAL error propagation of the age -> slope fit (the lstsq
+#     standard error). Honest, and free -- but only ~6% of the variance.
+#   sigma_repr : measured FROM THE LAYERS -- the local scatter of d(age)/dz
+#     about the smoothest curve the model can represent. The b-knots resolve
+#     ~68 yr ~ 7 m of core, so everything finer is unfittable at ANY control
+#     setting (the sub-decadal d(age)/dz null space) and must live in sigma.
+#     For WEIGHTING the split between real layering and picking noise is
+#     irrelevant: what matters is the total variance the model cannot explain.
+#
+# This REPLACES `max(se, 4% of value)`. That floor overrode the formal
+# propagation at 90% of points and was ~2.4x too small, which handed dage 78%
+# of the objective (gradients go as 1/sigma^2) -- an inversion driven by layer
+# noise. The result is depth-dependent (3.9x across the column; ratio-to-old
+# 1.98 shallow, 2.82 at 60-80 m), so no scalar can express it.
+# FIRN_SIG_DAGE_LEGACY=1 restores the old floor form to reproduce archived
+# r8/r9/r10 MAPs (with FIRN_SIG_DAGE_SCALE=2.2 for r8's J=81.31 exactly).
 _ad,_aa=agedf.depth_m.values,agedf.age_yr.values
 SIG_DAGE_SCALE=float(os.environ.get("FIRN_SIG_DAGE_SCALE","1.0"))
-dc,do,dsg=[],[],[]
+_LEGACY_DAGE=os.environ.get("FIRN_SIG_DAGE_LEGACY","0")=="1"
+dc,do,dse=[],[],[]
 for c in np.arange(6.0,H0-1.0+1e-9,1.0):
     s=np.abs(_ad-c)<=0.6
     if s.sum()>=4:
         A=np.vstack([_ad[s]-c,np.ones(s.sum())]).T; coef,res,*_=np.linalg.lstsq(A,_aa[s],rcond=None); nn=s.sum()
         se=math.sqrt(max(float(res[0]) if len(res) else 0.0,1e-12)/(nn-2)/max(np.sum((_ad[s]-c)**2),1e-12))
-        dc.append(c); do.append(coef[0]); dsg.append(max(se,0.04*abs(coef[0]))*SIG_DAGE_SCALE)
+        dc.append(c); do.append(coef[0]); dse.append(se)
+dc=np.array(dc); do=np.array(do); dse=np.array(dse)
+if _LEGACY_DAGE:
+    dsg=np.maximum(dse,0.04*np.abs(do))*SIG_DAGE_SCALE
+else:
+    _SM_M=float(os.environ.get("FIRN_DAGE_SMOOTH_M","7.0"))   # b-knot scale, in m of core
+    _w=max(3,int(round(_SM_M/1.0))|1)
+    _smooth=np.convolve(np.pad(do,_w//2,mode="edge"),np.ones(_w)/_w,mode="valid")[:len(do)]
+    _LW=21                                                    # window for the LOCAL sd
+    _repr=np.array([np.std((do-_smooth)[max(0,i-_LW//2):min(len(do),i+_LW//2+1)])
+                    for i in range(len(do))])
+    dsg=np.sqrt(dse**2+_repr**2)*SIG_DAGE_SCALE
+    print(f"dage sigma (data-derived): median {np.median(dsg):.3f} yr/m "
+          f"= {100*np.median(dsg/np.abs(do)):.1f}% of value "
+          f"(meas {100*np.median(dse**2/dsg**2):.0f}% of variance; "
+          f"depth spread {dsg.max()/dsg.min():.1f}x)")
 P0T_ref=273.15; c_i=2009.0; T_ref=273.15   # match FirnParameters (c_i, T_ref)
 from firnpack.models.firn import FirnParameters as _FP
 _p=_FP(); c_i=float(_p.c_i); T_ref=float(_p.T_ref)
 obs=[
     ObsBlock("rho", dens.depth_m.values, dens.rho_kgm3.values*1000.0, 15.0+0.03*dens.rho_kgm3.values*1000.0, label="rho"),
-    ObsBlock("age", ages.depth_m.values, ages.age_yr.values*YEAR_S, (10.0+0.03*ages.age_yr.values)*YEAR_S, label="age"),
-    ObsBlock("dagedz", np.array(dc), np.array(do), np.array(dsg), label="dage"),
+    ObsBlock("dagedz", dc, do, dsg, label="dage"),
     ObsBlock("enthalpy", bT.depth_m.values, c_i*(bT.T_C.values+T_SHIFT+273.15-T_ref), c_i*np.full(len(bT),0.2), label="T"),
 ]
+# ---- the absolute-age block is DELETED (2026-07-14) ------------------------
+# It was the SAME MEASUREMENTS as dage: `ages = _sub(agedf,40)` subsampled the
+# very frame the dage windows are built from -- 41 of its 42 points fall INSIDE
+# a dage window, and dage touches 97% of agedf against the age block's 4%.
+# It also did nothing: its invented sigma (10 yr + 3% -> 46 yr at 130 m) gave
+# it 0.1% of the objective, and even at a STRICT measurement error the model
+# fits it at 0.63 sigma, because dage already pins the layers (derived
+# representation error = 0).
+# And its covariance was wrong in principle: SP19 is LAYER-COUNTED (rows are
+# exactly 1.000 yr apart), so absolute age is a CUMULATIVE count whose errors
+# accumulate down the core -- not 42 independent draws. Layer thickness (dage)
+# is the primitive with ~independent errors; differencing is the whitening
+# transform for that cumulative structure. So dage is the right single
+# representation, and the age block was a redundant, mis-specified copy.
+# FIRN_AGE_BLOCK=1 restores it to reproduce archived r8/r9/r10 MAPs.
+if os.environ.get("FIRN_AGE_BLOCK","0")=="1":
+    obs.insert(1, ObsBlock("age", ages.depth_m.values, ages.age_yr.values*YEAR_S,
+                           (10.0+0.03*ages.age_yr.values)*YEAR_S, label="age"))
+    print("age block RESTORED (legacy reproduction mode)")
 if VEL_SITE == "pooled":
     obs.append(ObsBlock("velocity", np.array([r[0] for r in _vr]), np.array([r[1] for r in _vr]),
                np.maximum(np.array([r[2]/max(r[3],1)**0.5 for r in _vr]),0.01), label="v"))

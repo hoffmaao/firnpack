@@ -58,6 +58,14 @@ def stated_sigma(lab, d, o):
             ses.append(max(se, 1e-3))
         return np.array(ses)
     if lab.startswith("v"):   # any per-site velocity block (v, v_x17s2, ...)
+        if os.environ.get("FIRN_VEL_SRC", "authors") == "zeising":
+            # The zeising builder sets sig^2 = ee^2 + eref^2 + sig_shape^2, so
+            # the pure MEASUREMENT part is the in-use sigma with the cross-site
+            # shape systematic removed. (Do NOT use pipeline-A's v_unc_m_yr
+            # here: different product, and its tail is pathological -> 1.3e6.)
+            SIG_SHAPE = 3.5e-3
+            s_use = np.array(blocks[lab]["sig"])
+            return np.sqrt(np.maximum(s_use**2 - SIG_SHAPE**2, (1e-6)**2))
         ap = pd.read_csv(HERE/"data/apres_vertical_velocity_processed.csv")
         ap = ap[(ap.range_m<=130) & ap.v_smooth_m_yr.notna() & (ap.coherence>0.5)]
         u = ap.v_unc_m_yr.values; u = u[np.isfinite(u) & (u < 0.1)]
@@ -67,7 +75,8 @@ def stated_sigma(lab, d, o):
 print(f"MAP: {Path(MAP_PATH).stem}   (forward J = {r['J']:.2f} under in-use sigmas)")
 print(f"{'block':6s} {'rms(in-use σ)':>14s} {'rms(stated σ)':>14s} {'σ_meas':>12s} {'σ_repr needed':>14s}")
 summary = {}
-for lab in ["rho", "age", "dage", "T"] + sorted(k for k in blocks if k.startswith("v")):
+for lab in [l for l in ["rho", "age", "dage", "T"] if l in blocks] \
+           + sorted(k for k in blocks if k.startswith("v")):
     b = blocks[lab]
     d = np.array(b["depths"]); o = np.array(b["obs"]); p = np.array(b["pred"])
     s_use = np.array(b["sig"]); s_st = stated_sigma(lab, d, o)
@@ -78,8 +87,9 @@ for lab in ["rho", "age", "dage", "T"] + sorted(k for k in blocks if k.startswit
     r2 = np.mean(res**2); sm2 = np.mean(s_st**2)
     s_repr = math.sqrt(max(r2 - sm2, 0.0))
     # display units
+    # multi-site velocity labels are v_<site>; they all convert as "v"
     conv = dict(rho=(1, "kg/m3"), age=(1/YEAR_S, "yr"), dage=(1, "yr/m"),
-                T=(1/C_I, "C"), v=(1, "m/yr"))[lab]
+                T=(1/C_I, "C"), v=(1, "m/yr"))["v" if lab.startswith("v") else lab]
     print(f"{lab:6s} {rms_use:14.2f} {rms_st:14.2f} "
           f"{np.median(s_st)*conv[0]:9.3g} {conv[1]:<4s} {s_repr*conv[0]:10.3g} {conv[1]}")
     summary[lab] = dict(rms_inuse=rms_use, rms_stated=rms_st,

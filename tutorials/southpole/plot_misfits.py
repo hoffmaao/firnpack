@@ -53,7 +53,10 @@ def to_display(block):
     return d, o, s, p, unit
 
 blocks = {b["label"]: b for b in r["obs"]}
-order = ["rho", "age", "dage", "T", "v"]
+# the "age" block is deleted by default (redundant with dage; FIRN_AGE_BLOCK=1
+# restores it), and velocity is per-site now -- so take whatever is present.
+order = [l for l in ["rho", "age", "dage", "T"] if l in blocks] + \
+        sorted(l for l in blocks if l.startswith("v"))
 titles = {"rho": "(a) density (SP19)", "age": "(b) depth–age (SP19)",
           "dage": "(c) layer gradient d(age)/dz", "T": "(d) borehole temperature",
           "v": "(e) vertical velocity (ApRES)"}
