@@ -435,9 +435,9 @@ FIRN_WARM_FILE=sp_joint_r5.json FIRN_TAG=sp_joint_r5b` (k_snow refit at
 the corrected site T: **1.29 ± 0.02**, F(T) at 222.25 K). Verify: replay
 deterministic (J=486.84); warm-start rms = the predicted datum signature
 (T carries over at 0.45σ; ρ 1.10/age 1.01 = rate deficit at colder anchor
-→ prefactors re-anchor, expect k0 +~15%, k1 +~35%). CLAUDE.md southpole
-carries a dated datum-correction banner; staged csv kept for
-reproducibility (scripts shift via FIRN_T_SHIFT). fit_stats +
+→ prefactors re-anchor, expect k0 +~15%, k1 +~35%). The datum correction is
+documented in `tutorials/southpole/data/README.md` (caveat 1); staged csv
+kept for reproducibility (scripts shift via FIRN_T_SHIFT). fit_stats +
 reanalysis_decomp now law-aware (+FIRN_T_SHIFT in fit_stats).
 **GOAL (Andrew): comprehensive firn reanalysis** — after r5b: dage-σ
 decision → UQ at final MAP (adapt hessian/sensitivity to 48-ctrl r5
