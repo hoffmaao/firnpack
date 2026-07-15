@@ -158,7 +158,7 @@ def _build_reduced_functional(nz: int, nsteps: int):
     return rf, kg, R
 
 
-def test_gradient_passes_taylor_test(firedrake, adjoint_tape, quiet_solver):
+def test_gradient_passes_taylor_test(firedrake, adjoint_tape):
     """dJ/dkg from the tape matches finite differences at second order.
 
     pyadjoint's first-order Taylor remainder converges at rate 2 when the
@@ -176,7 +176,7 @@ def test_gradient_passes_taylor_test(firedrake, adjoint_tape, quiet_solver):
     assert rate > 1.9
 
 
-def test_true_kg_beats_the_initial_guess(firedrake, adjoint_tape, quiet_solver):
+def test_true_kg_beats_the_initial_guess(firedrake, adjoint_tape):
     """The objective actually prefers the truth: J(kg_true) < J(kg_guess).
 
     Without noise the twin is exact, so J at the truth should be ~0. If this
@@ -193,7 +193,7 @@ def test_true_kg_beats_the_initial_guess(firedrake, adjoint_tape, quiet_solver):
 
 @pytest.mark.slow
 def test_kg_is_recovered_from_dense_velocity_observations(
-    firedrake, adjoint_tape, quiet_solver
+    firedrake, adjoint_tape
 ):
     """L-BFGS-B recovers kg_true from noise-free dense w observations."""
     rf, kg, R = _build_reduced_functional(FULL_NZ, FULL_NSTEPS)

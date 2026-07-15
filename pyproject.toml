@@ -33,6 +33,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["test"]
+addopts = "-m 'not slow'"
 markers = [
     "slow: long-running end-to-end tests (deselect with '-m \"not slow\"')",
 ]

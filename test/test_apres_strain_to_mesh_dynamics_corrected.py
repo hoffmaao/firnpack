@@ -1,7 +1,13 @@
 """
 test_apres_strain_to_mesh_dynamics_corrected.py
 
-Standalone script (no argparse, no main) to:
+PARKED, not a test: this file asserts nothing, so it is a plotting script that
+happens to live under test/. The pipeline lives in ``main()`` behind a
+``__main__`` guard, so importing or collecting this module runs nothing. It
+needs a local MAT_FILE (a copy exists under archive/) to do anything; without
+one, ``main()`` prints a skip notice and returns.
+
+The pipeline itself:
   1) load an ApRES MATLAB v7.3 (HDF5) strain file,
   2) compute vertical velocity w(z) [m/yr],
   3) estimate an ice-dynamics background vertical strain rate from a linear
@@ -254,20 +260,6 @@ def main():
             "(one exists under archive/) to run this."
         )
         return
-
-    if not os.path.exists(MAT_FILE) and DOWNLOAD_URL is None:
-        _skip_reason = (
-            f"{MAT_FILE!r} is not in the repository and DOWNLOAD_URL is None; "
-            "point MAT_FILE at a local copy or set DOWNLOAD_URL to run this."
-        )
-        try:
-            import pytest
-        except ModuleNotFoundError:
-            # Run directly as a script: skip cleanly rather than fail on the import.
-            print(f"SKIP: {_skip_reason}")
-            raise SystemExit(0)
-
-        pytest.skip(_skip_reason, allow_module_level=True)
 
     ensure_file(MAT_FILE, DOWNLOAD_URL)
     data = read_apres_v73(MAT_FILE)

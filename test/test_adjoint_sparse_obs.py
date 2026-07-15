@@ -186,7 +186,7 @@ def _build_reduced_functional(nz: int, nsteps: int, skip_steps: int):
 
 
 def test_gradient_through_point_interpolation_passes_taylor_test(
-    firedrake, adjoint_tape, quiet_solver
+    firedrake, adjoint_tape
 ):
     """dJ/d(log kg) is correct through both VertexOnlyMesh and the exp chain.
 
@@ -201,7 +201,7 @@ def test_gradient_through_point_interpolation_passes_taylor_test(
     assert rate > 1.9
 
 
-def test_objective_is_minimised_at_the_true_kg(firedrake, adjoint_tape, quiet_solver):
+def test_objective_is_minimised_at_the_true_kg(firedrake, adjoint_tape):
     """J is smallest at the truth and ~0 there, and larger at both bounds.
 
     Each rf(...) call re-runs the forward and leaves the tape's control at the
@@ -223,7 +223,7 @@ def test_objective_is_minimised_at_the_true_kg(firedrake, adjoint_tape, quiet_so
 
 @pytest.mark.slow
 def test_kg_is_recovered_from_five_point_observations(
-    firedrake, adjoint_tape, quiet_solver
+    firedrake, adjoint_tape
 ):
     """L-BFGS-B recovers kg_true from only five point measurements."""
     rf, m, R = _build_reduced_functional(FULL_NZ, FULL_NSTEPS, FULL_SKIP_STEPS)

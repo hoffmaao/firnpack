@@ -1,12 +1,9 @@
 """Shared fixtures and helpers for the firnpack test suite.
 
-Two things here are load-bearing beyond mere convenience:
-
-* ``adjoint_tape`` guarantees ``pause_annotation()`` runs even when a test
-  fails. The pyadjoint tape is process-global state, so a test that dies with
-  annotation left on silently taps every later test in the session.
-* ``quiet_solver`` replaces the hand-rolled monkeypatch the adjoint scripts
-  used, which overwrote ``print`` on the solver module and never restored it.
+One thing here is load-bearing beyond mere convenience: ``adjoint_tape``
+guarantees ``pause_annotation()`` runs even when a test fails. The pyadjoint
+tape is process-global state, so a test that dies with annotation left on
+silently taps every later test in the session.
 
 Test modules import firedrake behind a try/except and skip inside the test
 rather than at module scope, so collection stays cheap and a missing firedrake
@@ -14,8 +11,6 @@ reports as a skip instead of a collection error.
 """
 
 from __future__ import annotations
-
-import importlib
 
 import matplotlib
 import numpy as np
@@ -111,10 +106,3 @@ def adjoint_tape(firedrake):
     finally:
         pause_annotation()
         tape.clear_tape()
-
-
-@pytest.fixture
-def quiet_solver(monkeypatch):
-    """Silence the solver's per-step diagnostic prints, restoring them after."""
-    mod = importlib.import_module("firnpack.solvers.firn_solver")
-    monkeypatch.setattr(mod, "print", lambda *a, **k: None, raising=False)
