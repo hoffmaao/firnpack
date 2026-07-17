@@ -17,7 +17,7 @@ candidates; score_vel_screen.py's dJ_other leave-one-in screen (which needs one
 inversion per site) is the expensive confirmation.
 
 Env:
-  FIRN_WARM_JSON   MAP to score against   (default results/sp_r10_novel.json)
+  FIRN_WARM_JSON   MAP to score against   (default output/sp_r10_novel.json)
   FIRN_HCOL_SCAN   comma list of column depths to try (default "130,300") —
                    the MAP's provenance does not record FIRN_HCOL, so scan and
                    report which reproduces the MAP's logged non-velocity rms.

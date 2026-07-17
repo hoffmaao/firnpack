@@ -60,7 +60,7 @@ def j_budget(result):
                          rms=float(np.sqrt(np.mean(r**2))) if n else 0.0,
                          chi2=0.5 * float(np.sum(r**2))))
     J_obs = sum(d["chi2"] for d in rows)
-    J = float(result["J"]) if isinstance(result, dict) and "J" in result else J_obs
+    J = float(result["J"]) if isinstance(result, dict) and result.get("J") is not None else J_obs
     denom = J if J else 1.0
     for d in rows:
         d["frac_J"] = d["chi2"] / denom

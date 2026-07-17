@@ -15,7 +15,7 @@ already done its best), decompose the per-site residual r_s(z) into
 The observable is differenced about z_ref, so r(z_ref) == 0 by construction:
 structure must be read as growth AWAY from the reference depth, not as offset.
 
-Env: FIRN_WARM_JSON (default results/sp_r10_final.json), FIRN_DIAG_SITES.
+Env: FIRN_WARM_JSON (default output/sp_r10_final.json), FIRN_DIAG_SITES.
 Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diag_vel_residual.py
 """
 from __future__ import annotations

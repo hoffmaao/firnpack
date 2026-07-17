@@ -15,9 +15,9 @@ would mean the config no longer matches the result it claims to describe.
 
 Run (from the repo root):
     PYTHONPATH=src OMP_NUM_THREADS=1 python \
-        tutorials/southpole/output/backfill_map_blocks.py
+        tutorials/southpole/diagnostics/backfill_map_blocks.py
 
-    FIRN_MAP_JSON=results/sp_engine_dense.json FIRN_KNOTS=knots_dense.json ... \
+    FIRN_MAP_JSON=output/sp_engine_dense.json FIRN_KNOTS=knots_dense.json ... \
         to backfill a different MAP; FIRN_KNOTS must match that MAP's layout.
 """
 from __future__ import annotations

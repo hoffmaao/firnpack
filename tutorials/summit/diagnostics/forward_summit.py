@@ -1,7 +1,7 @@
 """forward_summit.py — transferability test: does the South-Pole-calibrated firn
 law predict Summit, Greenland?
 
-Takes the frozen South Pole densification + conductivity law (results/
+Takes the frozen South Pole densification + conductivity law (output/
 sp_joint_r8.json) — physical H&L Arrhenius rates + Calonne conductivity, which
 are temperature-independent constants — and runs the forward model under
 SUMMIT forcing (T ~ -28.8 C, accumulation ~ 0.246 m ice/yr; 3x warmer-and-

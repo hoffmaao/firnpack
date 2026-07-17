@@ -14,7 +14,7 @@ subsets without v demonstrate ezz is unobservable from the core system.
 
 Run one subset:
   PYTHONPATH=src OMP_NUM_THREADS=1 \
-  FIRN_OBS_SUBSET=rho,age <venv> tutorials/synthetic/output/observability.py
+  FIRN_OBS_SUBSET=rho,age <venv> tutorials/synthetic/diagnostics/observability.py
 
 The paper's ablation is these nine subsets, each run on its own:
   rho
@@ -26,7 +26,7 @@ The paper's ablation is these nine subsets, each run on its own:
   rho,age,dage,Tdeep,Tsh
   rho,age,dage,Tdeep,Tsh,v
   Tdeep
-Output: results/obsv_<slug>.json (+ shared results/obsv_truth_profiles.json)
+Output: output/obsv_<slug>.json (+ shared output/obsv_truth_profiles.json)
 """
 from __future__ import annotations
 import json, os

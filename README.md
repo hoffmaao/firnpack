@@ -78,13 +78,13 @@ tutorials/         the three case studies, each a thin config over the engine
 
   Each tutorial has the same shape:
     run.py         the inversion itself
-    plot.py        figures from results/ - pure reader, no Firedrake/solve
-    output/        diagnostic + experiment scripts                  [tracked]
+    plot.py        figures from output/ - pure reader, no Firedrake/solve
+    diagnostics/   diagnostic + experiment scripts                  [tracked]
     data/          curated observation CSVs + provenance README   [tracked]
-    results/       MAP JSONs from long runs - expensive             [ignored]
-    figures/       rebuilt any time from results/ by plot.py        [ignored]
+    output/        MAP JSONs (+ .h5) from long runs - expensive     [ignored]
+    figures/       rebuilt any time from output/ by plot.py         [ignored]
 
-  Two exceptions are tracked inside southpole/results/: the frozen reference
+  Two exceptions are tracked inside southpole/output/: the frozen reference
   MAPs sp_joint_r8.json and usp50_k_snow_fit.json. They are results by
   provenance but inputs by use - run.py warm-starts from r8 and the plot
   scripts compare against it - so they are version-controlled deliberately.
@@ -102,8 +102,8 @@ archive/           parking lot, untracked - superseded outputs, staged raw
 
 ```
 
-`results/` and `figures/` are both regenerable and untracked, but they are not
-equally cheap: `results/` holds MAP JSONs that cost hours of compute, while
+`output/` and `figures/` are both regenerable and untracked, but they are not
+equally cheap: `output/` holds MAP JSONs that cost hours of compute, while
 `figures/` is one `plot.py` invocation away. Keeping them apart is why
 figures are safe to delete wholesale.
 

@@ -12,8 +12,8 @@ compare recovered-vs-truth rms in multidecadal and decadal bands per case.
 
 Run one case (FIRN_TR_CASE in {coarse, dense}):
   PYTHONPATH=src OMP_NUM_THREADS=1 FIRN_TR_CASE=dense \
-  <venv> tutorials/synthetic/output/temporal_resolution.py
-Output: results/tr_truth.json, results/tr_<case>.json
+  <venv> tutorials/synthetic/diagnostics/temporal_resolution.py
+Output: output/tr_truth.json, output/tr_<case>.json
 """
 from __future__ import annotations
 import json, os
