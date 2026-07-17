@@ -23,11 +23,11 @@ import json, os
 from pathlib import Path
 import numpy as np
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/
 import sys
 sys.path.insert(0, str(HERE))  # sibling config module
 from config import build_cfg
-R = HERE / "results"
+R = HERE / "output"
 # r10_final's 5 blocks, in the order its log built them
 SITES = os.environ.get("FIRN_DIAG_SITES", "x17s2+x11n0+x11n2+x11n6+x11s2")
 MAP_PATH = os.environ.get("FIRN_WARM_JSON", str(R / "sp_r10_final.json"))

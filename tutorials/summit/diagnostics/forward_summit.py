@@ -29,10 +29,10 @@ from firnpack.physics.densification import herron_langway as _hl
 from firnpack.constants import year as YEAR_S
 herron_langway = functools.partial(_hl, smooth=True)
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/
 DATA = HERE / "data"
-SP_RESULTS = HERE.parent / "southpole/results"               # frozen SP MAP lives here
-OUT = HERE / "results"; OUT.mkdir(exist_ok=True)
+SP_RESULTS = HERE.parent / "southpole/output"               # frozen SP MAP lives here
+OUT = HERE / "output"; OUT.mkdir(exist_ok=True)
 SP_MAP = os.environ.get("FIRN_SP_MAP", "sp_joint_r8.json")
 
 # ---- Summit forcing (constant, steady-state; from staged data) ----

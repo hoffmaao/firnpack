@@ -33,11 +33,11 @@ import json, os
 from pathlib import Path
 import numpy as np
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/
 import sys
 sys.path.insert(0, str(HERE))  # sibling config module
 from config import build_cfg
-R = HERE / "results"
+R = HERE / "output"
 MAP_PATH = os.environ.get("FIRN_WARM_JSON", str(R / "sp_r10_final.json"))
 LEN_M = float(os.environ.get("FIRN_SMOOTH_M", "10.0"))   # coherence length
 

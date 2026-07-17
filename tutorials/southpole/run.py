@@ -9,7 +9,7 @@ The DEFAULT config is the one we believe: data-derived sigma_dage, no
 absolute-age block, the x11n6 differenced Zeising velocity block, and ezz pinned
 to x11n6's strain measured below close-off. It is NOT the archived-MAP config.
 
-The frozen r8 MAP (results/sp_joint_r8.json) is still reproducible exactly, at
+The frozen r8 MAP (output/sp_joint_r8.json) is still reproducible exactly, at
 J = 81.3061, under the legacy guards:
 
     FIRN_SIG_DAGE_LEGACY=1 FIRN_SIG_DAGE_SCALE=2.2 FIRN_AGE_BLOCK=1 \\

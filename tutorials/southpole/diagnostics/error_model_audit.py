@@ -25,12 +25,12 @@ import json, math, os
 from pathlib import Path
 import numpy as np, pandas as pd
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/
 import sys
 sys.path.insert(0, str(HERE))  # sibling config module
 from config import build_cfg
 MAP_PATH = os.environ.get("FIRN_MAP_JSON",
-                          str(HERE/"results/sp_joint_r8.json"))
+                          str(HERE/"output/sp_joint_r8.json"))
 _b = build_cfg()
 warm = json.load(open(MAP_PATH))
 from firnpack.inverse import assimilate
@@ -100,6 +100,6 @@ for lab in [l for l in ["rho", "age", "dage", "T"] if l in blocks] \
     summary[lab] = dict(rms_inuse=rms_use, rms_stated=rms_st,
                         sigma_meas_med=float(np.median(s_st))*conv[0],
                         sigma_repr=s_repr*conv[0], unit=conv[1])
-out = HERE/"results/error_model_audit.json"
+out = HERE/"output/error_model_audit.json"
 json.dump(dict(map=Path(MAP_PATH).stem, summary=summary), open(out, "w"), indent=1)
 print(f"Saved {out}")

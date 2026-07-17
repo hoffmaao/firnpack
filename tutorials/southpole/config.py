@@ -22,8 +22,8 @@ def build_cfg():
     """Construct the South Pole SiteConfig from env vars; return the namespace."""
     HERE = Path(__file__).parent
     DATA = HERE / "data"
-    SP_RESULTS = HERE / "results"                                # frozen r8 lives here
-    OUT = str(HERE / "results")
+    SP_RESULTS = HERE / "output"                                # frozen r8 lives here
+    OUT = str(HERE / "output")
     MODE = os.environ.get("FIRN_MODE", "validate")
     # Resolution knobs (discretization-sensitivity study): defaults = r8 numerics.
     NZ = int(os.environ.get("FIRN_NZ", "100"))

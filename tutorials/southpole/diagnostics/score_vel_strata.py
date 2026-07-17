@@ -29,11 +29,11 @@ import json, os
 from pathlib import Path
 import numpy as np
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/
 import sys
 sys.path.insert(0, str(HERE))  # sibling config module
 from config import build_cfg
-R = HERE / "results"
+R = HERE / "output"
 
 # every site present in the Zeising raw-burst product
 import pandas as pd

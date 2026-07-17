@@ -26,12 +26,12 @@ import json
 import os
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/
 import sys
 sys.path.insert(0, str(HERE))  # sibling config module
 from config import build_cfg
 
-MAP_PATH = Path(os.environ.get("FIRN_MAP_JSON", HERE / "results/sp_joint_r8.json"))
+MAP_PATH = Path(os.environ.get("FIRN_MAP_JSON", HERE / "output/sp_joint_r8.json"))
 if not MAP_PATH.is_absolute():
     MAP_PATH = HERE / MAP_PATH
 

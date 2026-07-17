@@ -1,6 +1,6 @@
-"""South Pole figures, rebuilt from results/.
+"""South Pole figures, rebuilt from output/.
 
-One of the tutorial's two scripts: run.py computes and writes results/, this
+One of the tutorial's two scripts: run.py computes and writes output/, this
 draws figures/ from them. It reads JSON and nothing else -- no Firedrake, no
 solve -- so it runs in seconds on any machine and cannot silently disagree with
 the run it is drawing.
@@ -12,7 +12,7 @@ engine forward to regenerate predictions, which meant "plot" quietly meant
 to do it.
 
 Each figure is skipped, with a note, when its inputs are absent -- a fresh clone
-has no results/ at all, and long runs land one at a time.
+has no output/ at all, and long runs land one at a time.
 
 Run: PYTHONPATH=src OMP_NUM_THREADS=1 python tutorials/southpole/plot.py
 """
@@ -31,7 +31,7 @@ import numpy as np
 from firnpack import plot as fp
 
 HERE = Path(__file__).parent
-RESULTS = HERE / "results"
+RESULTS = HERE / "output"
 FIGS = HERE / "figures"
 FIGS.mkdir(exist_ok=True)
 
@@ -108,7 +108,7 @@ def figure_misfits(results):
     a hole or a mislabelled panel.
     """
     if not results:
-        print("  sp_misfits: SKIP — no results/*.json carries obs blocks.\n"
+        print("  sp_misfits: SKIP — no output/*.json carries obs blocks.\n"
               "    Run run.py first. (sp_joint_r8.json is a warm-start input:\n"
               "    it predates the current velocity physics and is not replayable.)")
         return
@@ -209,7 +209,7 @@ def figure_resolution():
 def figure_profiles(results):
     """The modelled column itself: density, age, temperature and velocity."""
     if not results:
-        print("  sp_profiles: SKIP — no results/*.json carries model profiles.")
+        print("  sp_profiles: SKIP — no output/*.json carries model profiles.")
         return
 
     tag, r = sorted(results.items())[-1]

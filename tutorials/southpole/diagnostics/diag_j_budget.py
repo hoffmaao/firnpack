@@ -14,11 +14,11 @@ from __future__ import annotations
 import json, os
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/
 import sys
 sys.path.insert(0, str(HERE))  # sibling config module
 from config import build_cfg
-R = HERE / "results"
+R = HERE / "output"
 MAP_PATH = os.environ.get("FIRN_WARM_JSON", str(R / "sp_r10_final.json"))
 
 # Score the MAP under the error model it was PRODUCED with: r10 ran with ezz

@@ -1,7 +1,7 @@
-"""Synthetic OSSE figure, rebuilt from results/.
+"""Synthetic OSSE figure, rebuilt from output/.
 
 One of the tutorial's two scripts: run.py recovers a known truth from noisy
-synthetic data and writes results/, this draws the recovery figure. It reads
+synthetic data and writes output/, this draws the recovery figure. It reads
 JSON only -- no Firedrake, no solve.
 
 The figure is the method-credibility anchor: densification parameters,
@@ -20,7 +20,7 @@ import numpy as np
 from firnpack import plot as fp
 
 HERE = Path(__file__).parent
-R = HERE / "results"
+R = HERE / "output"
 FIGS = HERE / "figures"; FIGS.mkdir(exist_ok=True)
 
 MAP_PATH = R / "synthetic_osse.json"

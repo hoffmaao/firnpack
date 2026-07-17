@@ -21,7 +21,7 @@ from firnpack.inverse import SiteConfig, ObsBlock, ScalarCtrl, KnotCtrl, assimil
 from firnpack.models.firn import FirnParameters
 from firnpack.constants import year as YEAR_S
 
-HERE = Path(__file__).parent; DATA = HERE / "data"; OUT = str(HERE / "results")
+HERE = Path(__file__).parent; DATA = HERE / "data"; OUT = str(HERE / "output")
 MODE = os.environ.get("FIRN_MODE", "optimize")
 H0 = 150.0
 _p = FirnParameters(); c_i = float(_p.c_i); T_ref = float(_p.T_ref)
