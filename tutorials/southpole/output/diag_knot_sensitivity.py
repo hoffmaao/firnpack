@@ -41,7 +41,10 @@ import json, os, copy
 from pathlib import Path
 import numpy as np
 
-HERE = Path(__file__).parent
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+import sys
+sys.path.insert(0, str(HERE))  # sibling config module
+from config import build_cfg
 R = HERE / "results"
 MAP_PATH = os.environ.get("FIRN_WARM_JSON", str(R / "sp_r10_final.json"))
 # run.py's sigma_dage is already the corrected one: no scale on top (see header)
@@ -50,9 +53,8 @@ SIG_DAGE = os.environ.get("FIRN_SIG_DAGE_SCALE", "1.0")
 os.environ.update(FIRN_VEL_SITE="x17s2+x11n0+x11n2+x11n6+x11s2",
                   FIRN_VEL_SRC="zeising", FIRN_SEAS="1", FIRN_HCOL="300",
                   FIRN_SIG_DAGE_SCALE=SIG_DAGE)
-ns = {"__file__": str(HERE / "run.py"), "__name__": "cfgbuild"}
-exec(open(HERE / "run.py").read().split("warm = json.load")[0], ns)
-cfg = ns["cfg"]
+_b = build_cfg()
+cfg = _b.cfg
 from firnpack.inverse import assimilate
 
 warm0 = json.load(open(MAP_PATH))

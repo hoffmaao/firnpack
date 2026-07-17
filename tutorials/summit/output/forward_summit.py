@@ -29,7 +29,7 @@ from firnpack.physics.densification import herron_langway as _hl
 from firnpack.constants import year as YEAR_S
 herron_langway = functools.partial(_hl, smooth=True)
 
-HERE = Path(__file__).parent
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
 DATA = HERE / "data"
 SP_RESULTS = HERE.parent / "southpole/results"               # frozen SP MAP lives here
 OUT = HERE / "results"; OUT.mkdir(exist_ok=True)

@@ -10,7 +10,8 @@ from pathlib import Path
 import numpy as np
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 
-HERE = Path(__file__).parent; R = HERE/"results"
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+R = HERE/"results"
 FIGS = HERE/"figures"; FIGS.mkdir(exist_ok=True)
 tr = json.load(open(R/"tr_truth.json"))
 Ty, Tt = np.array(tr["T_years"]), np.array(tr["T_truth"])

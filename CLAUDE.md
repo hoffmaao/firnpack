@@ -30,10 +30,10 @@ pytest test/test_firnmice_checkpoint.py -m slow
 
 # Run a case study, then rebuild its figures from results/
 PYTHONPATH=src OMP_NUM_THREADS=1 python tutorials/southpole/run.py
-PYTHONPATH=src OMP_NUM_THREADS=1 python tutorials/southpole/plot_misfits.py
+PYTHONPATH=src OMP_NUM_THREADS=1 python tutorials/southpole/plot.py
 
 # Run scripts directly (many are scripts, not pytest-style)
-PYTHONPATH=src OMP_NUM_THREADS=1 python tutorials/summit/forward_summit.py
+PYTHONPATH=src OMP_NUM_THREADS=1 python tutorials/summit/output/forward_summit.py
 ```
 
 Some test scripts use environment variables for control:
@@ -48,12 +48,14 @@ Four top-level parts (see the root `README.md` for the full tree):
 - **`src/firnpack/`** - the package; everything importable (`import firnpack`)
 - **`test/`** - tests only: the pytest suites (`test_*.py`)
 - **`tutorials/`** - the three case studies (synthetic, southpole, summit), each a
-  thin config over `firnpack.inverse`. Each holds `run.py`, `plot_*.py`,
-  `data/` (tracked), `results/` (MAP JSONs, ignored), `figures/` (ignored)
+  thin config over `firnpack.inverse`. Each holds `run.py`, `plot.py`,
+  `output/` (diagnostic + experiment scripts, tracked), `data/` (tracked),
+  `results/` (MAP JSONs, ignored), `figures/` (ignored)
 - **`doc/`** - methods notes, derivations, paper-facing documentation
 
-Figures are never committed: `plot_*.py` rebuilds them from `results/` into the
-tutorial's `figures/`. `results/` is the expensive artifact; `figures/` is not.
+Figures are never committed: `plot.py` (a pure reader - no Firedrake, no solve)
+rebuilds them from `results/` into the tutorial's `figures/`. `results/` is the
+expensive artifact; `figures/` is not.
 
 ## Architecture
 

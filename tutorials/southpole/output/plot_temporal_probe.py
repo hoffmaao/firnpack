@@ -16,7 +16,10 @@ from pathlib import Path
 import numpy as np, pandas as pd
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 
-HERE = Path(__file__).parent
+import sys
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+sys.path.insert(0, str(HERE))  # sibling config module
+from config import build_cfg
 FIGS = HERE/"figures"; FIGS.mkdir(exist_ok=True)
 R8 = json.load(open(HERE/"results/sp_joint_r8.json"))
 DN = json.load(open(HERE/"results/sp_engine_dense.json"))
@@ -25,12 +28,9 @@ RHO_I = 917.0
 # ---- engine forward at each MAP (exact rms through the objective operators) ----
 from firnpack.inverse import assimilate
 def cfg_for(knots_file):
-    ns = {"__file__": str(HERE/"run.py"), "__name__": "cfgbuild"}
     if knots_file: os.environ["FIRN_KNOTS"] = knots_file
     else: os.environ.pop("FIRN_KNOTS", None)
-    src = open(HERE/"run.py").read().split("warm = json.load")[0]
-    exec(src, ns)
-    return ns["cfg"]
+    return build_cfg().cfg
 rms = {}
 for lab, kf, warm in [("r8 (13T+15b)", "", R8), ("dense (20T+34b)", "knots_dense.json", DN)]:
     r = assimilate(cfg_for(kf), mode="forward", warm=warm, verbose=False)

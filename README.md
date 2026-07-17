@@ -78,10 +78,11 @@ tutorials/         the three case studies, each a thin config over the engine
 
   Each tutorial has the same shape:
     run.py         the inversion itself
-    plot_*.py      figure scripts (read results/, write figures/)
-    data/          curated observation CSVs + provenance README  [tracked]
+    plot.py        figures from results/ - pure reader, no Firedrake/solve
+    output/        diagnostic + experiment scripts                  [tracked]
+    data/          curated observation CSVs + provenance README   [tracked]
     results/       MAP JSONs from long runs - expensive             [ignored]
-    figures/       rebuilt any time from results/ by plot_*.py      [ignored]
+    figures/       rebuilt any time from results/ by plot.py        [ignored]
 
   Two exceptions are tracked inside southpole/results/: the frozen reference
   MAPs sp_joint_r8.json and usp50_k_snow_fit.json. They are results by
@@ -103,7 +104,7 @@ archive/           parking lot, untracked - superseded outputs, staged raw
 
 `results/` and `figures/` are both regenerable and untracked, but they are not
 equally cheap: `results/` holds MAP JSONs that cost hours of compute, while
-`figures/` is one `plot_*.py` invocation away. Keeping them apart is why
+`figures/` is one `plot.py` invocation away. Keeping them apart is why
 figures are safe to delete wholesale.
 
 ## Physics references

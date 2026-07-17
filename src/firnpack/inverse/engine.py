@@ -15,9 +15,9 @@ Returns a dict of results.
 """
 from __future__ import annotations
 import functools, json, math, time
+from types import SimpleNamespace
 from pathlib import Path
 import numpy as np
-from scipy.optimize import minimize as sp_minimize
 import firedrake as fd
 from firedrake.adjoint import (Control, continue_annotation, pause_annotation,
                                stop_annotating, get_working_tape)
@@ -25,6 +25,7 @@ from pyadjoint import compute_gradient
 from firnpack.models.firn import FirnParameters, FirnModel
 from firnpack.physics.densification import herron_langway as _hl
 from firnpack.constants import year as YEAR_S
+from firnpack.inverse.statistics import StatisticsProblem, MaximumProbabilityEstimator
 
 herron_langway = functools.partial(_hl, smooth=True)
 K_ICE_BASE = 2.1
@@ -234,7 +235,16 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
     b_off_fn = scal_fn.get("b_off")
     T0_mean = float(np.mean(cfg.T_knots.center)) if cfg.T_knots is not None else -45.0
 
-    def forward():
+    # ---- the forward split into icepack-style simulation / loss / prior ----
+    # simulation(controls) -> state (the settled column); loss_functional(state)
+    # -> misfit; regularization(controls) -> prior. forward() composes them and
+    # is bit-identical to the original monolithic objective: same operations in
+    # the same order, so J = loss + reg reproduces the frozen South Pole MAP.
+    # _bk carries the per-eval bookkeeping (preds, rms diag) that the misfit
+    # produces and the result serialisation reads back.
+    _bk = {}
+
+    def simulation(controls=None):
         H_f.assign(c_i*(T0_mean+273.15-T_ref)); H_o.assign(H_f)
         rho_f.assign(rho_ic); rho_o.assign(rho_f)
         w_f.assign(ws0); w_o.assign(w_f); age_f.assign(0.0); age_o.assign(0.0)
@@ -245,6 +255,9 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
         with stop_annotating():
             if not all(np.isfinite(fld.dat.data_ro).all() for fld in (H_f,rho_f,w_f,age_f)):
                 raise RuntimeError("field blowup: non-finite state")
+        return SimpleNamespace(H=H_f, rho=rho_f, w=w_f, age=age_f)
+
+    def loss_functional(state):
         w_srf = fd.assemble(w_f*ds(SID))
         for ob in cfg.obs:
             if ob.kind == "seas_lnamp":
@@ -278,9 +291,12 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
             J = J + ob.weight*0.5*Jo
             diag["rms_"+ob.label] = (sq/max(ob.n,1))**0.5
             preds[ob.label] = pl
-        forward._preds = preds
+        _bk["preds"] = preds; _bk["diag"] = diag
+        return J
+
+    def regularization(controls):
         Jp = 0.0
-        for c,(nm,islog,ctr,sig) in zip(ctrl_fns, ctrl_meta):
+        for c,(nm,islog,ctr,sig) in zip(controls, ctrl_meta):
             if nm.startswith("b") and nm[1:].isdigit() and cfg.b_off_era_year is not None \
                and b_off_fn is not None and float(nm[1:]) > cfg.b_off_era_year:
                 resid = c - fd.Constant(ctr) - b_off_fn
@@ -288,7 +304,13 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
                 resid = c - fd.Constant(ctr)
             _prior.interpolate(resid/fd.Constant(sig))
             Jp = Jp + 0.5*fd.assemble(_prior*_prior*dx)/dlen
-        J = J + Jp
+        return Jp
+
+    def forward():
+        state = simulation(ctrl_fns)
+        J = loss_functional(state) + regularization(ctrl_fns)
+        forward._preds = _bk["preds"]
+        diag = _bk["diag"]
         with stop_annotating():
             diag["rho_max"] = float(rho_f.dat.data_ro.max())
         forward._diag = diag
@@ -300,8 +322,15 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
         for c,v in zip(ctrl_fns,x0): c.assign(float(v))
         J = float(forward()); pause_annotation(); return J
 
-    if mode == "forward":
-        J = run_forward_only()
+    def snapshot():
+        """Everything a figure needs from the state a forward() just left behind.
+
+        The prognostic Functions and forward._preds hold that state, so this
+        must run directly after a forward solve. Both "forward" mode and the
+        final MAP evaluation in "optimize" go through here, so a results JSON
+        carries the same block arrays however it was produced -- which is what
+        lets the plot scripts read results/ instead of re-solving.
+        """
         with stop_annotating():
             xs_ = mesh.coordinates.dat.data_ro.reshape(-1); dprof = cfg.H_col - xs_
             o = np.argsort(dprof)
@@ -315,6 +344,11 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
         obs_out = [dict(kind=ob.kind, label=ob.label, depths=ob.depths.tolist(),
                         obs=ob.obs.tolist(), sig=ob.sig.tolist(),
                         pred=forward._preds[ob.label]) for ob in cfg.obs]
+        return prof, pvals, obs_out
+
+    if mode == "forward":
+        J = run_forward_only()
+        prof, pvals, obs_out = snapshot()
         return dict(J=J, diag=forward._diag, n_ctrl=N_CTRL, profiles=prof,
                     params=pvals, n_steps=n_steps, ws0=ws0, T0_mean=T0_mean,
                     obs=obs_out)
@@ -344,27 +378,34 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
             out["fd_ratios"]=ratios
         return out
 
-    # ---- optimize ----
-    n_eval=[0]; J_hist=[]
-    def eval_J_and_grad(xs):
-        x=np.clip(x0+xs*scale, lb, ub); t0=time.perf_counter()
+    # ---- optimize (via the icepack-style estimator) ----
+    # The forward split above is composed into a StatisticsProblem and minimised
+    # by MaximumProbabilityEstimator (scipy L-BFGS-B backend). reset reproduces
+    # the per-eval tape-clear + solver rebuild; grad_scale=dlen recovers the true
+    # R-space gradient. This is the same objective, scaling, bounds and optimiser
+    # the historical inline loop used, so the trajectory is bit-identical.
+    _eval_t0 = [0.0]
+    def _reset():
         tape.clear_tape(); continue_annotation(); rebuild()
-        for c,v in zip(ctrl_fns,x): c.assign(float(v))
-        try:
-            J=forward(); dJ=compute_gradient(J,[Control(c) for c in ctrl_fns])
-            Jv=float(J); g=np.array([float(gi.dat.data_ro[0])*dlen for gi in dJ])*scale
-        except Exception as e:
-            log(f"  *** {e}"); Jv=1e8; g=xs*100.0
-        pause_annotation(); n_eval[0]+=1; J_hist.append(Jv); d=forward._diag
-        rms=" ".join(f"{k[4:]}={v:.2f}" for k,v in d.items() if k.startswith("rms_"))
-        log(f"  [{n_eval[0]:03d}] J={Jv:.4f} ({rms}) |g|={np.linalg.norm(g):.1e} ({time.perf_counter()-t0:.0f}s)")
-        return Jv, g
-    lb_s=(lb-x0)/scale; ub_s=(ub-x0)/scale
+        _eval_t0[0] = time.perf_counter()
+    def _log_eval(n, Jv, g, controls):
+        d = _bk.get("diag", {})
+        rms = " ".join(f"{k[4:]}={v:.2f}" for k, v in d.items() if k.startswith("rms_"))
+        log(f"  [{n:03d}] J={Jv:.4f} ({rms}) |g|={np.linalg.norm(g):.1e} "
+            f"({time.perf_counter()-_eval_t0[0]:.0f}s)")
+    problem = StatisticsProblem(
+        simulation, loss_functional, regularization, ctrl_fns,
+        bounds=list(zip(lb, ub)), scale=scale, copy_controls=False,
+        reset=_reset, grad_scale=dlen)
+    est = MaximumProbabilityEstimator(
+        problem, method="L-BFGS-B", max_iterations=cfg.max_iter,
+        ftol=cfg.ftol, gtol=cfg.gtol, maxls=cfg.maxls,
+        verbose=verbose, callback=_log_eval)
     log(f"\nOptimize {cfg.name} (L-BFGS-B, {N_CTRL} ctrls, max {cfg.max_iter}):")
-    res=sp_minimize(eval_J_and_grad, np.zeros(N_CTRL), jac=True, method="L-BFGS-B",
-                    bounds=list(zip(lb_s,ub_s)),
-                    options={"maxiter":cfg.max_iter,"ftol":cfg.ftol,"gtol":cfg.gtol,"maxls":cfg.maxls})
-    x_map=x0+res.x*scale
+    est.solve()
+    res = est.result
+    J_hist = est.J_hist
+    x_map = np.array([float(c.dat.data_ro[0]) for c in ctrl_fns])
     names=[m[0] for m in ctrl_meta]; islogs=[m[1] for m in ctrl_meta]
     m_map={}; out_extra={}
     for i,(nm,il) in enumerate(zip(names,islogs)):
@@ -381,6 +422,23 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
         result["b_knots"]=np.exp(x_map[i0:i0+len(bnames)]).tolist()
         result["b_knot_years"]=cfg.b_knots.years.tolist()
         result["b_prior_centers"]=cfg.b_knots.center.tolist()
+    # One more forward, at the MAP, purely so the results JSON carries what a
+    # figure needs: per-block obs/sig/pred and the model profiles. L-BFGS-B
+    # leaves the tape at its last trial point, not necessarily x_map, so this
+    # cannot reuse the final optimiser evaluation. It costs one solve against
+    # the dozens the optimisation already spent, and it is what lets plot.py be
+    # a pure reader -- without it every figure script has to re-solve to draw
+    # anything, which is how they ended up importing the engine.
+    tape.clear_tape(); continue_annotation(); rebuild()
+    for c,v in zip(ctrl_fns,x_map): c.assign(float(v))
+    J_map=float(forward()); pause_annotation()
+    prof, pvals, obs_out = snapshot()
+    result["J_map"]=J_map
+    result["diag"]=forward._diag
+    result["profiles"]=prof
+    result["params"]=pvals
+    result["obs"]=obs_out
+    result["n_steps"]=n_steps
     Path(cfg.out_dir).mkdir(parents=True, exist_ok=True)
     json.dump(result, open(Path(cfg.out_dir)/f"{cfg.tag}.json","w"), indent=2)
     log(f"\n{res.message}  J={res.fun:.4f}  -> {Path(cfg.out_dir)/(cfg.tag+'.json')}")

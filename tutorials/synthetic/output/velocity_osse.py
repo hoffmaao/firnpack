@@ -31,10 +31,10 @@ value) and the same noise realizations. Cases (env FIRN_VCASE):
 Key outputs per case: recovered ezz vs truth, and the bias induced in the
 densification-law parameters / histories relative to vco.
 
-Run one case:
+Run one case (FIRN_VCASE in {nov, vco, vrho, vmis, vmis_sig}):
   PYTHONPATH=src OMP_NUM_THREADS=1 FIRN_VCASE=vmis \
-    <venv-python> tutorials/synthetic/velocity_osse.py
-Driver: run_velocity_osse.sh. Output: results/vosse_<case>.json.
+    <venv-python> tutorials/synthetic/output/velocity_osse.py
+Output: results/vosse_<case>.json.
 """
 from __future__ import annotations
 import json, os, sys
@@ -44,7 +44,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 from osse_common import TRUTH, truth_profiles, make_obs, inversion_cfg
 from firnpack.inverse import assimilate
 
-HERE = Path(__file__).parent; OUT = HERE / "results"; OUT.mkdir(exist_ok=True)
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+OUT = HERE / "results"; OUT.mkdir(exist_ok=True)
 CASE = os.environ.get("FIRN_VCASE", "nov")
 SPIN, DT, NZ = 1600.0, 5.0, 100
 MAXIT = int(os.environ.get("FIRN_MAX_ITER", "40"))

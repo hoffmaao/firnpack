@@ -34,7 +34,7 @@ import json, math
 from pathlib import Path
 import numpy as np, pandas as pd
 
-HERE = Path(__file__).parent
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
 H0 = 130.0
 
 a = pd.read_csv(HERE / "data" / "sp19_depth_age.csv")
