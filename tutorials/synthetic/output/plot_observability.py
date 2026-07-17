@@ -18,7 +18,7 @@ from pathlib import Path
 import numpy as np
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 
-HERE = Path(__file__).parent; R = HERE/"results"
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/; R = HERE/"results"
 FIGS = HERE/"figures"; FIGS.mkdir(exist_ok=True)
 tp = json.load(open(R/"obsv_truth_profiles.json"))
 TRUTH = tp["truth"]

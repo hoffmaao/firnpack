@@ -1,21 +1,38 @@
-"""plot_recovery.py — OSSE truth-recovery figure (method-credibility anchor).
+"""Synthetic OSSE figure, rebuilt from results/.
 
-Reads results/synthetic_osse.json (recovered MAP) + synthetic_truth.json (the
-known truth) and shows the engine recovers the truth: densification parameters,
-surface-T history, and accumulation history — truth vs recovered vs prior.
+One of the tutorial's two scripts: run.py recovers a known truth from noisy
+synthetic data and writes results/, this draws the recovery figure. It reads
+JSON only -- no Firedrake, no solve.
+
+The figure is the method-credibility anchor: densification parameters,
+surface-T history and accumulation history, truth vs recovered. It needs only
+the recovered m_map and knots, so it does not depend on the engine's stored
+obs/pred blocks.
+
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 python tutorials/synthetic/plot.py
 """
 from __future__ import annotations
 import json
 from pathlib import Path
-import numpy as np
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
+import numpy as np
 
-HERE = Path(__file__).parent; R = HERE/"results"
-FIGS = HERE/"figures"; FIGS.mkdir(exist_ok=True)
-mp = json.load(open(R/"synthetic_osse.json"))
-tr = json.load(open(R/"synthetic_truth.json"))
+from firnpack import plot as fp
+
+HERE = Path(__file__).parent
+R = HERE / "results"
+FIGS = HERE / "figures"; FIGS.mkdir(exist_ok=True)
+
+MAP_PATH = R / "synthetic_osse.json"
+TRUTH_PATH = R / "synthetic_truth.json"
+if not (MAP_PATH.exists() and TRUTH_PATH.exists()):
+    missing = [str(p) for p in (MAP_PATH, TRUTH_PATH) if not p.exists()]
+    raise SystemExit(f"nothing to plot — run run.py first (missing {', '.join(missing)})")
+
+mp = json.load(open(MAP_PATH))
+tr = json.load(open(TRUTH_PATH))
 m = mp["m_map"]; TRUTH = tr["truth"]
-C_T, C_R, C_P = "#111827", "#2563EB", "#9CA3AF"
+C_T, C_R = fp.OBS, fp.MODEL  # truth in ink, recovered in model-blue
 
 fig, AX = plt.subplots(1, 3, figsize=(15, 4.8))
 

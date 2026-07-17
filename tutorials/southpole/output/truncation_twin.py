@@ -20,7 +20,10 @@ import json, os
 from pathlib import Path
 import numpy as np
 
-HERE = Path(__file__).parent; R = HERE / "results"
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/; R = HERE / "results"
+import sys
+sys.path.insert(0, str(HERE))  # sibling config module
+from config import build_cfg
 from firnpack.inverse import assimilate
 
 MAP_JSON = os.environ.get("FIRN_MAP_JSON", str(R / "sp_r10v_pair.json"))
@@ -30,10 +33,8 @@ G_MAP = warm["m_map"]["G_base"]
 def forward_at(hcol, nz, spin):
     os.environ.update(FIRN_VEL_SITE="x17s2+x11n0", FIRN_HCOL=str(hcol),
                       FIRN_NZ=str(nz), FIRN_SPIN=str(spin))
-    ns = {"__file__": str(HERE / "run.py"), "__name__": "cfgbuild"}
-    src = open(HERE / "run.py").read().split("warm = json.load")[0]
-    exec(src, ns)
-    return assimilate(ns["cfg"], mode="forward", warm=warm, verbose=False)
+    _b = build_cfg()
+    return assimilate(_b.cfg, mode="forward", warm=warm, verbose=False)
 
 out = {}
 for tag, (h, nz, sp) in dict(A=(130.0, 100, 2500.0), B=(300.0, 230, 3200.0)).items():

@@ -17,7 +17,10 @@ import json, os
 from pathlib import Path
 import numpy as np
 
-HERE = Path(__file__).parent; R = HERE/"results"
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/; R = HERE/"results"
+import sys
+sys.path.insert(0, str(HERE))  # sibling config module
+from config import build_cfg
 from firnpack.inverse import assimilate
 
 SITES = ["none","x11n0","x11n10","x11n2","x11n6","x11s2","x17n2","x17s2","x5n2","x5s2"]
@@ -29,10 +32,8 @@ for s in SITES:
         print(f"(missing {p.name})"); continue
     warm = json.load(open(p))
     os.environ["FIRN_VEL_SITE"] = s
-    ns = {"__file__": str(HERE/"run.py"), "__name__": "cfgbuild"}
-    src = open(HERE/"run.py").read().split("warm = json.load")[0]
-    exec(src, ns)
-    r = assimilate(ns["cfg"], mode="forward", warm=warm, verbose=False)
+    _b = build_cfg()
+    r = assimilate(_b.cfg, mode="forward", warm=warm, verbose=False)
     Jo = 0.0
     for b in r["obs"]:
         if b["label"].startswith("v"): continue

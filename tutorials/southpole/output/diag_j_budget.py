@@ -15,7 +15,10 @@ import json, os
 from pathlib import Path
 import numpy as np
 
-HERE = Path(__file__).parent
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+import sys
+sys.path.insert(0, str(HERE))  # sibling config module
+from config import build_cfg
 R = HERE / "results"
 MAP_PATH = os.environ.get("FIRN_WARM_JSON", str(R / "sp_r10_final.json"))
 
@@ -25,12 +28,11 @@ MAP_PATH = os.environ.get("FIRN_WARM_JSON", str(R / "sp_r10_final.json"))
 os.environ.update(FIRN_VEL_SITE="x17s2+x11n0+x11n2+x11n6+x11s2",
                   FIRN_VEL_SRC="zeising", FIRN_SEAS="1", FIRN_HCOL="300",
                   FIRN_EZZ_SITE="none")
-ns = {"__file__": str(HERE / "run.py"), "__name__": "cfgbuild"}
-exec(open(HERE / "run.py").read().split("warm = json.load")[0], ns)
+_b = build_cfg()
 
 from firnpack.inverse import assimilate
 warm = json.load(open(MAP_PATH))
-r = assimilate(ns["cfg"], mode="forward", warm=warm, verbose=False)
+r = assimilate(_b.cfg, mode="forward", warm=warm, verbose=False)
 
 rows = []
 for b in r["obs"]:

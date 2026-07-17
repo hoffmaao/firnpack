@@ -25,19 +25,20 @@ import json, math, os
 from pathlib import Path
 import numpy as np, pandas as pd
 
-HERE = Path(__file__).parent
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+import sys
+sys.path.insert(0, str(HERE))  # sibling config module
+from config import build_cfg
 MAP_PATH = os.environ.get("FIRN_MAP_JSON",
                           str(HERE/"results/sp_joint_r8.json"))
-ns = {"__file__": str(HERE/"run.py"), "__name__": "cfgbuild"}
-src = open(HERE/"run.py").read().split("warm = json.load")[0]
-exec(src, ns)
+_b = build_cfg()
 warm = json.load(open(MAP_PATH))
 from firnpack.inverse import assimilate
 from firnpack.models.firn import FirnParameters
 from firnpack.constants import year as YEAR_S
 _p = FirnParameters(); C_I = float(_p.c_i)
 
-r = assimilate(ns["cfg"], mode="forward", warm=warm, verbose=False)
+r = assimilate(_b.cfg, mode="forward", warm=warm, verbose=False)
 blocks = {b["label"]: b for b in r["obs"]}
 
 # ---- stated/derived measurement sigmas ----
@@ -60,7 +61,7 @@ def stated_sigma(lab, d, o):
             ses.append(max(se, 1e-3))
         return np.array(ses)
     if lab.startswith("v"):   # any per-site velocity block (v, v_x17s2, ...)
-        if ns["VEL_SITE"] != "pooled" and ns["VEL_SRC"] == "zeising":
+        if _b.VEL_SITE != "pooled" and _b.VEL_SRC == "zeising":
             # Ask run.py's own builder for the measurement part (the stated phase
             # errors, incl. the reference's), rather than reconstructing it by
             # subtracting a constant from the in-use sigma -- that is what went
@@ -68,8 +69,8 @@ def stated_sigma(lab, d, o):
             # audit kept subtracting the retired sig_shape = 3.5 mm/yr, which
             # drove the answer negative. (Do NOT use pipeline-A's v_unc_m_yr
             # here: different product, and its tail is pathological -> 1.3e6.)
-            site = lab[2:] if lab.startswith("v_") else ns["VEL_SITE"]
-            return ns["_zeising_site_points"](site)["sig_meas"]
+            site = lab[2:] if lab.startswith("v_") else _b.VEL_SITE
+            return _b._zeising_site_points(site)["sig_meas"]
         ap = pd.read_csv(HERE/"data/apres_vertical_velocity_processed.csv")
         ap = ap[(ap.range_m<=130) & ap.v_smooth_m_yr.notna() & (ap.coherence>0.5)]
         u = ap.v_unc_m_yr.values; u = u[np.isfinite(u) & (u < 0.1)]

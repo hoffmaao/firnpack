@@ -12,10 +12,20 @@ meaningful, and ezz_yr is a free control in EVERY subset (prior 0 +/- 1e-4):
 subsets without v demonstrate ezz is unobservable from the core system.
 (Non-co-located transfer experiments live in velocity_osse.py, not here.)
 
-Run (one subset):
-  PYTHONPATH=src:tutorials/synthetic OMP_NUM_THREADS=1 \
-  FIRN_OBS_SUBSET=rho,age <venv> tutorials/synthetic/observability.py
-Driver for all nine: run_observability.sh
+Run one subset (the script inserts its own directory so osse_common resolves):
+  PYTHONPATH=src OMP_NUM_THREADS=1 \
+  FIRN_OBS_SUBSET=rho,age <venv> tutorials/synthetic/output/observability.py
+
+The paper's ablation is these nine subsets, each run on its own:
+  rho
+  rho,v
+  rho,age
+  rho,age,dage
+  rho,age,dage,v
+  rho,age,dage,Tdeep
+  rho,age,dage,Tdeep,Tsh
+  rho,age,dage,Tdeep,Tsh,v
+  Tdeep
 Output: results/obsv_<slug>.json (+ shared results/obsv_truth_profiles.json)
 """
 from __future__ import annotations
@@ -27,7 +37,7 @@ from osse_common import (TRUTH, T_YEARS, T_TRUTH, B_YEARS, B_TRUTH,
                          truth_profiles, make_obs, inversion_cfg)
 from firnpack.inverse import assimilate
 
-HERE = Path(__file__).parent; OUT = HERE / "results"; OUT.mkdir(exist_ok=True)
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/; OUT = HERE / "results"; OUT.mkdir(exist_ok=True)
 SUBSET = [s for s in os.environ.get("FIRN_OBS_SUBSET", "rho").split(",") if s]
 SLUG = "-".join(SUBSET)
 SPIN, DT, NZ = 1600.0, 5.0, 100

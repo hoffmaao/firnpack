@@ -29,7 +29,10 @@ import json, os
 from pathlib import Path
 import numpy as np
 
-HERE = Path(__file__).parent
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+import sys
+sys.path.insert(0, str(HERE))  # sibling config module
+from config import build_cfg
 R = HERE / "results"
 
 # every site present in the Zeising raw-burst product
@@ -56,9 +59,8 @@ def build(hcol):
     env = dict(FIRN_VEL_SITE="+".join(ZSITES), FIRN_VEL_SRC="zeising",
                FIRN_SEAS="1", FIRN_HCOL=str(hcol))
     os.environ.update(env)
-    ns = {"__file__": str(HERE / "run.py"), "__name__": "cfgbuild"}
-    exec(open(HERE / "run.py").read().split("warm = json.load")[0], ns)
-    return ns["cfg"]
+    _b = build_cfg()
+    return _b.cfg
 
 
 results = {}

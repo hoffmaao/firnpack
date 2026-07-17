@@ -23,7 +23,10 @@ import json, os
 from pathlib import Path
 import numpy as np
 
-HERE = Path(__file__).parent
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+import sys
+sys.path.insert(0, str(HERE))  # sibling config module
+from config import build_cfg
 R = HERE / "results"
 # r10_final's 5 blocks, in the order its log built them
 SITES = os.environ.get("FIRN_DIAG_SITES", "x17s2+x11n0+x11n2+x11n6+x11s2")
@@ -32,19 +35,18 @@ MAP_PATH = os.environ.get("FIRN_WARM_JSON", str(R / "sp_r10_final.json"))
 os.environ.update(FIRN_VEL_SITE=SITES, FIRN_VEL_SRC="zeising",
                   FIRN_SEAS="1", FIRN_HCOL="300",   # H300 verified for r10
                   FIRN_EZZ_SITE="none")             # r10 ran with ezz free
-ns = {"__file__": str(HERE / "run.py"), "__name__": "cfgbuild"}
-exec(open(HERE / "run.py").read().split("warm = json.load")[0], ns)
+_b = build_cfg()
 
 from firnpack.inverse import assimilate
 warm = json.load(open(MAP_PATH))
-r = assimilate(ns["cfg"], mode="forward", warm=warm, verbose=False)
+r = assimilate(_b.cfg, mode="forward", warm=warm, verbose=False)
 print(f"\nforward at {Path(MAP_PATH).name}: J={r['J']:.2f}  " +
       " ".join(f"{k[4:]}={v:.2f}" for k, v in r["diag"].items()
                if k.startswith("rms_")))
 
 vb = [b for b in r["obs"] if b["label"].startswith("v_")]
 # ref_depth lives on the cfg's ObsBlock, not in the forward's obs dict
-zref = float([o for o in ns["cfg"].obs
+zref = float([o for o in _b.cfg.obs
               if o.label == vb[0]["label"]][0].ref_depth)
 
 # residuals on a common depth axis (all sites share the zeising range grid)
