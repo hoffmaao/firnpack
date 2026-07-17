@@ -37,11 +37,10 @@ Run one case (FIRN_VCASE in {nov, vco, vrho, vmis, vmis_sig}):
 Output: results/vosse_<case>.json.
 """
 from __future__ import annotations
-import json, os, sys
+import json, os
 from pathlib import Path
 import numpy as np
-sys.path.insert(0, str(Path(__file__).parent))
-from osse_common import TRUTH, truth_profiles, make_obs, inversion_cfg
+from firnpack.inverse.osse import TRUTH, truth_profiles, make_obs, inversion_cfg
 from firnpack.inverse import assimilate
 
 HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/

@@ -13,7 +13,6 @@ Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diag_j_budget.p
 from __future__ import annotations
 import json, os
 from pathlib import Path
-import numpy as np
 
 HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
 import sys
@@ -31,19 +30,14 @@ os.environ.update(FIRN_VEL_SITE="x17s2+x11n0+x11n2+x11n6+x11s2",
 _b = build_cfg()
 
 from firnpack.inverse import assimilate
+from firnpack.inverse.diagnostics import j_budget
 warm = json.load(open(MAP_PATH))
 r = assimilate(_b.cfg, mode="forward", warm=warm, verbose=False)
 
-rows = []
-for b in r["obs"]:
-    o, p, s = (np.array(b[k]) for k in ("obs", "pred", "sig"))
-    res = (p - o) / s
-    n = len(o)
-    rms = float(np.sqrt(np.mean(res**2)))
-    rows.append(dict(label=b["label"], n=n, rms=rms, chi2=0.5*float(np.sum(res**2))))
-
-J_obs = sum(d["chi2"] for d in rows)
-J_tot = float(r["J"])
+budget = j_budget(r)
+rows = budget["blocks"]
+J_obs = budget["J_obs"]
+J_tot = budget["J"]
 print(f"\nMAP {Path(MAP_PATH).name}: J = {J_tot:.2f}   "
       f"(obs blocks {J_obs:.2f}, priors+rest {J_tot-J_obs:.2f})")
 

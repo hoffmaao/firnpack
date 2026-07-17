@@ -16,12 +16,11 @@ Run one case (FIRN_TR_CASE in {coarse, dense}):
 Output: results/tr_truth.json, results/tr_<case>.json
 """
 from __future__ import annotations
-import json, os, sys
+import json, os
 from pathlib import Path
 import numpy as np
-sys.path.insert(0, str(Path(__file__).parent))
-from osse_common import (dense_truth, truth_profiles, make_obs, inversion_cfg,
-                         TRUTH, T_YEARS, B_YEARS)
+from firnpack.inverse.osse import (dense_truth, truth_profiles, make_obs,
+                                   inversion_cfg, TRUTH, T_YEARS, B_YEARS)
 from firnpack.inverse import assimilate
 
 HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
