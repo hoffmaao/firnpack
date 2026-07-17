@@ -37,7 +37,8 @@ from osse_common import (TRUTH, T_YEARS, T_TRUTH, B_YEARS, B_TRUTH,
                          truth_profiles, make_obs, inversion_cfg)
 from firnpack.inverse import assimilate
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/; OUT = HERE / "results"; OUT.mkdir(exist_ok=True)
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+OUT = HERE / "results"; OUT.mkdir(exist_ok=True)
 SUBSET = [s for s in os.environ.get("FIRN_OBS_SUBSET", "rho").split(",") if s]
 SLUG = "-".join(SUBSET)
 SPIN, DT, NZ = 1600.0, 5.0, 100

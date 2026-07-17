@@ -17,7 +17,8 @@ import json, os
 from pathlib import Path
 import numpy as np
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/; R = HERE/"results"
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+R = HERE/"results"
 import sys
 sys.path.insert(0, str(HERE))  # sibling config module
 from config import build_cfg

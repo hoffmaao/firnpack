@@ -44,7 +44,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 from osse_common import TRUTH, truth_profiles, make_obs, inversion_cfg
 from firnpack.inverse import assimilate
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/; OUT = HERE / "results"; OUT.mkdir(exist_ok=True)
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+OUT = HERE / "results"; OUT.mkdir(exist_ok=True)
 CASE = os.environ.get("FIRN_VCASE", "nov")
 SPIN, DT, NZ = 1600.0, 5.0, 100
 MAXIT = int(os.environ.get("FIRN_MAX_ITER", "40"))
