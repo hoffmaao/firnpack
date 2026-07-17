@@ -34,7 +34,7 @@ and the correction had to be supplied from outside; doing that now would apply
 it twice (~4.9x the floor) and deflate every sensitivity by ~4.75x, since
 dchi2 goes as 1/sigma^2.
 
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diag_knot_sensitivity.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diagnostics/diag_knot_sensitivity.py
 """
 from __future__ import annotations
 import json, os, copy

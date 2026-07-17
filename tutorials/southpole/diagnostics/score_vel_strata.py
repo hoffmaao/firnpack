@@ -22,7 +22,7 @@ Env:
                    the MAP's provenance does not record FIRN_HCOL, so scan and
                    report which reproduces the MAP's logged non-velocity rms.
 
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/score_vel_strata.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diagnostics/score_vel_strata.py
 """
 from __future__ import annotations
 import json, os

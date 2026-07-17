@@ -8,7 +8,7 @@ Reports the budget at the given MAP, and re-does it under a per-block sigma
 rescale (the Desroziers factor = each block's own rms), i.e. what the budget
 would be if every block's error model were self-consistent.
 
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diag_j_budget.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diagnostics/diag_j_budget.py
 """
 from __future__ import annotations
 import json, os

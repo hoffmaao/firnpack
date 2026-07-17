@@ -17,7 +17,7 @@ Also reports the implied representation error per block,
 i.e. the sigma_repr a two-component model sigma^2 = sigma_meas^2 + sigma_repr^2
 would need for chi2/N = 1 — measured from the data, not chosen.
 
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/error_model_audit.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diagnostics/error_model_audit.py
 Env: FIRN_MAP_JSON (default frozen r8), FIRN_KNOTS to match.
 """
 from __future__ import annotations

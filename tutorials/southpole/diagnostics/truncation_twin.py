@@ -13,7 +13,7 @@ Twin: forward at the SAME MAP (sp_r10v_pair) with
 Report: max |dT| over the data range, per-block rms changes, and the emergent
 130-m gradient in B vs the imposed G.
 
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/truncation_twin.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diagnostics/truncation_twin.py
 """
 from __future__ import annotations
 import json, os

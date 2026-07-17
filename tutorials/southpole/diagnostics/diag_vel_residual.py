@@ -16,7 +16,7 @@ The observable is differenced about z_ref, so r(z_ref) == 0 by construction:
 structure must be read as growth AWAY from the reference depth, not as offset.
 
 Env: FIRN_WARM_JSON (default output/sp_r10_final.json), FIRN_DIAG_SITES.
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diag_vel_residual.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diagnostics/diag_vel_residual.py
 """
 from __future__ import annotations
 import json, os

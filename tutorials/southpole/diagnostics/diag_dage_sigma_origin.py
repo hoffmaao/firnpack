@@ -27,7 +27,7 @@ BELOW the variance in the band the model must absorb, by a factor we can read
 off directly -- an internal explanation for the misfit, owing nothing to an
 external source.
 
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diag_dage_sigma_origin.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diagnostics/diag_dage_sigma_origin.py
 """
 from __future__ import annotations
 import json, math
