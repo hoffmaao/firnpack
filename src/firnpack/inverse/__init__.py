@@ -1,13 +1,21 @@
-"""firnpack.inverse — shared adjoint assimilation engine.
+"""firnpack.inverse — adjoint data assimilation for firn columns.
 
-One config-driven engine behind all three paper case studies (synthetic OSSE,
-South Pole, Summit). Refactored faithfully from the proven South Pole driver
-(sp_joint_assimilate_r5.py); the South Pole config reproduces its frozen MAP.
+The assimilation is modelled on icepack's statistics interface: a
+``StatisticsProblem`` bundles the forward simulation, the model-data misfit
+(loss), the prior (regularization) and the controls, and a
+``MaximumProbabilityEstimator`` finds the MAP. The estimator's backend is scipy
+L-BFGS-B on the Real-space controls (not icepack's ROL), which reproduces the
+frozen South Pole MAP.
 
-Public API:
-    from firnpack.inverse import SiteConfig, ObsBlock, ScalarCtrl, KnotCtrl, assimilate
+    from firnpack.inverse import StatisticsProblem, MaximumProbabilityEstimator
+
+``SiteConfig`` + ``assimilate`` remain the declarative front end that builds and
+solves the problem for the three case studies; they are being folded into the
+StatisticsProblem interface across the tutorial refactor.
 """
+from .statistics import StatisticsProblem, MaximumProbabilityEstimator
 from .config import SiteConfig, ObsBlock, ScalarCtrl, KnotCtrl
 from .engine import assimilate
 
-__all__ = ["SiteConfig", "ObsBlock", "ScalarCtrl", "KnotCtrl", "assimilate"]
+__all__ = ["StatisticsProblem", "MaximumProbabilityEstimator",
+           "SiteConfig", "ObsBlock", "ScalarCtrl", "KnotCtrl", "assimilate"]
