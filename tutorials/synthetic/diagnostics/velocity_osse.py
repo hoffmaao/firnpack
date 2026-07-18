@@ -5,7 +5,7 @@ NOTE (2026-07-12): the PAPER OSSE assumes all observations co-located
 (Andrew) — that lives in observability.py (v is a subset member there, same
 truth/operator). This script remains as the SP-motivated transfer SIDE-STUDY
 (vmis/vmis_sig); its nov/vco/vrho results were promoted into the co-located
-observability matrix (see results/*provenance fields).
+observability matrix (see output/*provenance fields).
 
 Motivated by the South Pole ApRES verdict: the core observations (rho, age,
 d(age)/dz, T) come from the ice-core site, but the velocity profiles come from
@@ -33,19 +33,18 @@ densification-law parameters / histories relative to vco.
 
 Run one case (FIRN_VCASE in {nov, vco, vrho, vmis, vmis_sig}):
   PYTHONPATH=src OMP_NUM_THREADS=1 FIRN_VCASE=vmis \
-    <venv-python> tutorials/synthetic/output/velocity_osse.py
-Output: results/vosse_<case>.json.
+    <venv-python> tutorials/synthetic/diagnostics/velocity_osse.py
+Output: output/vosse_<case>.json.
 """
 from __future__ import annotations
-import json, os, sys
+import json, os
 from pathlib import Path
 import numpy as np
-sys.path.insert(0, str(Path(__file__).parent))
-from osse_common import TRUTH, truth_profiles, make_obs, inversion_cfg
+from firnpack.inverse.osse import TRUTH, truth_profiles, make_obs, inversion_cfg
 from firnpack.inverse import assimilate
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
-OUT = HERE / "results"; OUT.mkdir(exist_ok=True)
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/
+OUT = HERE / "output"; OUT.mkdir(exist_ok=True)
 CASE = os.environ.get("FIRN_VCASE", "nov")
 SPIN, DT, NZ = 1600.0, 5.0, 100
 MAXIT = int(os.environ.get("FIRN_MAX_ITER", "40"))

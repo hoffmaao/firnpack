@@ -15,19 +15,19 @@ already done its best), decompose the per-site residual r_s(z) into
 The observable is differenced about z_ref, so r(z_ref) == 0 by construction:
 structure must be read as growth AWAY from the reference depth, not as offset.
 
-Env: FIRN_WARM_JSON (default results/sp_r10_final.json), FIRN_DIAG_SITES.
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diag_vel_residual.py
+Env: FIRN_WARM_JSON (default output/sp_r10_final.json), FIRN_DIAG_SITES.
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diagnostics/diag_vel_residual.py
 """
 from __future__ import annotations
 import json, os
 from pathlib import Path
 import numpy as np
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/
 import sys
 sys.path.insert(0, str(HERE))  # sibling config module
 from config import build_cfg
-R = HERE / "results"
+R = HERE / "output"
 # r10_final's 5 blocks, in the order its log built them
 SITES = os.environ.get("FIRN_DIAG_SITES", "x17s2+x11n0+x11n2+x11n6+x11s2")
 MAP_PATH = os.environ.get("FIRN_WARM_JSON", str(R / "sp_r10_final.json"))

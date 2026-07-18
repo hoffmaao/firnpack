@@ -15,9 +15,9 @@ would mean the config no longer matches the result it claims to describe.
 
 Run (from the repo root):
     PYTHONPATH=src OMP_NUM_THREADS=1 python \
-        tutorials/southpole/output/backfill_map_blocks.py
+        tutorials/southpole/diagnostics/backfill_map_blocks.py
 
-    FIRN_MAP_JSON=results/sp_engine_dense.json FIRN_KNOTS=knots_dense.json ... \
+    FIRN_MAP_JSON=output/sp_engine_dense.json FIRN_KNOTS=knots_dense.json ... \
         to backfill a different MAP; FIRN_KNOTS must match that MAP's layout.
 """
 from __future__ import annotations
@@ -26,12 +26,12 @@ import json
 import os
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/
 import sys
 sys.path.insert(0, str(HERE))  # sibling config module
 from config import build_cfg
 
-MAP_PATH = Path(os.environ.get("FIRN_MAP_JSON", HERE / "results/sp_joint_r8.json"))
+MAP_PATH = Path(os.environ.get("FIRN_MAP_JSON", HERE / "output/sp_joint_r8.json"))
 if not MAP_PATH.is_absolute():
     MAP_PATH = HERE / MAP_PATH
 

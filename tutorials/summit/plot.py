@@ -1,7 +1,7 @@
-"""Summit figures, rebuilt from results/.
+"""Summit figures, rebuilt from output/.
 
 One of the tutorial's two scripts: run.py inverts for Summit's own densification
-law and writes results/, this draws figures/ from them. It reads JSON only --
+law and writes output/, this draws figures/ from them. It reads JSON only --
 no Firedrake, no solve.
 
 Two figures:
@@ -31,11 +31,11 @@ from firnpack.constants import year as YEAR_S
 from firnpack.models.firn import FirnParameters
 
 HERE = Path(__file__).parent
-RESULTS = HERE / "results"
+RESULTS = HERE / "output"
 FIGS = HERE / "figures"
 FIGS.mkdir(exist_ok=True)
 
-SP_MAP = HERE.parent / "southpole" / "results" / "sp_joint_r8.json"
+SP_MAP = HERE.parent / "southpole" / "output" / "sp_joint_r8.json"
 SUMMIT_MAP = RESULTS / "summit_invert.json"
 
 R_GAS, RHO_I, RHO_M = 8.314, 917.0, 550.0

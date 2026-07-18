@@ -27,14 +27,14 @@ BELOW the variance in the band the model must absorb, by a factor we can read
 off directly -- an internal explanation for the misfit, owing nothing to an
 external source.
 
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diag_dage_sigma_origin.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diagnostics/diag_dage_sigma_origin.py
 """
 from __future__ import annotations
 import json, math
 from pathlib import Path
 import numpy as np, pandas as pd
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/
 H0 = 130.0
 
 a = pd.read_csv(HERE / "data" / "sp19_depth_age.csv")
@@ -104,5 +104,5 @@ print("external uncertainty column and no Desroziers step.")
 json.dump(dict(sigma_inuse_med=sig_med, dage_med=float(np.median(obs)),
                knot_scale_m=knot_m,
                structure=[dict(scale_m=L, years=y, sd=s) for L, y, s in rows]),
-          open(HERE / "results" / "dage_sigma_origin.json", "w"), indent=1)
-print(f"\nSaved {HERE/'results'/'dage_sigma_origin.json'}")
+          open(HERE / "output" / "dage_sigma_origin.json", "w"), indent=1)
+print(f"\nSaved {HERE/'output'/'dage_sigma_origin.json'}")

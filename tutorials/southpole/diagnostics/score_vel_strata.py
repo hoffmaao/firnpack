@@ -17,23 +17,23 @@ candidates; score_vel_screen.py's dJ_other leave-one-in screen (which needs one
 inversion per site) is the expensive confirmation.
 
 Env:
-  FIRN_WARM_JSON   MAP to score against   (default results/sp_r10_novel.json)
+  FIRN_WARM_JSON   MAP to score against   (default output/sp_r10_novel.json)
   FIRN_HCOL_SCAN   comma list of column depths to try (default "130,300") —
                    the MAP's provenance does not record FIRN_HCOL, so scan and
                    report which reproduces the MAP's logged non-velocity rms.
 
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/score_vel_strata.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diagnostics/score_vel_strata.py
 """
 from __future__ import annotations
 import json, os
 from pathlib import Path
 import numpy as np
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/
 import sys
 sys.path.insert(0, str(HERE))  # sibling config module
 from config import build_cfg
-R = HERE / "results"
+R = HERE / "output"
 
 # every site present in the Zeising raw-burst product
 import pandas as pd

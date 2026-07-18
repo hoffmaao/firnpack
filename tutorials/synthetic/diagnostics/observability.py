@@ -12,9 +12,9 @@ meaningful, and ezz_yr is a free control in EVERY subset (prior 0 +/- 1e-4):
 subsets without v demonstrate ezz is unobservable from the core system.
 (Non-co-located transfer experiments live in velocity_osse.py, not here.)
 
-Run one subset (the script inserts its own directory so osse_common resolves):
+Run one subset:
   PYTHONPATH=src OMP_NUM_THREADS=1 \
-  FIRN_OBS_SUBSET=rho,age <venv> tutorials/synthetic/output/observability.py
+  FIRN_OBS_SUBSET=rho,age <venv> tutorials/synthetic/diagnostics/observability.py
 
 The paper's ablation is these nine subsets, each run on its own:
   rho
@@ -26,19 +26,18 @@ The paper's ablation is these nine subsets, each run on its own:
   rho,age,dage,Tdeep,Tsh
   rho,age,dage,Tdeep,Tsh,v
   Tdeep
-Output: results/obsv_<slug>.json (+ shared results/obsv_truth_profiles.json)
+Output: output/obsv_<slug>.json (+ shared output/obsv_truth_profiles.json)
 """
 from __future__ import annotations
-import json, os, sys
+import json, os
 from pathlib import Path
 import numpy as np
-sys.path.insert(0, str(Path(__file__).parent))
-from osse_common import (TRUTH, T_YEARS, T_TRUTH, B_YEARS, B_TRUTH,
-                         truth_profiles, make_obs, inversion_cfg)
+from firnpack.inverse.osse import (TRUTH, T_YEARS, T_TRUTH, B_YEARS, B_TRUTH,
+                                   truth_profiles, make_obs, inversion_cfg)
 from firnpack.inverse import assimilate
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
-OUT = HERE / "results"; OUT.mkdir(exist_ok=True)
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/
+OUT = HERE / "output"; OUT.mkdir(exist_ok=True)
 SUBSET = [s for s in os.environ.get("FIRN_OBS_SUBSET", "rho").split(",") if s]
 SLUG = "-".join(SUBSET)
 SPIN, DT, NZ = 1600.0, 5.0, 100

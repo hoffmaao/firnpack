@@ -8,7 +8,7 @@ dense 20T+34b on the identical clean configuration):
   (b) T(t): both recovered histories.
   (c) fit rms per observable + J for both — what the extra 26 controls bought.
 
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/plot_temporal_probe.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diagnostics/plot_temporal_probe.py
 """
 from __future__ import annotations
 import json, os
@@ -17,12 +17,12 @@ import numpy as np, pandas as pd
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 
 import sys
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/
 sys.path.insert(0, str(HERE))  # sibling config module
 from config import build_cfg
 FIGS = HERE/"figures"; FIGS.mkdir(exist_ok=True)
-R8 = json.load(open(HERE/"results/sp_joint_r8.json"))
-DN = json.load(open(HERE/"results/sp_engine_dense.json"))
+R8 = json.load(open(HERE/"output/sp_joint_r8.json"))
+DN = json.load(open(HERE/"output/sp_engine_dense.json"))
 RHO_I = 917.0
 
 # ---- engine forward at each MAP (exact rms through the objective operators) ----

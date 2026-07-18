@@ -28,12 +28,12 @@ pytest test/ -m slow
 # Run a specific test (-m slow is required for a slow-marked test)
 pytest test/test_firnmice_checkpoint.py -m slow
 
-# Run a case study, then rebuild its figures from results/
+# Run a case study, then rebuild its figures from output/
 PYTHONPATH=src OMP_NUM_THREADS=1 python tutorials/southpole/run.py
 PYTHONPATH=src OMP_NUM_THREADS=1 python tutorials/southpole/plot.py
 
 # Run scripts directly (many are scripts, not pytest-style)
-PYTHONPATH=src OMP_NUM_THREADS=1 python tutorials/summit/output/forward_summit.py
+PYTHONPATH=src OMP_NUM_THREADS=1 python tutorials/summit/diagnostics/forward_summit.py
 ```
 
 Some test scripts use environment variables for control:
@@ -49,12 +49,12 @@ Four top-level parts (see the root `README.md` for the full tree):
 - **`test/`** - tests only: the pytest suites (`test_*.py`)
 - **`tutorials/`** - the three case studies (synthetic, southpole, summit), each a
   thin config over `firnpack.inverse`. Each holds `run.py`, `plot.py`,
-  `output/` (diagnostic + experiment scripts, tracked), `data/` (tracked),
-  `results/` (MAP JSONs, ignored), `figures/` (ignored)
+  `diagnostics/` (diagnostic + experiment scripts, tracked), `data/` (tracked),
+  `output/` (MAP JSONs + .h5 checkpoints, ignored), `figures/` (ignored)
 - **`doc/`** - methods notes, derivations, paper-facing documentation
 
 Figures are never committed: `plot.py` (a pure reader - no Firedrake, no solve)
-rebuilds them from `results/` into the tutorial's `figures/`. `results/` is the
+rebuilds them from `output/` into the tutorial's `figures/`. `output/` is the
 expensive artifact; `figures/` is not.
 
 ## Architecture
@@ -120,6 +120,6 @@ script/log history that predates the shared engine (`archive/southpole/`).
 Nothing in `archive/` is on the critical path, and nothing should import from
 it. It is untracked but not deleted, and every file remains recoverable from
 git history. Two things were deliberately rescued out of it before archiving:
-the frozen reference MAPs (now `tutorials/southpole/results/sp_joint_r8.json`
+the frozen reference MAPs (now `tutorials/southpole/output/sp_joint_r8.json`
 and `usp50_k_snow_fit.json`, both tracked) and the SP write-ups (now
 `doc/southpole_inversion_handoff.md` and `doc/southpole_adjoint_notes.md`).

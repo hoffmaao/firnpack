@@ -329,7 +329,7 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
         must run directly after a forward solve. Both "forward" mode and the
         final MAP evaluation in "optimize" go through here, so a results JSON
         carries the same block arrays however it was produced -- which is what
-        lets the plot scripts read results/ instead of re-solving.
+        lets the plot scripts read output/ instead of re-solving.
         """
         with stop_annotating():
             xs_ = mesh.coordinates.dat.data_ro.reshape(-1); dprof = cfg.H_col - xs_

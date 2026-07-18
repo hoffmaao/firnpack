@@ -1,7 +1,7 @@
 """forward_summit.py — transferability test: does the South-Pole-calibrated firn
 law predict Summit, Greenland?
 
-Takes the frozen South Pole densification + conductivity law (results/
+Takes the frozen South Pole densification + conductivity law (output/
 sp_joint_r8.json) — physical H&L Arrhenius rates + Calonne conductivity, which
 are temperature-independent constants — and runs the forward model under
 SUMMIT forcing (T ~ -28.8 C, accumulation ~ 0.246 m ice/yr; 3x warmer-and-
@@ -14,7 +14,7 @@ This is the paper's Summit transferability figure in its simplest form (constant
 forcing, steady state). A Summit INVERSION (recover Summit's own law) is the next
 step. No adjoint — forward only.
 
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/summit/forward_summit.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/summit/diagnostics/forward_summit.py
 Env: FIRN_SP_MAP (default sp_joint_r8.json), FIRN_SUMMIT_T_C, FIRN_SUMMIT_B,
      FIRN_SPIN_YEARS (default 1200), FIRN_H (default 130).
 """
@@ -29,10 +29,10 @@ from firnpack.physics.densification import herron_langway as _hl
 from firnpack.constants import year as YEAR_S
 herron_langway = functools.partial(_hl, smooth=True)
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/
 DATA = HERE / "data"
-SP_RESULTS = HERE.parent / "southpole/results"               # frozen SP MAP lives here
-OUT = HERE / "results"; OUT.mkdir(exist_ok=True)
+SP_RESULTS = HERE.parent / "southpole/output"               # frozen SP MAP lives here
+OUT = HERE / "output"; OUT.mkdir(exist_ok=True)
 SP_MAP = os.environ.get("FIRN_SP_MAP", "sp_joint_r8.json")
 
 # ---- Summit forcing (constant, steady-state; from staged data) ----

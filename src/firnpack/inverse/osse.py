@@ -1,14 +1,21 @@
-"""osse_common.py — shared truth + synthetic-observation generation for the OSSE.
+"""firnpack.inverse.osse — truth and synthetic-observation generation for OSSEs.
 
-Used by observability.py (observation-subset ablation). Defines ONE truth and
-one noise realization (fixed seed) so subset runs differ ONLY in which
-observation blocks are included. run.py (the headline OSSE) currently carries
-its own copy of this logic at spinup 2500; unify in the cleanup pass.
+Shared by the synthetic tutorial's experiments (observation-subset ablation,
+temporal-resolution, velocity). Defines ONE truth and one noise realization
+(fixed seed) so subset runs differ ONLY in which observation blocks are
+included. Promoted from the tutorial into the library so any model built on
+firnpack can run an observing-system experiment.
+
+run.py (the headline OSSE) currently carries its own copy of this logic at
+spinup 2500; unify in the cleanup pass.
 """
 from __future__ import annotations
 import math
 import numpy as np
-from firnpack.inverse import SiteConfig, ObsBlock, ScalarCtrl, KnotCtrl, assimilate
+# Import from the submodules, not the package __init__, to avoid a circular
+# import (this module is part of firnpack.inverse).
+from firnpack.inverse.config import SiteConfig, ObsBlock, ScalarCtrl, KnotCtrl
+from firnpack.inverse.engine import assimilate
 from firnpack.models.firn import FirnParameters
 from firnpack.constants import year as YEAR_S
 

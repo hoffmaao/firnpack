@@ -13,7 +13,7 @@ correction; residual is second order in s away from s*), sigma = sqrt(0.075^2
 against the offline 1.291.
 
 Output: data/usp50_seasonal_lnratio.csv
-Run: <venv-python> tutorials/southpole/stage_seasonal_obs.py   (numpy only)
+Run: <venv-python> tutorials/southpole/diagnostics/stage_seasonal_obs.py   (numpy only)
 """
 from __future__ import annotations
 import json, math
@@ -21,8 +21,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
-FIT = json.load(open(HERE / "results/usp50_k_snow_fit.json"))
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/
+FIT = json.load(open(HERE / "output/usp50_k_snow_fit.json"))
 RHO_I, C_I, T_K = 917.0, 2009.0, 222.25
 KF, SSTAR = 0.987, FIT["s_snow"]
 YEAR_S = 365.25 * 86400.0

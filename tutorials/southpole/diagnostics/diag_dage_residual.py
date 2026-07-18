@@ -26,18 +26,18 @@ that term (sqrt(sigma_meas^2 + sigma_repr^2)), so re-running this against a MAP
 produced under the new sigma should show rms near 1 and the inflation factor
 below near 1.
 
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diag_dage_residual.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diagnostics/diag_dage_residual.py
 """
 from __future__ import annotations
 import json, os
 from pathlib import Path
 import numpy as np
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/
 import sys
 sys.path.insert(0, str(HERE))  # sibling config module
 from config import build_cfg
-R = HERE / "results"
+R = HERE / "output"
 MAP_PATH = os.environ.get("FIRN_WARM_JSON", str(R / "sp_r10_final.json"))
 LEN_M = float(os.environ.get("FIRN_SMOOTH_M", "10.0"))   # coherence length
 

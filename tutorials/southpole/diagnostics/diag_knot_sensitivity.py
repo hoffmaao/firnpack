@@ -34,18 +34,18 @@ and the correction had to be supplied from outside; doing that now would apply
 it twice (~4.9x the floor) and deflate every sensitivity by ~4.75x, since
 dchi2 goes as 1/sigma^2.
 
-Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diag_knot_sensitivity.py
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diagnostics/diag_knot_sensitivity.py
 """
 from __future__ import annotations
 import json, os, copy
 from pathlib import Path
 import numpy as np
 
-HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not output/
+HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/
 import sys
 sys.path.insert(0, str(HERE))  # sibling config module
 from config import build_cfg
-R = HERE / "results"
+R = HERE / "output"
 MAP_PATH = os.environ.get("FIRN_WARM_JSON", str(R / "sp_r10_final.json"))
 # run.py's sigma_dage is already the corrected one: no scale on top (see header)
 SIG_DAGE = os.environ.get("FIRN_SIG_DAGE_SCALE", "1.0")
