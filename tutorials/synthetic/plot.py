@@ -29,13 +29,11 @@ R = HERE / "output"
 FIGS = HERE / "figures"; FIGS.mkdir(exist_ok=True)
 
 # newest OSSE MAP by mtime (synthetic_osse_trend supersedes the flat-truth
-# synthetic_osse; env FIRN_OSSE_MAP overrides)
-import os
-if os.environ.get("FIRN_OSSE_MAP"):
-    MAP_PATH = Path(os.environ["FIRN_OSSE_MAP"])
-else:
-    cands = [q for q in R.glob("synthetic_osse*.json")]
-    MAP_PATH = max(cands, key=lambda q: q.stat().st_mtime) if cands else R / "synthetic_osse_tight.json"
+# synthetic_osse; env FIRN_OSSE_MAP overrides). The m_map filter keeps the
+# tag-matched non-MAP artifacts (_hessian, _marginals) out of the running.
+MAP_PATH = fp.newest_map(R, need=("m_map",), env="FIRN_OSSE_MAP",
+                         pattern="synthetic_osse*.json") \
+    or R / "synthetic_osse_tight.json"
 TRUTH_PATH = R / "synthetic_truth.json"
 if not (MAP_PATH.exists() and TRUTH_PATH.exists()):
     missing = [str(p) for p in (MAP_PATH, TRUTH_PATH) if not p.exists()]

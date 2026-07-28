@@ -1,20 +1,44 @@
-"""Extract Summit compaction-rate observations from the FirnCover HDF5.
+"""Stage the raw Summit compaction-rate fits from the FirnCover HDF5.
 
 Each instrument measures the length of a MATERIAL interval: anchor at the
-borehole bottom, coil at the install-date surface (which then buries). The
-observable staged here is the mean shortening rate over the record, with:
-  rate  : robust linear fit of daily length vs time
-  sig   : residual scatter about the fit (Zeising's method — the stated
-          instrument precision is optimistic; the scatter carries wind
-          pumping, thermal cycling, wire artifacts), with an AR(1)
-          independence correction on the daily residuals
-  depth : mean top/bottom depths of the material interval over the record
-          (top = burial/2 estimated from the site's accumulation)
+borehole bottom, coil at the install-date surface (which then buries). This
+script stages the per-instrument RATE columns and the fit diagnostics:
+  rate_m_yr    : linear fit of daily length vs time over the record
+  rate_se_m_yr : formal slope s.e. from the daily residuals, with an AR(1)
+                 independence correction
+  resid_sd_mm  : residual scatter about the fit
+  lag1         : lag-1 autocorrelation of the daily residuals
+  ztop/zbot    : record means of the tracked material-interval endpoints
+
+rate_se_m_yr is staged as EVIDENCE, not as an assimilation sigma: lag1 comes
+out at ~1.0 (the daily residuals are a seasonal cycle, not noise), so the
+formal s.e. is meaningless and is rejected. The sigma that is actually
+assimilated is derived separately -- see derive_compaction_sigma.py, which
+writes data/firncover_summit_compaction.csv.
+
+Source HDF5: DataONE doi:10.18739/A25X25D7M (FirnCoverData_2_0_2021_07_30.h5);
+point FIRNCOVER_H5 at it, or drop it at the default path below. See
+data/README.md for the re-download URL.
+
+Run: /home/andrew/venv-firedrake-2026/bin/python \
+       tutorials/summit/diagnostics/stage_firncover_compaction.py
 """
+import os
+from pathlib import Path
+
 import h5py
 import numpy as np, pandas as pd
 
-f = h5py.File("/home/andrew/.claude/jobs/f7fe0a6b/tmp/FirnCoverData_2_0_2021_07_30.h5")
+HERE = Path(__file__).resolve().parent.parent
+DATA = HERE / "data"
+H5 = Path(os.environ.get("FIRNCOVER_H5",
+                         DATA / "raw" / "FirnCoverData_2_0_2021_07_30.h5"))
+if not H5.exists():
+    raise SystemExit(f"FirnCover HDF5 not found at {H5} — set FIRNCOVER_H5 "
+                     f"or download it there (see {DATA/'README.md'})")
+OUT = DATA / "firncover_summit_compaction_raw.csv"
+
+f = h5py.File(H5)
 comp = pd.DataFrame(np.array(f["FirnCover/Compaction_Daily"]))
 meta = pd.DataFrame(np.array(f["FirnCover/Compaction_Instrument_Metadata"]))
 for df in (comp, meta):
@@ -61,6 +85,7 @@ for iid in su_ids:
           f"over {span:.1f} yr (resid sd {rows[-1]['resid_sd_mm']:.1f} mm, lag1 {r1:+.2f}, "
           f"se {se*1000:.2f} mm/yr)")
 
-out = pd.DataFrame(rows)
-out.to_csv("/home/andrew/.claude/jobs/f7fe0a6b/tmp/firncover_summit_compaction.csv", index=False)
-print("\nwrote tmp/firncover_summit_compaction.csv")
+out = pd.DataFrame(rows).sort_values("zbot_mean_m")
+out.to_csv(OUT, index=False)
+print(f"\nwrote {OUT} (raw fits; lag1 ~ 1 => rate_se_m_yr is NOT the "
+      f"assimilation sigma — see derive_compaction_sigma.py)")

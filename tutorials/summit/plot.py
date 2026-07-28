@@ -35,27 +35,7 @@ RESULTS = HERE / "output"
 FIGS = HERE / "figures"
 FIGS.mkdir(exist_ok=True)
 
-import os
-
-
-def _newest_map(out_dir, need=("m_map",), env=None):
-    """Newest-by-mtime results JSON carrying the given keys (env overrides).
-
-    Mirrors the southpole plot's mtime rule: a fresh inversion becomes the
-    plotted one regardless of how its tag sorts.
-    """
-    if env and os.environ.get(env):
-        return Path(os.environ[env])
-    best = None
-    for p in Path(out_dir).glob("*.json"):
-        try:
-            d = json.load(open(p))
-        except (json.JSONDecodeError, OSError):
-            continue
-        if isinstance(d, dict) and all(d.get(k) for k in need):
-            if best is None or p.stat().st_mtime > best.stat().st_mtime:
-                best = p
-    return best
+_newest_map = fp.newest_map
 
 
 SP_MAP = _newest_map(HERE.parent / "southpole" / "output", env="FIRN_SP_MAP") \

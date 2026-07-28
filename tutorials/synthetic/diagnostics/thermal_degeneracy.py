@@ -22,10 +22,17 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(HERE))
+from firnpack import plot as fp
 from firnpack.inverse import SiteConfig, ObsBlock, ScalarCtrl, KnotCtrl, assimilate
 
 OUT = HERE / "output"
-mp = json.load(open(OUT / "synthetic_osse_tight.json"))
+# newest OSSE MAP by mtime, same rule as plot.py / reanalysis.py; env override
+_mapp = fp.newest_map(OUT, need=("m_map",), env="FIRN_OSSE_MAP",
+                      pattern="synthetic_osse*.json")
+if _mapp is None:
+    raise SystemExit(f"no OSSE MAP in {OUT} — run tutorials/synthetic/run.py first")
+print(f"thermal-degeneracy MAP: {_mapp.name}")
+mp = json.load(open(_mapp))
 m = mp["m_map"]
 Ty = np.array(mp["knot_years"], float); Tv = np.array(mp["T_knots"], float)
 By = np.array(mp["b_knot_years"], float); Bv = np.array(mp["b_knots"], float)

@@ -26,15 +26,17 @@ from pathlib import Path
 import numpy as np
 from firnpack.inverse import SiteConfig, ObsBlock, ScalarCtrl, KnotCtrl, assimilate
 
-import os
+from firnpack import plot as fp
+
 HERE = Path(__file__).resolve().parent.parent
 OUT = HERE / "output"
-# newest OSSE MAP by mtime (synthetic_osse_comp supersedes _trend); env override
-if os.environ.get("FIRN_OSSE_MAP"):
-    _mapp = Path(os.environ["FIRN_OSSE_MAP"])
-else:
-    _c = list(OUT.glob("synthetic_osse*.json"))
-    _mapp = max(_c, key=lambda q: q.stat().st_mtime)
+# newest OSSE MAP by mtime (synthetic_osse_comp supersedes _trend); env override.
+# Filtered on m_map so the _hessian/_marginals artifacts written under the same
+# tag are never mistaken for a MAP.
+_mapp = fp.newest_map(OUT, need=("m_map",), env="FIRN_OSSE_MAP",
+                      pattern="synthetic_osse*.json")
+if _mapp is None:
+    raise SystemExit(f"no OSSE MAP in {OUT} — run tutorials/synthetic/run.py first")
 print(f"reanalysis MAP: {_mapp.name}")
 mp = json.load(open(_mapp))
 tr = json.load(open(OUT / "synthetic_truth.json"))

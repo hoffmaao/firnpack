@@ -308,9 +308,12 @@ def figure_T_history(results):
     if "T_prior_centers" in pr:
         ky = np.asarray(pr["knot_years"], float)
         pc = np.asarray(pr["T_prior_centers"], float)
-        ps = float(pr["T_prior_sigma"])
+        # scalar for a uniform prior, per-knot array once T_knots.sigma varies
+        ps = np.broadcast_to(np.asarray(pr["T_prior_sigma"], float), ky.shape)
+        lab = (f"prior ±{ps[0]:g} K" if np.allclose(ps, ps[0])
+               else f"prior ±{ps.min():g}–{ps.max():g} K")
         ax.fill_between(ky, pc - ps, pc + ps, color=fp.GRID, alpha=0.35,
-                        label=f"prior ±{ps:g} K")
+                        label=lab)
         ax.plot(ky, pc, "-", color=fp.GRID, lw=1)
     styles = ["-", "--", ":", "-."]
     colors = [fp.OBS, fp.MODEL, fp.RESID]

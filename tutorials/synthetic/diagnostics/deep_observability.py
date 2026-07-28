@@ -9,11 +9,15 @@ deep ice carries recoverable old-surface-T information.
 import json, sys
 from pathlib import Path
 import numpy as np
-from pathlib import Path as _P; sys.path.insert(0, str(_P(__file__).resolve().parent.parent))
+HERE = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(HERE))
 from firnpack.inverse import SiteConfig, ObsBlock, ScalarCtrl, KnotCtrl, assimilate
 
-OUT = "/home/andrew/projects/firnpack/tutorials/synthetic/output"
-tr = json.load(open(OUT + "/synthetic_truth.json"))
+OUT = HERE / "output"
+_truth = OUT / "synthetic_truth.json"
+if not _truth.exists():
+    raise SystemExit(f"missing {_truth} — run tutorials/synthetic/run.py first")
+tr = json.load(open(_truth))
 TRUTH = tr["truth"]
 Ty = np.array(tr["T_years"], float); Tv = np.array(tr["T_truth"], float)
 By = np.array(tr["b_years"], float); Bv = np.array(tr["b_truth"], float)

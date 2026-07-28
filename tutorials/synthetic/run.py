@@ -139,17 +139,18 @@ for cc in np.arange(6.0, H0 - 1.0, 2.0):
     dc.append(cc); do_.append(sl); dsg.append(max(0.085 * abs(sl), 0.15))
 dc = np.array(dc); do_ = np.array(do_); dsg = np.array(dsg)
 dage_obs = do_ + rng.normal(0, dsg)
-# borehole T: ONE consistent set — the deep borehole profile (13-125 m, 7-m
-# spacing) at SP's kernel-consistent sigma (25-70 mK, depth-dependent). This
-# mirrors the REAL South Pole assimilation, where the only temperature PROFILE
-# is the deep SPICEcore borehole log; the near-surface signal at SP comes from
-# a separate seasonal-AMPLITUDE observable, NOT a second T profile. The earlier
-# split into a deep-borehole block + a shallow-RTD block (different instruments,
-# different noise, 0.2 K vs 25-70 mK) was an OSSE simplification and is dropped.
-# FIRN_OSSE_TSH=1 restores the shallow-RTD block for the old two-instrument test.
-# borehole T: firn section (13-125 m, 7-m) + in DEEP mode an INDEPENDENT deep
-# section into the ice (130 m -> H0, 15-m spacing, mK-precise like a real
-# full-depth log) that carries the OLD surface T advected out of the firn.
+# borehole T: ONE consistent block — a single instrument's profile through the
+# firn (13-125 m, 7-m spacing) at SP's kernel-consistent sigma (25-70 mK,
+# depth-dependent), extended in DEEP mode straight down the same log into the
+# ice (140 m -> H0, 15-m spacing, ~30 mK) where the OLD surface T advected out
+# of the firn still lives. That extension is more of the same log, not a second
+# instrument. This mirrors the REAL South Pole assimilation, where the only
+# temperature PROFILE is the deep SPICEcore borehole log; the near-surface
+# signal at SP comes from a separate seasonal-AMPLITUDE observable, NOT a
+# second T profile. The earlier split into a deep-borehole block + a
+# shallow-RTD block (different instruments, different noise, 0.2 K vs 25-70 mK)
+# was an OSSE simplification and is dropped; FIRN_OSSE_TSH=1 restores the
+# shallow-RTD block for the old two-instrument test.
 Td_d = np.arange(13.0, 129.0, 7.0)
 Td_sig = np.interp(Td_d, [13., 30., 45., 60., 80., 100., 115., 128.],
                    [0.027, 0.027, 0.050, 0.068, 0.060, 0.045, 0.035, 0.055])
@@ -173,11 +174,12 @@ if os.environ.get("FIRN_OSSE_TSH", "0") == "1":
     print("shallow-RTD (Tsh) block RESTORED (two-instrument test)")
 # NO absolute-age block: deleted at SP and Summit (layer-counted redundancy).
 
-# ---- synthetic firn-compaction-rate block (FirnCover/ApRES-style) -----------
+# ---- synthetic firn-compaction-rate block (FirnCover coils) -----------------
 # A direct densification-RATE observable: material intervals [ztop, zbot] whose
 # shortening rate = (w@ztop - w@zbot) is measured. Mirrors the Summit FirnCover
-# coils (surface-referenced intervals, ~8-12% sigma). Tests whether the RATE
-# observable improves recovery of the law/accumulation in the OSSE.
+# coils — physical wire coils on material intervals, NOT ApRES (the ApRES
+# analog here is the differenced-velocity block below). ~8-12% sigma. Tests
+# whether the RATE observable improves recovery of the law/accumulation.
 # FIRN_OSSE_COMP=0 drops it (before/after comparison against synthetic_osse_trend).
 if os.environ.get("FIRN_OSSE_COMP", "1") == "1":
     comp_zbot = np.array([5., 8., 12., 16., 22., 30.])
@@ -257,8 +259,8 @@ inv_T = KnotCtrl(INV_TY, T_ctr, T_ctr, T_sig, -60, -44, log=False, invert=True, 
 b_ctr = np.full(len(INV_BY), 0.09)
 inv_b = KnotCtrl(INV_BY, b_ctr, b_ctr, 0.20, 0.03, 0.20, log=True, invert=True, name="b")
 if _TSIG_DEEP != 0.6:
-    print(f"deep-time (<=1600) T-knot prior TIGHTENED to {_TSIG_DEEP} K "
-          f"({int((INV_TY<=1600).sum())} knots)")
+    print(f"deep-time (<={_pin_before:.0f}) T-knot prior TIGHTENED to {_TSIG_DEEP} K "
+          f"({int((INV_TY<=_pin_before).sum())} knots)")
 cfg = make_cfg(inv_scalars, inv_T, inv_b, obs, os.environ.get("FIRN_TAG", "synthetic_osse_trend"),
                maxit=int(os.environ.get("FIRN_MAX_ITER", "100")))
 

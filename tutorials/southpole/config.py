@@ -69,9 +69,13 @@ def build_cfg():
     # statement), so unlike borehole T there is no correlation tax and the
     # first-difference estimator sd(diff)/sqrt(2) in a running window is the
     # cleanest local noise measure -- it needs no smooth-curve choice at all
-    # (a deg-8 polyfit gives the same profile within ~20%). Depth-dependent:
-    # ~12 kg/m3 in the top 10 m (new-snow variability) falling to 4-7 below;
-    # no scalar can express the 3x spread.
+    # (a deg-8 polyfit gives the same profile within ~20%). The window statistic
+    # is an sd, NOT an rms: the differences carry the profile's real
+    # densification gradient as a nonzero local mean (~10 kg/m3 per m in the top
+    # 10 m, i.e. ~7 kg/m3 per 0.71-m sample), and an rms would fold that
+    # gradient into the noise floor as a bias instead of removing it.
+    # Depth-dependent: ~12 kg/m3 in the top 10 m (new-snow variability) falling
+    # to 4-7 below; no scalar can express the 3x spread.
     #
     # This REPLACES 15 + 3% (~28-40 kg/m3), which had no provenance and was
     # 4-9x too big -- at that weight the block carried 1.5% of J and the
@@ -92,7 +96,7 @@ def build_cfg():
         _dz=_dfull.depth_m.values; _dr=_dfull.rho_kgm3.values*1000.0
         _dd=np.diff(_dr)/np.sqrt(2.0); _dzm=0.5*(_dz[:-1]+_dz[1:])
         _DLW=41
-        _d_loc=np.array([np.sqrt(np.mean(_dd[max(0,i-_DLW//2):min(len(_dd),i+_DLW//2+1)]**2))
+        _d_loc=np.array([np.std(_dd[max(0,i-_DLW//2):min(len(_dd),i+_DLW//2+1)])
                          for i in range(len(_dd))])
         dens_sig=np.interp(dens.depth_m.values,_dzm,_d_loc)
         _dres=_dr-np.polyval(np.polyfit(_dz,_dr,8),_dz)

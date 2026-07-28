@@ -32,6 +32,10 @@ archive/
 *.npz
 *.mat
 *.grib
+# Raw upstream downloads a tutorial's staging scripts read (FIRNCOVER_H5 and
+# friends); the curated CSVs they emit into data/ are what gets tracked.
+tutorials/*/data/raw/
+*_raw.csv
 
 # --- Figures (always rebuilt from output/ by each tutorial's plot.py) ---
 *.png

@@ -7,10 +7,13 @@ prior-sigma-scaled coordinates. Generalized so each observable and each scalar
 control is independently on/off, and temperature/accumulation knots are either
 inverted or prescribed as forcing. The South Pole config reproduces r8.
 
-assimilate(cfg, mode) with mode in {"verify","optimize","forward"}:
+assimilate(cfg, mode) with mode in {"verify","optimize","forward","hessian"}:
   "verify"   -> deterministic replay (+ optional FD check via fd_names); no opt
   "optimize" -> full L-BFGS-B; writes cfg.out_dir/cfg.tag.json
   "forward"  -> single forward at the warm-start x0; returns diagnostics + J
+  "hessian"  -> Laplace UQ: FD-of-adjoint-gradient posterior precision at the
+                warm point; writes cfg.out_dir/<cfg.tag>_hessian.json
+Any other mode string falls through to the "optimize" path.
 Returns a dict of results.
 """
 from __future__ import annotations
@@ -49,6 +52,11 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
     result -- the scenario-differencing reanalysis needs the time dimension,
     which the misfit path never touches. annotate=False skips pyadjoint taping
     for forward-only diagnostics (~10x faster; no gradients available).
+
+    fd_h (default 1e-3) is the FD step, and its UNITS depend on the mode:
+    mode="verify" takes it as an ABSOLUTE step in the internal (log/linear)
+    control coordinate; mode="hessian" takes it as a FRACTION of each control's
+    prior sigma. It is unused in the other modes.
     """
     P0 = FirnParameters()
     c_i, T_ref, rho_i = float(P0.c_i), float(P0.T_ref), float(P0.rho_i)
@@ -105,11 +113,19 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
 
     # time-tagged observations: map each block's epoch to its nearest step.
     # Blocks whose epoch lands on the final step keep the (cheaper) final-state
-    # path — identical by construction.
+    # path — identical by construction. An epoch outside the simulated span
+    # would otherwise be snapped silently to whichever end is nearer and scored
+    # against a state it has nothing to do with, so it is a hard error: the
+    # nearest step must be within one dt of the requested year.
     for ob in cfg.obs:
         ob._kstep = None
         if ob.year is not None:
             kk = int(np.argmin(np.abs(step_years - float(ob.year))))
+            if abs(step_years[kk] - float(ob.year)) > cfg.dt_years:
+                raise ValueError(
+                    f"obs block '{ob.label}' is tagged to {float(ob.year):.0f} CE, "
+                    f"outside the simulated span {step_years[0]:.0f}-{step_years[-1]:.0f} CE "
+                    f"(nearest step {step_years[kk]:.0f}); widen spin_years or retag the block")
             if kk < n_steps - 1:
                 ob._kstep = kk
                 log(f"obs block '{ob.label}' tagged to {float(ob.year):.0f} CE "
@@ -446,8 +462,9 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
         # prior, so H is the full posterior precision in the internal
         # (log/linear, unscaled) coordinates. fd_names optionally restricts to
         # a column subset; fd_h is the step as a FRACTION of each control's
-        # prior sigma (default 1e-2 — adjoint gradients are direct-solve
-        # accurate, so the FD noise floor is far below curvature scale).
+        # prior sigma (signature default 1e-3; the SP UQ run passes 1e-2 —
+        # adjoint gradients are direct-solve accurate, so the FD noise floor is
+        # far below curvature scale either way).
         names = [m[0] for m in ctrl_meta]
         sel = set(fd_names) if fd_names else set(names)
         step = fd_h * scale

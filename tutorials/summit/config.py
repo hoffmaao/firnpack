@@ -154,8 +154,9 @@ def build_cfg():
     # (year-over-year increments at matched day-of-year -> seasonal removed,
     # 14-19 mm/yr) with a cross-instrument representativeness floor (two coils
     # at ~15.7 m agree to ~16 mm/yr) -- NOT the daily-fit s.e., which is
-    # meaningless (daily residuals seasonal, lag-1~1.0). Provenance +
-    # extraction: data/README.md, diagnostics/stage_firncover_compaction.py.
+    # meaningless (daily residuals seasonal, lag-1~1.0). Provenance:
+    # data/README.md; the CSV read here is written by
+    # diagnostics/derive_compaction_sigma.py.
     # FIRN_COMPACTION=0 drops the block (legacy reproduction).
     if os.environ.get("FIRN_COMPACTION", "1") == "1":
         cmp = pd.read_csv(DATA/"firncover_summit_compaction.csv")
