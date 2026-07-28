@@ -60,10 +60,115 @@ def build_cfg():
 
     # ---- observations (verbatim SP data prep) ----
     def _sub(df,n): return df.iloc[::max(1,len(df)//n)]
-    dens=_sub(pd.read_csv(DATA/"sp19_density.csv").query("depth_m<=@H0"),45)
+    # ---- SP19 density with a DATA-DERIVED sigma (2026-07-19) -------------------
+    # Same program as dage/velocity/T: sigma is the scatter the model cannot fit
+    # at ANY control setting, measured from our own series; no external number.
+    #
+    # The native 0.71-m residuals about a smooth profile are WHITE (lag-1 acf
+    # -0.07; the archived "L_corr 0.71 m" is one sample spacing, i.e. the same
+    # statement), so unlike borehole T there is no correlation tax and the
+    # first-difference estimator sd(diff)/sqrt(2) in a running window is the
+    # cleanest local noise measure -- it needs no smooth-curve choice at all
+    # (a deg-8 polyfit gives the same profile within ~20%). Depth-dependent:
+    # ~12 kg/m3 in the top 10 m (new-snow variability) falling to 4-7 below;
+    # no scalar can express the 3x spread.
+    #
+    # This REPLACES 15 + 3% (~28-40 kg/m3), which had no provenance and was
+    # 4-9x too big -- at that weight the block carried 1.5% of J and the
+    # densification law was never actually tested against the profile. The
+    # r10-era audit measured a model-vs-data rms of ~13.5 kg/m3 at strict
+    # sigma_meas, i.e. there IS coherent, model-representable structure above
+    # this noise floor for the densification params to chase.
+    # The 56-pt subsample sits at 2.84-m spacing with white native residuals,
+    # so a diagonal likelihood is honest. FIRN_SIG_RHO_LEGACY=1 restores the
+    # old form (r8..sp_fresh MAPs were inverted under it).
+    _dfull=pd.read_csv(DATA/"sp19_density.csv").query("depth_m<=@H0")
+    dens=_sub(_dfull,45)
+    _LEGACY_RHO=os.environ.get("FIRN_SIG_RHO_LEGACY","0")=="1"
+    if _LEGACY_RHO:
+        dens_sig=15.0+0.03*dens.rho_kgm3.values*1000.0
+        print("rho sigma LEGACY (15 kg/m3 + 3%)")
+    else:
+        _dz=_dfull.depth_m.values; _dr=_dfull.rho_kgm3.values*1000.0
+        _dd=np.diff(_dr)/np.sqrt(2.0); _dzm=0.5*(_dz[:-1]+_dz[1:])
+        _DLW=41
+        _d_loc=np.array([np.sqrt(np.mean(_dd[max(0,i-_DLW//2):min(len(_dd),i+_DLW//2+1)]**2))
+                         for i in range(len(_dd))])
+        dens_sig=np.interp(dens.depth_m.values,_dzm,_d_loc)
+        _dres=_dr-np.polyval(np.polyfit(_dz,_dr,8),_dz)
+        _d_acf=float(np.corrcoef(_dres[:-1],_dres[1:])[0,1])
+        print(f"rho sigma (data-derived): median {np.median(dens_sig):.1f} kg/m3, "
+              f"depth spread {dens_sig.max()/dens_sig.min():.1f}x "
+              f"(native lag-1 {_d_acf:+.2f} -> white; replaces 15+3% "
+              f"~{np.median(15.0+0.03*dens.rho_kgm3.values*1000.0):.0f} kg/m3)")
     age=pd.read_csv(DATA/"sp19_depth_age.csv"); age["age_yr"]=2015.0-age.year_CE
     agedf=age.query("depth_m<=@H0 and age_yr>=0"); ages=_sub(agedf,40)
-    bT=_sub(pd.read_csv(DATA/"spicecore_borehole_T.csv").query("depth_m<=@H0"),40)
+    # ---- borehole T with a DATA-DERIVED sigma (2026-07-19) ---------------------
+    # sigma measured FROM THE SERIES, same program as dage and velocity; no
+    # external uncertainty column and no hand-picked number:
+    #
+    #   white floor : first-difference sd/sqrt(2) of the 1-m series (~24 mK).
+    #     Adjacent points share any correlated part, so differencing isolates the
+    #     point-to-point noise.
+    #   sigma_repr  : LOCAL sd of the residual about the smoothest curve the
+    #     model can produce AT THAT DEPTH. What the model can produce is not a
+    #     matter of taste -- the knot-response probe (diagnostics/
+    #     knot_response_probe.py, 2026-07-19) MEASURED it: a surface-T knot's
+    #     imprint has FWHM ~5-25 m in the top 20 m (recent knots), ~35-75 m at
+    #     30-45 m, and 100+ m below 50 m (diffusion kernel). So the reference
+    #     curve is a running mean whose window grows with depth, 0.6*z capped
+    #     to [3, 45] m -- still BELOW the measured kernel everywhere, so sigma
+    #     errs tight, never generous. Anything narrower than the window
+    #     (notably the coherent ~9-m-wide, ~100 mK warm band at 55-63 m, which
+    #     no surface history NOR plausible conductivity layering can produce --
+    #     a >100% k anomaly would be needed against the ~0.007 K/m deep
+    #     gradient -- most likely a logging artifact) lands in sigma where it
+    #     belongs. An earlier revision used a deg-6 polyfit reference; that
+    #     absorbed part of the 55-63 m band into the "fittable" curve and let
+    #     an unfittable feature masquerade as 3.6-sigma model error.
+    #   decimation  : the residual is CORRELATED over L ~ 2 m from the sensor
+    #     side (lag-1 acf +0.78 at 1 m; matches the archived correlated-noise
+    #     analysis, L_corr 2.0 m, sd 39 mK) plus the sub-window structure. Thin
+    #     to 7-m spacing and print the thinned lag-1 so the independence claim
+    #     is checkable (lands at +0.24).
+    #
+    # This REPLACES a flat 0.2 K on a 2-m subsample, which had NO provenance and
+    # was ~2.5x too big even after paying the correlation tax (N 59 -> 17, but
+    # 200 -> ~67 mK median: ~3.7x the information). FIRN_SIG_T_LEGACY=1
+    # restores the old block to reproduce archived MAPs (r8..sp_fresh were all
+    # inverted under the flat 0.2; sp_tightT/sp_recal used the intermediate
+    # deg-6-polyfit sigma, reproducible via FIRN_SIG_T_REF=poly6).
+    _bT_full=pd.read_csv(DATA/"spicecore_borehole_T.csv").query("depth_m<=@H0")
+    _LEGACY_T=os.environ.get("FIRN_SIG_T_LEGACY","0")=="1"
+    if _LEGACY_T:
+        bT=_sub(_bT_full,40); bT_sig=np.full(len(bT),0.2)
+        print("borehole-T sigma LEGACY (flat 0.2 K, 2-m subsample)")
+    else:
+        _tz=_bT_full.depth_m.values; _tv=_bT_full.T_C.values
+        _t_white=float(np.std(np.diff(_tv),ddof=1)/np.sqrt(2.0))
+        _TPOLY6=os.environ.get("FIRN_SIG_T_REF","kernel")=="poly6"
+        _TLW=21
+        if _TPOLY6:
+            # intermediate revision, bit-faithful (sp_tightT / sp_recal repro):
+            # deg-6 polyfit reference, mean-removed local sd, 5-m default step
+            _t_resid=_tv-np.polyval(np.polyfit(_tz,_tv,6),_tz)
+            _t_loc=np.array([_t_resid[max(0,i-_TLW//2):min(len(_t_resid),i+_TLW//2+1)].std()
+                             for i in range(len(_t_resid))])
+        else:
+            _t_ref=np.array([_tv[np.abs(_tz-zi)<=np.clip(0.6*zi,3.0,45.0)/2.0].mean()
+                             for zi in _tz])
+            _t_resid=_tv-_t_ref
+            _t_loc=np.array([np.sqrt(np.mean(_t_resid[max(0,i-_TLW//2):min(len(_t_resid),i+_TLW//2+1)]**2))
+                             for i in range(len(_t_resid))])
+        _t_sig_full=np.maximum(_t_loc,_t_white)
+        _TSTEP=int(os.environ.get("FIRN_T_STEP","5" if _TPOLY6 else "7"))
+        _tidx=np.arange(0,len(_tz),_TSTEP)
+        bT=_bT_full.iloc[_tidx]; bT_sig=_t_sig_full[_tidx]
+        _tr=_t_resid[_tidx]
+        _t_acf=float(np.corrcoef(_tr[:-1],_tr[1:])[0,1])
+        print(f"borehole-T sigma (data-derived): N={len(bT)} at {_TSTEP}-m spacing, "
+              f"median {1000*np.median(bT_sig):.0f} mK (white {1000*_t_white:.0f} mK; "
+              f"depth spread {bT_sig.max()/bT_sig.min():.1f}x; thinned lag-1 {_t_acf:+.2f})")
     # ---- ApRES velocity: FIRN_VEL_SITE selects the observable ----
     #   "pooled" (default): legacy all-site bin-median absolute velocity (chimera —
     #     kept only for r8/r9 reproduction).
@@ -313,13 +418,22 @@ def build_cfg():
               f"= {100*np.median(dsg/np.abs(do)):.1f}% of value "
               f"(meas {100*np.median(dse**2/dsg**2):.0f}% of variance; "
               f"depth spread {dsg.max()/dsg.min():.1f}x)")
+    # ---- observation epochs (ObsBlock.year): deliberately UNTAGGED at SP -------
+    # The engine supports per-block epochs (Summit needed them: its GISP2 core
+    # is 26 yr older than present). SP's observations all sit within a few
+    # years of present=2015 — SP19 core 2015-16 (age datum = 2015 by
+    # construction), SPICEcore borehole T logged 2016-18, USP50 2015-16 — and
+    # the ApRES campaigns (2018-20) POSTdate present, where the engine's
+    # nearest-step rule keeps the final-state path anyway. At dt=5 none of
+    # these offsets reaches one time step, so tagging would change nothing
+    # while complicating the archived-MAP reproductions.
     P0T_ref=273.15; c_i=2009.0; T_ref=273.15   # match FirnParameters (c_i, T_ref)
     from firnpack.models.firn import FirnParameters as _FP
     _p=_FP(); c_i=float(_p.c_i); T_ref=float(_p.T_ref)
     obs=[
-        ObsBlock("rho", dens.depth_m.values, dens.rho_kgm3.values*1000.0, 15.0+0.03*dens.rho_kgm3.values*1000.0, label="rho"),
+        ObsBlock("rho", dens.depth_m.values, dens.rho_kgm3.values*1000.0, dens_sig, label="rho"),
         ObsBlock("dagedz", dc, do, dsg, label="dage"),
-        ObsBlock("enthalpy", bT.depth_m.values, c_i*(bT.T_C.values+T_SHIFT+273.15-T_ref), c_i*np.full(len(bT),0.2), label="T"),
+        ObsBlock("enthalpy", bT.depth_m.values, c_i*(bT.T_C.values+T_SHIFT+273.15-T_ref), c_i*bT_sig, label="T"),
     ]
     # ---- the absolute-age block is DELETED (2026-07-14) ------------------------
     # It was the SAME MEASUREMENTS as dage: `ages = _sub(agedf,40)` subsampled the

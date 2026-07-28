@@ -1,0 +1,8 @@
+{
+  "comment": "Densest recent T layout that stays on the dt=5 step grid (no sub-step aliasing, the r6 lesson): knots_recent_T + 1935,1945,1960,1970,1980, i.e. 5-10 yr spacing continuously from 1930 to the present (22 T knots). This is the empirical test of Andrew's request to add nodes for the borehole T change signal -- inverted, not just probed. Below-5-yr spacing in this window would need dt<2.5 (separate experiment). b knots unchanged.",
+  "knot_years": [1000, 1300, 1550, 1750, 1850, 1900, 1930, 1935, 1945, 1955,
+                 1960, 1965, 1970, 1975, 1980, 1985, 1990, 1995, 2000, 2005,
+                 2010, 2015],
+  "b_knot_years": [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1850,
+                   1900, 1930, 1960, 1990, 2015]
+}

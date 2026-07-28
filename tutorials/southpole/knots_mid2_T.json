@@ -1,0 +1,7 @@
+{
+  "comment": "knots_recent_T layout + 5 mid-century T knots (1940, 1945, 1950, 1960, 1970) whose responses peak at 50-100 m depth -- probing whether densifying the epoch that maps onto the 50-70 m (and down to 100 m) borehole-T misfit buys anything, given those responses have 75-110 m FWHM and overlap heavily. Decided by diagnostics/knot_response_probe.py (FIRN_NEW_KNOTS=1940,1945,1950,1960,1970) before any inversion is spent. b knots unchanged.",
+  "knot_years": [1000, 1300, 1550, 1750, 1850, 1900, 1930, 1940, 1945, 1950,
+                 1955, 1960, 1965, 1970, 1975, 1985, 1990, 1995, 2000, 2005, 2010, 2015],
+  "b_knot_years": [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1850,
+                   1900, 1930, 1960, 1990, 2015]
+}

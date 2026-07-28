@@ -42,6 +42,7 @@ BLOCK_COLORS = {
     "T": "#7C3AED",
     "v": "#B45309",
     "seas": "#0891B2",
+    "comp": "#DB2777",
 }
 
 BLOCK_UNITS = {
@@ -51,6 +52,7 @@ BLOCK_UNITS = {
     "T": "T (°C)",
     "v": "w (m yr$^{-1}$)",
     "seas": "ln amplitude ratio",
+    "comp": "compaction rate (m yr$^{-1}$)",
 }
 
 

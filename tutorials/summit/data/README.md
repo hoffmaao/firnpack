@@ -19,6 +19,8 @@ densification + accumulation study with temperature as a shallow constraint +
 forcing (there is no deep borehole-T and no ApRES velocity at Summit — the
 framework treats both as optional and drops them).
 
+| `firncover_summit_compaction.csv` | Per-instrument mean firn compaction rate: 6 instruments, material intervals from the install surface to 4.2–22.0 m, records 1.1–3.4 yr (2015–2019), rates −127…−302 mm/yr | FirnCover compaction coils at Summit (same HDF5 as the firn-T: DataONE `doi:10.18739/A25X25D7M`, `FirnCoverData_2_0_2021_07_30.h5`, `Compaction_Daily` + `Compaction_Instrument_Metadata`; ESSD paper doi:10.5194/essd-14-955-2022). Extracted by `diagnostics/stage_firncover_compaction.py`; re-download via `https://cn.dataone.org/cn/v2/resolve/urn:uuid:1b044917-f7d9-46ac-b2cf-6217e49b4d38`. Columns `instrument_ID, install, ztop_mean_m, zbot_mean_m, record_years, rate_m_yr, sigma_m_yr`. **sigma_m_yr is DATA-DERIVED** (not the daily-fit s.e., which is meaningless — daily residuals seasonal, lag-1 ≈ 1.0): interannual scatter of year-over-year increments at matched day-of-year (14-19 mm/yr, seasonal removed) with a cross-instrument representativeness floor (two coils at ~15.7 m agree to ~16 mm/yr); ~8-12% of rate. Derived by `diagnostics/derive_compaction_sigma.py`; assimilated via the engine's `compaction` obs kind (interval shortening w@top − w@bot). The measured interval is MATERIAL (top = buried install surface; `ztop_mean_m`/`zbot_mean_m` are record means of the tracked endpoint depths) |
+
 ## Remaining gap (optional, not blocking)
 
 | Need | Status | Notes |

@@ -12,8 +12,9 @@ to x11n6's strain measured below close-off. It is NOT the archived-MAP config.
 The frozen r8 MAP (output/sp_joint_r8.json) is still reproducible exactly, at
 J = 81.3061, under the legacy guards:
 
-    FIRN_SIG_DAGE_LEGACY=1 FIRN_SIG_DAGE_SCALE=2.2 FIRN_AGE_BLOCK=1 \\
-    FIRN_BASAL=Q FIRN_EZZ_SITE=none FIRN_VEL_SITE=pooled
+    FIRN_SIG_DAGE_LEGACY=1 FIRN_SIG_DAGE_SCALE=2.2 FIRN_SIG_T_LEGACY=1 \\
+    FIRN_SIG_RHO_LEGACY=1 FIRN_AGE_BLOCK=1 FIRN_BASAL=Q FIRN_EZZ_SITE=none \\
+    FIRN_VEL_SITE=pooled
 
 Validate mode checks against that J only when all of those are set; otherwise
 there is no target to check, because the error model has changed by design.
@@ -43,6 +44,8 @@ warm = json.load(open(os.environ.get("FIRN_WARM_JSON", str(SP_RESULTS/"sp_joint_
 # target only when every legacy guard that defined that model is set. Under the
 # defaults the error model has changed by design, so there is nothing to match.
 _R8_REPRO = (_LEGACY_DAGE and abs(SIG_DAGE_SCALE - 2.2) < 1e-9
+             and os.environ.get("FIRN_SIG_T_LEGACY","0")=="1"
+             and os.environ.get("FIRN_SIG_RHO_LEGACY","0")=="1"
              and os.environ.get("FIRN_AGE_BLOCK","0")=="1"
              and os.environ.get("FIRN_BASAL","G")=="Q"
              and EZZ_SITE=="none" and VEL_SITE=="pooled")
@@ -60,8 +63,9 @@ if MODE=="validate":
               f"{'YES' if abs(r['J']-81.3061)<0.5 else 'CHECK'}")
     else:
         print("  no r8 target: the default error model is not r8's. To reproduce r8, set")
-        print("    FIRN_SIG_DAGE_LEGACY=1 FIRN_SIG_DAGE_SCALE=2.2 FIRN_AGE_BLOCK=1 "
-              "FIRN_BASAL=Q FIRN_EZZ_SITE=none FIRN_VEL_SITE=pooled")
+        print("    FIRN_SIG_DAGE_LEGACY=1 FIRN_SIG_DAGE_SCALE=2.2 FIRN_SIG_T_LEGACY=1 "
+              "FIRN_SIG_RHO_LEGACY=1 FIRN_AGE_BLOCK=1 FIRN_BASAL=Q FIRN_EZZ_SITE=none "
+              "FIRN_VEL_SITE=pooled")
 elif MODE=="verify":
     _basal = "Q_base" if os.environ.get("FIRN_BASAL","G")=="Q" else "G_base"
     _fdn = os.environ.get("FIRN_FD_NAMES")
@@ -70,5 +74,13 @@ elif MODE=="verify":
                          [_basal,"k_firn_scale","s2_shape","b1960","Tk8"]
                          + (["k_snow_scale"] if os.environ.get("FIRN_SEAS","0")=="1" else [])),
                fd_h=float(os.environ.get("FIRN_FD_H", "1e-3")))
+elif MODE=="hessian":
+    # Laplace UQ at the warm MAP: FD-of-adjoint-gradient posterior precision.
+    # FIRN_FD_NAMES (comma list) restricts columns; FIRN_FD_H = step as a
+    # fraction of prior sigma. Writes output/<tag>_hessian.json.
+    _fdn = os.environ.get("FIRN_FD_NAMES")
+    assimilate(cfg, mode="hessian", warm=warm,
+               fd_names=(_fdn.split(",") if _fdn else None),
+               fd_h=float(os.environ.get("FIRN_FD_H", "1e-2")))
 elif MODE=="optimize":
     assimilate(cfg, mode="optimize", warm=warm)

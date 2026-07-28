@@ -1,0 +1,7 @@
+{
+  "comment": "knots_recent_T layout + 4 mid-record T knots (1650, 1800, 1875, 1915), probing whether the coherent deep borehole-T residual (the ~58-98 m oscillation at the recalibrated sigma) is fittable by surface forcing. The thermal kernel of a surface pulse reaching 60-100 m is +-80-100 m wide, so this is expected to buy only BROAD deep structure; diagnostics/knot_response_probe.py measures exactly how much before an inversion is spent on it. b knots unchanged.",
+  "knot_years": [1000, 1300, 1550, 1650, 1750, 1800, 1850, 1875, 1900, 1915,
+                 1930, 1955, 1965, 1975, 1985, 1990, 1995, 2000, 2005, 2010, 2015],
+  "b_knot_years": [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1850,
+                   1900, 1930, 1960, 1990, 2015]
+}
