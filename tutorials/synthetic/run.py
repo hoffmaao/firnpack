@@ -7,22 +7,32 @@ neutral literature prior and check the MAP recovers the truth.
 
 2026-07-20 REVISION — the OSSE now tests the configuration we actually run:
 
-  TRUTH   : the archived smooth base histories PLUS an exponential trend over
-            the last ~200 years — warming dT*exp((t-2015)/tau) reaching +1.2 K
-            at 2015 (tau = 60 yr, the observed-warming character) and an
-            accumulation increase reaching +12%. The truth knots sample the
-            exponential densely (10-yr post-1800), so the question "can the
-            recovered histories track a smooth recent trend?" is real.
-  SIGMAS  : the RECALIBRATED error-model magnitudes (borehole-T 25-85 mK
+  TRUTH   : a smooth base history carrying a LARGE old-time (1000-1600)
+            excursion (~3 K medieval swing, the sharpest test of the thermal
+            null space), PLUS an exponential trend over the last ~200 years:
+            warming dT*exp((t-2015)/tau) reaching +3 K at 2015 (tau = 60 yr,
+            the observed-warming character) and an accumulation increase
+            reaching +30%. Both trend amplitudes are env-tunable for sweeps
+            (FIRN_OSSE_DT / FIRN_OSSE_DB / FIRN_OSSE_TAU); the defaults are
+            deliberately large. The truth knots sample the exponential densely
+            (10-yr post-1800), so the question "can the recovered histories
+            track a smooth recent trend?" is real.
+  SIGMAS  : the RECALIBRATED error-model magnitudes (borehole-T tens of mK
             depth-dependent, not the old flat 0.2 K; rho 4-13 kg/m3, not
             15+3%; dage ~8.5% of value, not a 5% floor). Generation noise ==
             assimilation sigma, so chi^2/N ~ 1 at truth by construction.
   BLOCKS  : NO absolute-age block (deleted at SP and Summit: layer-counted
-            redundancy with dage). rho + dage + T(deep, 7-m spacing) +
-            T(shallow RTD) as before.
+            redundancy with dage). Default set is rho + dage + ONE borehole-T
+            profile (7-m spacing; the old shallow-RTD second instrument is
+            dropped, FIRN_OSSE_TSH=1 restores it) + a FirnCover-style
+            compaction-rate block + an ApRES-like differenced-velocity block
+            (FIRN_OSSE_COMP=0 / FIRN_OSSE_VEL=0 drop those two).
   LAYOUT  : the SP 17-knot T layout (5-yr spacing toward the present;
             knots_recent_T) and the SP 15-knot b layout — NOT truth's knots,
             so layout error is part of the experiment.
+  DEEP    : FIRN_OSSE_DEEP=1 extends the domain into the deep ice (see the
+            DEEP block below) so the old climate that advected OUT of the firn
+            becomes a genuine reconstruction rather than initialization.
 
 The archived flat-truth OSSE (synthetic_osse.json, old sigmas + age block +
 truth-matched 6/8 knots) is superseded; it remains in output/ and git history.
@@ -31,12 +41,11 @@ Modes (env FIRN_MODE): "verify" (FD check), "optimize" (default).
 Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/synthetic/run.py
 """
 from __future__ import annotations
-import json, math, os
+import json, os
 from pathlib import Path
 import numpy as np
 from firnpack.inverse import SiteConfig, ObsBlock, ScalarCtrl, KnotCtrl, assimilate
 from firnpack.models.firn import FirnParameters
-from firnpack.constants import year as YEAR_S
 
 HERE = Path(__file__).parent; OUT = str(HERE/"output")
 # output/ is gitignored, so it is absent on a fresh checkout, and the truth dump

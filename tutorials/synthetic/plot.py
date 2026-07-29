@@ -19,7 +19,6 @@ import numpy as np
 
 from firnpack import plot as fp
 from firnpack.models.firn import FirnParameters
-from firnpack.constants import year as YEAR_S
 
 _p = FirnParameters(); C_I, T_REF = float(_p.c_i), float(_p.T_ref)
 HMAX = 132.0

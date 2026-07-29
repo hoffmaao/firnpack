@@ -21,7 +21,7 @@ Output: output/synthetic_reanalysis.{json,npz} (pure data; plot.py draws it).
 Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/synthetic/diagnostics/reanalysis.py
 """
 from __future__ import annotations
-import json, sys, time
+import json, time
 from pathlib import Path
 import numpy as np
 from firnpack.inverse import SiteConfig, ObsBlock, ScalarCtrl, KnotCtrl, assimilate
