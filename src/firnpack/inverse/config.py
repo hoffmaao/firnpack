@@ -48,6 +48,26 @@ class ObsBlock:
     # instrumented hole (the wave is damped in THAT column); model column if None.
     aux_z: np.ndarray | None = None
     aux_val: np.ndarray | None = None
+    # kind "compaction" (FirnCover-style coil): each point is a MATERIAL
+    # interval [ztop_j, depths_j] whose shortening rate is measured. obs are
+    # dL/dt in m/yr (negative = shortening); model pred = (<w @ ztop> -
+    # <w @ zbot>) * YEAR_S, i.e. the firn densification strain integrated over
+    # the interval. `depths` hold the deep (anchor) end; ztop the shallow
+    # (buried-install-surface) end. No refractive index (physical coil, not
+    # radar). Independent of the density CORE — constrains the current
+    # densification RATE.
+    ztop: np.ndarray | None = None
+    # Observation EPOCH (calendar year CE). None (default) = evaluated at the
+    # final state (present_year) — the historical behavior. A year tags the
+    # block to the nearest simulation step, and its predictions are computed
+    # from the state AT THAT STEP (on tape, so gradients flow), not the final
+    # one. Matters when an observation predates the present: e.g. Summit's
+    # GISP2 layers were counted on a 1989 core — at 0.65 m/yr of snow, scoring
+    # them against the 2015 state misplaces them by ~15 m of burial, a bias
+    # the recent accumulation knots silently absorb. Depths are relative to
+    # the surface at the obs epoch, which is the surface-following frame's
+    # native convention.
+    year: float | None = None
 
     def __post_init__(self):
         self.depths = np.asarray(self.depths, float)

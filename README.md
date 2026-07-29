@@ -11,9 +11,10 @@ climate history.
 
 ## What it does
 
-Given depth-resolved observations at a site — density, ice-core depth–age,
-borehole temperature, and (where available) phase-sensitive radar (ApRES)
-vertical velocity — FirnGrain solves an inverse problem for:
+Given depth-resolved observations at a site — density, ice-core depth–age (as a
+layer-gradient constraint), borehole temperature, and (where available)
+phase-sensitive radar (ApRES) vertical velocity or borehole compaction-coil
+shortening rates — FirnGrain solves an inverse problem for:
 
 - the **densification law** (Herron–Langway two-stage rates, with an optional
   deep-firn shape exponent),
@@ -78,6 +79,10 @@ tutorials/         the three case studies, each a thin config over the engine
 
   Each tutorial has the same shape:
     run.py         the inversion itself
+    config.py      build_cfg() -> the SiteConfig, incl. the error model and
+                   its legacy-reproduction env guards; run.py and every
+                   diagnostics/ script build the SAME config from it
+                   (southpole/ and summit/; synthetic/ builds its own inline)
     plot.py        figures from output/ - pure reader, no Firedrake/solve
     diagnostics/   diagnostic + experiment scripts                  [tracked]
     data/          curated observation CSVs + provenance README   [tracked]

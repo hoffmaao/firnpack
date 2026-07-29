@@ -19,6 +19,9 @@ use these.
 from __future__ import annotations
 
 import colorsys
+import json
+import os
+from pathlib import Path
 
 import numpy as np
 
@@ -42,6 +45,7 @@ BLOCK_COLORS = {
     "T": "#7C3AED",
     "v": "#B45309",
     "seas": "#0891B2",
+    "comp": "#DB2777",
 }
 
 BLOCK_UNITS = {
@@ -51,6 +55,7 @@ BLOCK_UNITS = {
     "T": "T (°C)",
     "v": "w (m yr$^{-1}$)",
     "seas": "ln amplitude ratio",
+    "comp": "compaction rate (m yr$^{-1}$)",
 }
 
 
@@ -60,6 +65,30 @@ BLOCK_UNITS = {
 # encoding. Shape is that encoding, and unlike colour it survives greyscale
 # print and every CVD type.
 FAMILY_MARKERS = ("o", "s", "^", "D", "v", "P", "X", "*")
+
+
+def newest_map(out_dir, need=("m_map",), env=None, pattern="*.json"):
+    """Newest-by-mtime results JSON under `out_dir` carrying every key in `need`.
+
+    A fresh inversion becomes the plotted one regardless of how its tag sorts.
+    The key filter is what makes this safe: `out_dir` also collects artifacts
+    that are not MAPs (``<tag>_hessian.json``, ``*_marginals.json``,
+    reanalysis dumps), and a name-only match on those hands the caller a dict
+    with no ``m_map``. Returns None when nothing qualifies, so the caller can
+    emit its own "run run.py first" message.
+    """
+    if env and os.environ.get(env):
+        return Path(os.environ[env])
+    best = None
+    for p in Path(out_dir).glob(pattern):
+        try:
+            d = json.load(open(p))
+        except (json.JSONDecodeError, OSError):
+            continue
+        if isinstance(d, dict) and all(d.get(k) is not None for k in need):
+            if best is None or p.stat().st_mtime > best.stat().st_mtime:
+                best = p
+    return best
 
 
 def base_label(label: str) -> str:

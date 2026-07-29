@@ -1,0 +1,7 @@
+{
+  "comment": "knots_recent_T + 4 knots in the 1920s-1950s (1920, 1935, 1945, 1950) -- probing Andrew's proposal to densify that epoch, at the sp_recal2 MAP under the kernel-consistent sigma. The 1940-1970 probe already measured 1940/1945/1950 (ridge amplitudes <= 0.07 K, marginal 0.002 sigma) but under the intermediate poly6 sigma at sp_recal; this re-measures under the current error model before any inversion is spent. b knots unchanged.",
+  "knot_years": [1000, 1300, 1550, 1750, 1850, 1900, 1920, 1930, 1935, 1945,
+                 1950, 1955, 1965, 1975, 1985, 1990, 1995, 2000, 2005, 2010, 2015],
+  "b_knot_years": [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1850,
+                   1900, 1930, 1960, 1990, 2015]
+}

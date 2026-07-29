@@ -7,10 +7,13 @@ prior-sigma-scaled coordinates. Generalized so each observable and each scalar
 control is independently on/off, and temperature/accumulation knots are either
 inverted or prescribed as forcing. The South Pole config reproduces r8.
 
-assimilate(cfg, mode) with mode in {"verify","optimize","forward"}:
+assimilate(cfg, mode) with mode in {"verify","optimize","forward","hessian"}:
   "verify"   -> deterministic replay (+ optional FD check via fd_names); no opt
   "optimize" -> full L-BFGS-B; writes cfg.out_dir/cfg.tag.json
   "forward"  -> single forward at the warm-start x0; returns diagnostics + J
+  "hessian"  -> Laplace UQ: FD-of-adjoint-gradient posterior precision at the
+                warm point; writes cfg.out_dir/<cfg.tag>_hessian.json
+Any other mode string falls through to the "optimize" path.
 Returns a dict of results.
 """
 from __future__ import annotations
@@ -41,7 +44,20 @@ _PARAM_KW = {
 
 
 def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
-               verbose=True):
+               verbose=True, record_series=False, annotate=True, snap_every=5):
+    """record_series/annotate/snap_every apply to mode="forward" only.
+
+    record_series=True adds a per-step "series" dict (year, fac, wbot, tmean,
+    tbot, Ts_C, b, rho_max) and profile snapshots every snap_every steps to the
+    result -- the scenario-differencing reanalysis needs the time dimension,
+    which the misfit path never touches. annotate=False skips pyadjoint taping
+    for forward-only diagnostics (~10x faster; no gradients available).
+
+    fd_h (default 1e-3) is the FD step, and its UNITS depend on the mode:
+    mode="verify" takes it as an ABSOLUTE step in the internal (log/linear)
+    control coordinate; mode="hessian" takes it as a FRACTION of each control's
+    prior sigma. It is unused in the other modes.
+    """
     P0 = FirnParameters()
     c_i, T_ref, rho_i = float(P0.c_i), float(P0.T_ref), float(P0.rho_i)
     SID = cfg.surface_id
@@ -72,6 +88,7 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
     for ob in cfg.obs:
         ob._ker = make_kernels(ob.depths, ob.wmax)
         ob._ker_ref = make_kernels([ob.ref_depth], ob.wmax)[0] if ob.ref_depth is not None else None
+        ob._ker_top = make_kernels(ob.ztop, ob.wmax) if ob.ztop is not None else None
         ob._q = None; ob._win = None; ob._aux_fn = None
         if ob.kind == "seas_lnamp":
             # erf-edged windows over depth [ref, z_j] for the WKB damping
@@ -93,6 +110,27 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
     # ---- timeline / brackets ----
     n_steps = int(cfg.spin_years / cfg.dt_years)
     step_years = cfg.present_year - (n_steps - 1 - np.arange(n_steps)) * cfg.dt_years
+
+    # time-tagged observations: map each block's epoch to its nearest step.
+    # Blocks whose epoch lands on (or past) the final step keep the cheaper
+    # final-state path — a measurement made after present_year is the closing
+    # state as far as this run is concerned, which is what the Summit 2017
+    # FirnCover core relies on. An epoch OLDER than the span has no such
+    # reading: it would be snapped silently to step 0 and scored against a
+    # state it has nothing to do with, so that direction is a hard error.
+    for ob in cfg.obs:
+        ob._kstep = None
+        if ob.year is not None:
+            if float(ob.year) < step_years[0] - cfg.dt_years:
+                raise ValueError(
+                    f"obs block '{ob.label}' is tagged to {float(ob.year):.0f} CE, "
+                    f"older than the simulated span {step_years[0]:.0f}-{step_years[-1]:.0f} CE; "
+                    f"widen spin_years or retag the block")
+            kk = int(np.argmin(np.abs(step_years - float(ob.year))))
+            if kk < n_steps - 1:
+                ob._kstep = kk
+                log(f"obs block '{ob.label}' tagged to {float(ob.year):.0f} CE "
+                    f"-> step {kk} ({step_years[kk]:.0f})")
 
     def make_bracket(knot_years):
         br = []
@@ -134,13 +172,17 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
         return fns, vals
     T_fns, T_vals = knot_fns(cfg.T_knots, "T_knots", "knot_years")
     b_fns, b_vals = knot_fns(cfg.b_knots, "b_knots", "b_knot_years")
+    # knot prior sigma may be a scalar (all knots) OR a per-knot array (e.g.
+    # tighter deep-time T-knots to pin the absolute level against the null space)
+    def _knot_sig(kc, i):
+        return float(kc.sigma[i]) if np.ndim(kc.sigma) else float(kc.sigma)
     if cfg.T_knots is not None and cfg.T_knots.invert:
         for i, f in enumerate(T_fns):
-            ctrl_fns.append(f); ctrl_meta.append((f"Tk{i}", False, float(cfg.T_knots.center[i]), cfg.T_knots.sigma))
+            ctrl_fns.append(f); ctrl_meta.append((f"Tk{i}", False, float(cfg.T_knots.center[i]), _knot_sig(cfg.T_knots, i)))
     if cfg.b_knots is not None and cfg.b_knots.invert:
         for i, f in enumerate(b_fns):
             ctrl_fns.append(f); ctrl_meta.append((f"b{int(cfg.b_knots.years[i])}", True,
-                                                  math.log(float(cfg.b_knots.center[i])), cfg.b_knots.sigma))
+                                                  math.log(float(cfg.b_knots.center[i])), _knot_sig(cfg.b_knots, i)))
     bracket_T = make_bracket(cfg.T_knots.years) if cfg.T_knots is not None else None
     bracket_B = make_bracket(cfg.b_knots.years) if cfg.b_knots is not None else None
     N_CTRL = len(ctrl_fns)
@@ -244,48 +286,99 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
     # produces and the result serialisation reads back.
     _bk = {}
 
+    if record_series:
+        with stop_annotating():
+            _xs = mesh.coordinates.dat.data_ro.reshape(-1)
+            _i_bot = int(np.argmin(_xs))
+            _ord = np.argsort(cfg.H_col - _xs)          # top (depth 0) -> bottom
+            _snap_depth = (cfg.H_col - _xs)[_ord]
+    _series = {}
+
     def simulation(controls=None):
         H_f.assign(c_i*(T0_mean+273.15-T_ref)); H_o.assign(H_f)
         rho_f.assign(rho_ic); rho_o.assign(rho_f)
         w_f.assign(ws0); w_o.assign(w_f); age_f.assign(0.0); age_o.assign(0.0)
+        for ob in cfg.obs: ob._pred_mid = None
+        if record_series:
+            for kk in ("fac","wbot","tmean","tbot","Ts_C","b","rho_max"): _series[kk]=[]
+            _series["snap"]={"year":[], "rho":[], "T":[], "w":[], "age":[]}
         for k in range(n_steps):
             Ts_eff.interpolate(Ts_expr_for(k)); b_eff.interpolate(b_expr_for(k))
             SLV["H"].solve(); SLV["rho"].solve(); SLV["w"].solve(); SLV["age"].solve()
             H_o.assign(H_f); rho_o.assign(rho_f); w_o.assign(w_f); age_o.assign(age_f)
+            for ob in cfg.obs:
+                if ob._kstep == k:
+                    ob._pred_mid = predict_block(ob)   # on tape, at the obs epoch
+            if record_series:
+                with stop_annotating():
+                    _series["fac"].append(float(fd.assemble((1.0-rho_f/fd.Constant(rho_i))*dx)))
+                    _series["wbot"].append(float(w_f.dat.data_ro[_i_bot])*YEAR_S)
+                    _series["tmean"].append(float(fd.assemble(H_f*dx))/dlen/c_i + T_ref - 273.15)
+                    _series["tbot"].append(float(H_f.dat.data_ro[_i_bot])/c_i + T_ref - 273.15)
+                    _series["Ts_C"].append(float(Ts_eff.dat.data_ro[0]) - 273.15)
+                    _series["b"].append(float(b_eff.dat.data_ro[0]))
+                    _series["rho_max"].append(float(rho_f.dat.data_ro.max()))
+                    if k % snap_every == 0 or k == n_steps - 1:
+                        s=_series["snap"]; s["year"].append(float(step_years[k]))
+                        s["rho"].append(rho_f.dat.data_ro[_ord].copy())
+                        s["T"].append(H_f.dat.data_ro[_ord].copy()/c_i + T_ref - 273.15)
+                        s["w"].append(w_f.dat.data_ro[_ord].copy()*YEAR_S)
+                        s["age"].append(age_f.dat.data_ro[_ord].copy()/YEAR_S)
         with stop_annotating():
             if not all(np.isfinite(fld.dat.data_ro).all() for fld in (H_f,rho_f,w_f,age_f)):
                 raise RuntimeError("field blowup: non-finite state")
         return SimpleNamespace(H=H_f, rho=rho_f, w=w_f, age=age_f)
 
+    def predict_block(ob):
+        """One block's model predictions from the CURRENT field state.
+
+        Called from loss_functional at the final state (untagged blocks) or
+        from inside the simulation loop at the block's epoch step (blocks with
+        `year` set). Every operation is annotated either way, so gradients
+        flow through time-tagged predictions exactly as through final-state
+        ones. Assembles are pure reads of state, so the value is independent
+        of WHERE in the op order it is computed.
+        """
+        if ob.kind == "seas_lnamp":
+            # WKB damping rate q(z) = sqrt(w rho c / 2k) through the ON-TAPE
+            # conductivity law (k_snow/k_firn scales), damped in the
+            # instrumented hole's density column; CG1-interpolated before
+            # assembling (nonlinear-UFL rule)
+            rr = ob._aux_fn if ob._aux_fn is not None else rho_f
+            kk = model.thermal_diffusivity(H_f, rr)*rr*c_i
+            ob._q = fd.Function(V).interpolate(
+                fd.sqrt(fd.Constant(2.0*math.pi/YEAR_S)*rr*c_i/(2.0*kk)))
+        w_srf = fd.assemble(w_f*ds(SID)) if ob.kind == "velocity" else None
+        w_ref = fd.assemble(w_f*ob._ker_ref*dx) if ob._ker_ref is not None else None
+        pl = []
+        for j, phi in enumerate(ob._ker):
+            if ob.kind == "rho":      pred = fd.assemble(rho_f*phi*dx)
+            elif ob.kind == "age":    pred = fd.assemble(age_f*phi*dx)
+            elif ob.kind == "enthalpy": pred = fd.assemble(H_f*phi*dx)
+            elif ob.kind == "dagedz": pred = -fd.assemble(age_f.dx(0)*phi*dx)/YEAR_S
+            elif ob.kind == "velocity": pred = (fd.assemble(w_f*phi*dx)-w_srf)/cfg.n_ice*YEAR_S
+            elif ob.kind == "dRdt_diff":
+                nf = float(ob.nfac[j]) if ob.nfac is not None else 1.0
+                nfr = float(ob.nfac_ref) if ob.nfac_ref is not None else nf
+                pred = (nfr*w_ref - nf*fd.assemble(w_f*phi*dx))*YEAR_S
+            elif ob.kind == "seas_lnamp":
+                pred = -fd.assemble(ob._q*ob._win[j]*dx)
+            elif ob.kind == "compaction":
+                # interval shortening rate dL/dt = (w@top - w@bot)*year:
+                # w is more negative (faster settling) shallow, so top-bottom is
+                # negative = shortening, matching the measured sign.
+                pred = (fd.assemble(w_f*ob._ker_top[j]*dx)
+                        - fd.assemble(w_f*ob._ker[j]*dx))*YEAR_S
+            else: raise ValueError(f"unknown obs kind {ob.kind}")
+            pl.append(pred)
+        return pl
+
     def loss_functional(state):
-        w_srf = fd.assemble(w_f*ds(SID))
-        for ob in cfg.obs:
-            if ob.kind == "seas_lnamp":
-                # WKB damping rate q(z) = sqrt(w rho c / 2k) through the ON-TAPE
-                # conductivity law (k_snow/k_firn scales), damped in the
-                # instrumented hole's density column; CG1-interpolated before
-                # assembling (nonlinear-UFL rule)
-                rr = ob._aux_fn if ob._aux_fn is not None else rho_f
-                kk = model.thermal_diffusivity(H_f, rr)*rr*c_i
-                ob._q = fd.Function(V).interpolate(
-                    fd.sqrt(fd.Constant(2.0*math.pi/YEAR_S)*rr*c_i/(2.0*kk)))
         J = 0.0; diag = {}; preds = {}
         for ob in cfg.obs:
+            pt = ob._pred_mid if ob._pred_mid is not None else predict_block(ob)
             sq = 0.0; Jo = 0.0; pl = []
-            w_ref = fd.assemble(w_f*ob._ker_ref*dx) if ob._ker_ref is not None else None
-            for j, (phi, o, s) in enumerate(zip(ob._ker, ob.obs, ob.sig)):
-                if ob.kind == "rho":      pred = fd.assemble(rho_f*phi*dx)
-                elif ob.kind == "age":    pred = fd.assemble(age_f*phi*dx)
-                elif ob.kind == "enthalpy": pred = fd.assemble(H_f*phi*dx)
-                elif ob.kind == "dagedz": pred = -fd.assemble(age_f.dx(0)*phi*dx)/YEAR_S
-                elif ob.kind == "velocity": pred = (fd.assemble(w_f*phi*dx)-w_srf)/cfg.n_ice*YEAR_S
-                elif ob.kind == "dRdt_diff":
-                    nf = float(ob.nfac[j]) if ob.nfac is not None else 1.0
-                    nfr = float(ob.nfac_ref) if ob.nfac_ref is not None else nf
-                    pred = (nfr*w_ref - nf*fd.assemble(w_f*phi*dx))*YEAR_S
-                elif ob.kind == "seas_lnamp":
-                    pred = -fd.assemble(ob._q*ob._win[j]*dx)
-                else: raise ValueError(f"unknown obs kind {ob.kind}")
+            for pred, o, s in zip(pt, ob.obs, ob.sig):
                 r = (pred-float(o))/float(s); Jo = Jo + r*r
                 with stop_annotating(): sq += float(r)**2; pl.append(float(pred))
             J = J + ob.weight*0.5*Jo
@@ -318,9 +411,13 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
 
     tape = get_working_tape()
     def run_forward_only():
-        tape.clear_tape(); continue_annotation(); rebuild()
+        tape.clear_tape()
+        if annotate: continue_annotation()
+        rebuild()
         for c,v in zip(ctrl_fns,x0): c.assign(float(v))
-        J = float(forward()); pause_annotation(); return J
+        J = float(forward())
+        if annotate: pause_annotation()
+        return J
 
     def snapshot():
         """Everything a figure needs from the state a forward() just left behind.
@@ -349,9 +446,63 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
     if mode == "forward":
         J = run_forward_only()
         prof, pvals, obs_out = snapshot()
-        return dict(J=J, diag=forward._diag, n_ctrl=N_CTRL, profiles=prof,
-                    params=pvals, n_steps=n_steps, ws0=ws0, T0_mean=T0_mean,
-                    obs=obs_out)
+        out = dict(J=J, diag=forward._diag, n_ctrl=N_CTRL, profiles=prof,
+                   params=pvals, n_steps=n_steps, ws0=ws0, T0_mean=T0_mean,
+                   obs=obs_out)
+        if record_series:
+            snap = _series.pop("snap")
+            out["series"] = {k: np.asarray(v) for k, v in _series.items()}
+            out["series"]["year"] = step_years.copy()
+            out["snaps"] = {k: np.asarray(v) for k, v in snap.items()}
+            out["snap_depth"] = _snap_depth.copy()
+        return out
+
+    if mode == "hessian":
+        # Laplace UQ: FD-of-adjoint-gradient Hessian of J at the warm point
+        # (the archived sp_uq_hessian.py method, engine-native). J includes the
+        # prior, so H is the full posterior precision in the internal
+        # (log/linear, unscaled) coordinates. fd_names optionally restricts to
+        # a column subset; fd_h is the step as a FRACTION of each control's
+        # prior sigma (signature default 1e-3; the SP UQ run passes 1e-2 —
+        # adjoint gradients are direct-solve accurate, so the FD noise floor is
+        # far below curvature scale either way).
+        names = [m[0] for m in ctrl_meta]
+        sel = set(fd_names) if fd_names else set(names)
+        step = fd_h * scale
+        def grad_at(xv):
+            tape.clear_tape(); continue_annotation(); rebuild()
+            for c, v in zip(ctrl_fns, xv): c.assign(float(v))
+            Jv = forward()
+            dJ = compute_gradient(Jv, [Control(c) for c in ctrl_fns])
+            pause_annotation()
+            return float(Jv), np.array([float(g.dat.data_ro[0])*dlen for g in dJ])
+        t0 = time.perf_counter()
+        J0, g0 = grad_at(x0)
+        log(f"Hessian at warm point: J={J0:.4f}, {len(sel)}/{N_CTRL} columns, "
+            f"step {fd_h:g}*prior_sigma")
+        H = np.full((N_CTRL, N_CTRL), np.nan)
+        for i, nm in enumerate(names):
+            if nm not in sel: continue
+            ep = x0.copy(); ep[i] += step[i]
+            em = x0.copy(); em[i] -= step[i]
+            _, gp = grad_at(ep)
+            _, gm = grad_at(em)
+            H[:, i] = (gp - gm) / (2.0 * step[i])
+            log(f"  [{i+1:02d}/{N_CTRL}] {nm:12s} H_ii={H[i,i]:.4e} "
+                f"({time.perf_counter()-t0:.0f}s)")
+        done = [i for i, nm in enumerate(names) if nm in sel]
+        Hs = H[np.ix_(done, done)]
+        Hs = 0.5 * (Hs + Hs.T)          # symmetrize the computed block
+        out = dict(names=[names[i] for i in done], x0=x0[done].tolist(),
+                   islog=[bool(ctrl_meta[i][1]) for i in done],
+                   prior_sigma=scale[done].tolist(), J0=J0,
+                   g0=g0[done].tolist(), fd_h=fd_h, H=Hs.tolist(),
+                   tag=cfg.tag, n_ctrl_total=N_CTRL)
+        Path(cfg.out_dir).mkdir(parents=True, exist_ok=True)
+        json.dump(out, open(Path(cfg.out_dir)/f"{cfg.tag}_hessian.json", "w"))
+        log(f"wrote {Path(cfg.out_dir)/(cfg.tag+'_hessian.json')} "
+            f"({len(done)}x{len(done)} block, {time.perf_counter()-t0:.0f}s)")
+        return out
 
     if mode == "verify":
         J1 = run_forward_only(); J2 = run_forward_only()
@@ -416,6 +567,9 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
         i0=[m[0] for m in ctrl_meta].index("Tk0")
         result["T_knots"]=x_map[i0:i0+len(cfg.T_knots.years)].tolist()
         result["knot_years"]=cfg.T_knots.years.tolist()
+        result["T_prior_centers"]=np.asarray(cfg.T_knots.center,float).tolist()
+        _ts=cfg.T_knots.sigma
+        result["T_prior_sigma"]=(np.asarray(_ts,float).tolist() if np.ndim(_ts) else float(_ts))
     if cfg.b_knots is not None and cfg.b_knots.invert:
         bnames=[f"b{int(y)}" for y in cfg.b_knots.years]
         i0=[m[0] for m in ctrl_meta].index(bnames[0])

@@ -1,0 +1,7 @@
+{
+  "comment": "T-knot densification for the recalibrated error model (2026-07-19): the honest borehole-T sigma (~42 mK vs the old flat 0.2 K) exposed coherent near-surface residual structure the 13-knot layout smooths over. The seasonal damping depth at SP is ~2 m, so the 13-15 m feature is interannual/decadal surface T -- fittable by knots. Post-1950 spacing tightens to 10 yr then 5 yr toward the present (T-information concentrates ~53x toward the present per the knot-placement study); 5 yr = the dt=5 step grid, so knots sit ON sampled years and nothing is added below the model's temporal resolution (the r6 lesson). Pre-1950 T layout and ALL b knots unchanged from r8 (b-info is uniform in time; denser b injects null-space noise per the resolution study).",
+  "knot_years": [1000, 1300, 1550, 1750, 1850, 1900, 1930, 1955, 1965, 1975,
+                 1985, 1990, 1995, 2000, 2005, 2010, 2015],
+  "b_knot_years": [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1850,
+                   1900, 1930, 1960, 1990, 2015]
+}
