@@ -58,6 +58,8 @@ for _, m in su.iterrows():
     zb = d["borehole_depth_bottom_m"].astype(float).abs().values
     ok = np.isfinite(L) & t.notna().values
     t, L, zt, zb = t[ok], L[ok], zt[ok], zb[ok]
+    if len(L) < 100:
+        print(f"  inst {iid}: only {len(L)} usable days, skip"); continue
     ty = (t - t.iloc[0]).dt.days.values / 365.25
     # full-record linear rate
     A = np.vstack([ty, np.ones_like(ty)]).T
@@ -78,6 +80,8 @@ for _, m in su.iterrows():
     print(f"  inst {iid}: zbot {rows[-1]['zb']:.1f} m  rate {rate*1000:+.1f} mm/yr  "
           f"span {ty[-1]:.1f} yr  interann sd {1000*inter_sd:.1f} mm/yr (n={len(dvals)})")
 
+if not rows:
+    raise SystemExit(f"no Summit instrument in {H5} has a usable record — nothing to write")
 R = pd.DataFrame(rows)
 # cross-instrument repr from the ~same-depth pair. Absent at another site (or
 # under a filtered/updated record) the floor falls back to interannual scatter
@@ -91,7 +95,7 @@ if len(same) >= 2:
 else:
     print(f"\ncross-instrument: no ~same-depth pair ({len(same)} instrument(s) at "
           f"15-17 m) -> repr floor from interannual scatter only")
-med_inter = np.nanmedian(R.inter_sd)
+med_inter = np.nanmedian(R.inter_sd) if np.isfinite(R.inter_sd).any() else 0.0
 print(f"median interannual sd: {1000*med_inter:.1f} mm/yr")
 # proposed sigma: max(interannual sd, repr floor, 8% of |rate|)
 floor = max(med_inter, pair_diff/np.sqrt(2))
@@ -109,5 +113,9 @@ out = pd.DataFrame(dict(
     ztop_mean_m=R.zt.round(6), zbot_mean_m=R.zb.round(6),
     record_years=R.span.round(2), rate_m_yr=R.rate.round(6),
     sigma_m_yr=R.sigma.round(6))).sort_values("zbot_mean_m")
+_bad = ~(np.isfinite(out.rate_m_yr) & (out.sigma_m_yr > 0))
+if _bad.any():
+    raise SystemExit(f"refusing to write {OUT}: non-finite rate or non-positive sigma for "
+                     f"instrument(s) {out.instrument_ID[_bad].tolist()}")
 out.to_csv(OUT, index=False)
 print(f"\nwrote {OUT}")

@@ -112,20 +112,21 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
     step_years = cfg.present_year - (n_steps - 1 - np.arange(n_steps)) * cfg.dt_years
 
     # time-tagged observations: map each block's epoch to its nearest step.
-    # Blocks whose epoch lands on the final step keep the (cheaper) final-state
-    # path — identical by construction. An epoch outside the simulated span
-    # would otherwise be snapped silently to whichever end is nearer and scored
-    # against a state it has nothing to do with, so it is a hard error: the
-    # nearest step must be within one dt of the requested year.
+    # Blocks whose epoch lands on (or past) the final step keep the cheaper
+    # final-state path — a measurement made after present_year is the closing
+    # state as far as this run is concerned, which is what the Summit 2017
+    # FirnCover core relies on. An epoch OLDER than the span has no such
+    # reading: it would be snapped silently to step 0 and scored against a
+    # state it has nothing to do with, so that direction is a hard error.
     for ob in cfg.obs:
         ob._kstep = None
         if ob.year is not None:
-            kk = int(np.argmin(np.abs(step_years - float(ob.year))))
-            if abs(step_years[kk] - float(ob.year)) > cfg.dt_years:
+            if float(ob.year) < step_years[0] - cfg.dt_years:
                 raise ValueError(
                     f"obs block '{ob.label}' is tagged to {float(ob.year):.0f} CE, "
-                    f"outside the simulated span {step_years[0]:.0f}-{step_years[-1]:.0f} CE "
-                    f"(nearest step {step_years[kk]:.0f}); widen spin_years or retag the block")
+                    f"older than the simulated span {step_years[0]:.0f}-{step_years[-1]:.0f} CE; "
+                    f"widen spin_years or retag the block")
+            kk = int(np.argmin(np.abs(step_years - float(ob.year))))
             if kk < n_steps - 1:
                 ob._kstep = kk
                 log(f"obs block '{ob.label}' tagged to {float(ob.year):.0f} CE "
