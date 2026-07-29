@@ -19,7 +19,9 @@ own series):
          inside dage windows.
 Legacy guards restore the archived summit_invert.json error model exactly
 (verified J=81.9829): FIRN_SIG_RHO_LEGACY=1 FIRN_SIG_DAGE_LEGACY=1
-FIRN_AGE_BLOCK=1.
+FIRN_AGE_BLOCK=1 FIRN_COMPACTION=0. The compaction block defaults ON and
+postdates the archived MAP, so it must be dropped too: omitting
+FIRN_COMPACTION=0 gives J=201.02, not 81.9829.
 """
 from __future__ import annotations
 import math, os

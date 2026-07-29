@@ -13,7 +13,7 @@ neutral literature prior and check the MAP recovers the truth.
             accumulation increase reaching +12%. The truth knots sample the
             exponential densely (10-yr post-1800), so the question "can the
             recovered histories track a smooth recent trend?" is real.
-  SIGMAS  : the RECALIBRATED error-model magnitudes (borehole-T 25-70 mK
+  SIGMAS  : the RECALIBRATED error-model magnitudes (borehole-T 25-85 mK
             depth-dependent, not the old flat 0.2 K; rho 4-13 kg/m3, not
             15+3%; dage ~8.5% of value, not a 5% floor). Generation noise ==
             assimilation sigma, so chi^2/N ~ 1 at truth by construction.
@@ -39,6 +39,9 @@ from firnpack.models.firn import FirnParameters
 from firnpack.constants import year as YEAR_S
 
 HERE = Path(__file__).parent; OUT = str(HERE/"output")
+# output/ is gitignored, so it is absent on a fresh checkout, and the truth dump
+# below runs before assimilate() would have created it.
+Path(OUT).mkdir(parents=True, exist_ok=True)
 MODE = os.environ.get("FIRN_MODE", "optimize")
 rng = np.random.default_rng(int(os.environ.get("FIRN_SEED", "0")))
 _p = FirnParameters(); c_i = float(_p.c_i)
@@ -140,15 +143,16 @@ for cc in np.arange(6.0, H0 - 1.0, 2.0):
 dc = np.array(dc); do_ = np.array(do_); dsg = np.array(dsg)
 dage_obs = do_ + rng.normal(0, dsg)
 # borehole T: ONE consistent block — a single instrument's profile through the
-# firn (13-125 m, 7-m spacing) at SP's kernel-consistent sigma (25-70 mK,
-# depth-dependent), extended in DEEP mode straight down the same log into the
+# firn (13-125 m, 7-m spacing) at SP's kernel-consistent sigma (depth-dependent:
+# SP's realized span is 25-85 mK about a 67 mK median; the profile sampled below
+# spans 27-68 mK), extended in DEEP mode straight down the same log into the
 # ice (140 m -> H0, 15-m spacing, ~30 mK) where the OLD surface T advected out
 # of the firn still lives. That extension is more of the same log, not a second
 # instrument. This mirrors the REAL South Pole assimilation, where the only
 # temperature PROFILE is the deep SPICEcore borehole log; the near-surface
 # signal at SP comes from a separate seasonal-AMPLITUDE observable, NOT a
 # second T profile. The earlier split into a deep-borehole block + a
-# shallow-RTD block (different instruments, different noise, 0.2 K vs 25-70 mK)
+# shallow-RTD block (different instruments, different noise, 0.2 K vs tens of mK)
 # was an OSSE simplification and is dropped; FIRN_OSSE_TSH=1 restores the
 # shallow-RTD block for the old two-instrument test.
 Td_d = np.arange(13.0, 129.0, 7.0)

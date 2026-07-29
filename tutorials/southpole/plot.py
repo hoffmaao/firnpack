@@ -404,7 +404,15 @@ def figure_reanalysis():
     ax.axhline(0, color="k", lw=0.8)
     ax.set_ylabel("surface-height anomaly (cm)")
     ax.set_title("(d) firn-driven height anomaly vs 1000 CE climate", fontsize=10.5)
-    ax.grid(alpha=0.3, color=fp.GRID); ax.legend(fontsize=8, loc="upper right")
+    ax.grid(alpha=0.3, color=fp.GRID)
+    # Reserve headroom so the upper-right legend clears the curves where they
+    # peak, and footroom for the headline annotation pinned to the lower left.
+    _d = np.concatenate([np.asarray(r["hprime_m"])[show], np.asarray(r["hprime_T_m"])[show],
+                         np.asarray(r["hprime_b_m"])[show], np.asarray(r["dfac_T_m"])[show],
+                         [0.0]]) * 100
+    _lo, _hi = float(_d.min()), float(_d.max()); _sp = max(_hi - _lo, 1.0)
+    ax.set_ylim(_lo - 0.22 * _sp, _hi + 0.75 * _sp)
+    ax.legend(fontsize=8, loc="upper right")
     hT = np.asarray(r["hprime_T_m"])[yr >= 1957.0]
     rate_T = np.mean(np.diff(hT)) / r["dt_years"] * 1000.0  # mm/yr
     ax.annotate(f"2015: total {hl['hprime_2015_cm']:+.0f} cm "

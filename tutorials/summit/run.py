@@ -13,7 +13,9 @@ ezz / conductivity / Q_base controls are simply dropped (fixed).
 The config (including the data-derived error model and its legacy guards) lives
 in the sibling config.py; diagnostics/ scripts build the same config from
 there. The archived summit_invert.json reproduces exactly (J=81.9829) under
-FIRN_SIG_RHO_LEGACY=1 FIRN_SIG_DAGE_LEGACY=1 FIRN_AGE_BLOCK=1.
+FIRN_SIG_RHO_LEGACY=1 FIRN_SIG_DAGE_LEGACY=1 FIRN_AGE_BLOCK=1 FIRN_COMPACTION=0
+(the compaction block defaults ON and postdates the archived MAP, so dropping
+it is part of the legacy recipe; without it the same command gives J=201.02).
 
 Modes (env FIRN_MODE): "verify" (replay + FD), "validate" (forward J at the
 warm start), "optimize" (default). FIRN_WARM_JSON warm-starts from a MAP json.
