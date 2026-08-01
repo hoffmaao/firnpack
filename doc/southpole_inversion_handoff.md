@@ -595,8 +595,3 @@ borehole-T decadal wiggles). UQ says pre-1750 T-shape is prior-bound at ≤130 m
 6. **ES-MDA / MCMC cross-check** - forward is 7 s ⇒ 100-member ensembles are
    minutes; derivative-free posterior to validate Laplace.
 7. Multi-site (multiple ApRES, USP50 second density core) for spatial variability.
-
-## Memory (auto-loaded index: `MEMORY.md`)
-Key notes: `sp_joint_inversion_complete.md`, `sp_forward_model_is_sound.md`,
-`sp_adjoint_is_correct.md`, `sp_assimilation_working.md`, `sp_paleothermometry.md`,
-`pyadjoint_timevarying_control_forcing.md`.

@@ -76,3 +76,4 @@ tutorials/**/output/*
 
 # --- Local agent state ---
 .claude/
+CLAUDE.md
