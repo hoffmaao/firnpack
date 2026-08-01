@@ -1,12 +1,13 @@
 # South Pole Firn Inversion - Working Notes
 
 > **⚠️ 2026-06 UPDATE - much of the history below is SUPERSEDED.**
-> The inversion now WORKS end-to-end. **Read `scripts/assimilation/HANDOFF.md` first.**
+> The inversion now WORKS end-to-end. **Read `doc/southpole_inversion_handoff.md` first.**
 > The old "H&L can't fit / max density 646 / degenerate MAP" conclusions were setup
 > bugs (under-spinup, −50 °C forcing, pyadjoint tape-replay), NOT physics. With those
 > fixed, a 12-control joint inversion fits density+age+velocity+temperature and
-> recovers densification + firn conductivity + a surface-T history. See HANDOFF.md
-> and the `sp_*` memory notes. The notes below are kept for historical context only.
+> recovers densification + firn conductivity + a surface-T history. See
+> `doc/southpole_inversion_handoff.md`. The notes below are kept for historical
+> context only.
 
 ## Overview
 
@@ -35,7 +36,7 @@ Scripts in `scripts/herron_langway/` (H&L model) and `scripts/{arthern,kingslake
 > reproducibility; r5b+ inversions apply `FIRN_T_SHIFT=-5.8` coherently
 > (obs, prior ramp, knot bounds). All pre-r5b absolute temperatures (and the
 > "H&L rates at −45 C" statements) are in the WRONG datum; anomalies/shapes
-> are unaffected. See HANDOFF.md and memory `sp_usp50_ksnow_and_datum_bug`.
+> are unaffected. See `doc/southpole_inversion_handoff.md`.
 
 **Buizert cloud-to-surface offset: +5.8 C.**
 Buizert reconstruction is cloud temperature (~-51 C mean). Borehole deep temperature

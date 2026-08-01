@@ -12,7 +12,7 @@ Split the residual by SCALE rather than by site:
               multidecadal; a layer is ~10 yr/m, so 10 m ~ a century). If this
               dominates -> a real model/forcing bias, and b(t) is biased.
   wiggle(z) = sub-decadal oscillation. The model CANNOT represent it at any
-              control setting (memory: d(age)/dz operator has a broad NULL
+              control setting (d(age)/dz operator has a broad NULL
               SPACE at sub-decadal scales; b spikes are smeared ~4x). If this
               dominates -> representativeness, not error: the honest fix is
               the error model, not the physics.

@@ -54,7 +54,7 @@ The forward model was SOUND. Prior failures were setup, not physics:
 With these fixed, H&L overshoots density +35..65, Arthern undershoots - data is BETWEEN
 the two literature laws (well-posed). dt=5yr == dt=1yr steady state (validated).
 
-## Hard-won adjoint rules (also in memory)
+## Hard-won adjoint rules
 - **Objective**: Gaussian-kernel SCALAR misfits `pred=assemble(field*phi*dx)`, χ² as
   scalar arithmetic. NOT VertexOnlyMesh, NOT direct `r*r` assembly (both → order-1).
 - **Density barrier kink**: `density_form` has `max_value(rho-rho_i,0)`; if IC/transient
@@ -63,8 +63,7 @@ the two literature laws (well-posed). dt=5yr == dt=1yr steady state (validated).
   `F_H += Constant(beta)*(H_trial - c_i*(Ts_eff - T_ref))*psi*ds(SID)`, beta~5e2.
 - **Time-varying control forcing**: build each step's expr with FRESH literal Constants
   on the bracketing knots (`Constant(1-f)*Tk[j] + Constant(f)*Tk[j+1]`). NEVER reassign
-  shared Constants (breaks adjoint - past knots get 0 gradient). See
-  memory `pyadjoint_timevarying_control_forcing.md`.
+  shared Constants (breaks adjoint - past knots get 0 gradient).
 - **Tape-rebuild per eval** (clear+re-annotate); trust the **FD check** over Taylor
   (Taylor is unreliable here due to fixed-quadrature of the tanh switch).
 
@@ -549,7 +548,6 @@ offset at 13 m (model layers ~5% too thick; RHO_SURF=350 fixed). Trustworthy
 accum = the multidecadal ~0.09 where model-layer-b, raw obs b_app AND stakes
 agree. **⇒ accum approach: COARSER b-knots + σ_dage inflation (σ-inflation IS
 right - fine structure genuinely unfittable); densification+T-history UNAFFECTED.**
-See memory `sp_accum_prior_bias_finding.md` (corrected).
 
 **⇒ ROUND 7 (de-biased prior) - superseded by the verdict above.** `FIRN_B_CLIM=0.096` (post-1950
 centers = independent Buizert climatology, no ERA5, no seam) +
