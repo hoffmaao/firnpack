@@ -69,7 +69,7 @@ def figure_law_comparison():
     """Do the laws recovered at two contrasting ice sheets agree?"""
     if not (SP_MAP.exists() and SUMMIT_MAP.exists()):
         missing = [str(p) for p in (SP_MAP, SUMMIT_MAP) if not p.exists()]
-        print(f"  law_comparison: SKIP — missing {', '.join(missing)}.")
+        print(f"  law_comparison: SKIP - missing {', '.join(missing)}.")
         return
 
     sp = json.load(open(SP_MAP))["m_map"]
@@ -87,7 +87,7 @@ def figure_law_comparison():
     ax.set_xlabel("density ρ (kg m$^{-3}$)")
     ax.set_ylabel("dρ/dt (kg m$^{-3}$ yr$^{-1}$)")
     ax.axvline(RHO_M, color=fp.GRID, ls=":", lw=1)
-    ax.set_title("(a) recovered densification law — two ice sheets, one physics\n"
+    ax.set_title("(a) recovered densification law - two ice sheets, one physics\n"
                  "(evaluated at a common −40°C, 0.15 m/yr)", fontsize=10.5)
     ax.legend(fontsize=8.5, loc="upper right")
     ax.grid(alpha=0.3, which="both", color=fp.GRID)
@@ -117,7 +117,7 @@ def figure_law_comparison():
     ax.grid(alpha=0.3, color=fp.GRID)
     ax.set_ylim(0.12, 0.30)
 
-    fig.suptitle("Firn densification law transferability — South Pole vs Summit "
+    fig.suptitle("Firn densification law transferability - South Pole vs Summit "
                  "(independent inversions, same literature prior)", fontsize=12)
     print(f"  law_comparison: {fp.save(fig, FIGS / 'law_comparison.png')}")
     print("    param      SP     Summit   ratio")
@@ -145,11 +145,11 @@ def _to_display(block):
 def figure_misfits():
     """Observations vs the model at the Summit MAP, from stored blocks."""
     if not SUMMIT_MAP.exists():
-        print("  summit_misfits: SKIP — run run.py first (no summit_invert.json).")
+        print("  summit_misfits: SKIP - run run.py first (no summit_invert.json).")
         return
     r = json.load(open(SUMMIT_MAP))
     if not (r.get("obs") and r.get("diag")):
-        print("  summit_misfits: SKIP — summit_invert.json predates block storage; re-run run.py.")
+        print("  summit_misfits: SKIP - summit_invert.json predates block storage; re-run run.py.")
         return
 
     blocks = {b["label"]: b for b in r["obs"]}
@@ -163,7 +163,7 @@ def figure_misfits():
         d, o, s, p, unit = _to_display(blocks[lab])
         rms = r["diag"].get("rms_" + lab, float("nan"))
         fp.profile(ax, d, o, sig=s, pred=p, hmax=HMAX, xlabel=unit,
-                   title=f"({string.ascii_lowercase[i]}) {TITLES.get(lab, lab)} — "
+                   title=f"({string.ascii_lowercase[i]}) {TITLES.get(lab, lab)} - "
                          f"rms {rms:.2f}σ (N={len(d)})")
     for j in range(npan, len(axes)):
         axes[j].set_visible(False)
@@ -175,7 +175,7 @@ def figure_misfits():
     fp.residual_panel(axes[len(order)], resid, hmax=HMAX,
                       title=f"({string.ascii_lowercase[len(order)]}) standardized residuals")
 
-    fig.suptitle(f"Summit assimilation — observations vs the MAP (J = {r['J']:.1f})",
+    fig.suptitle(f"Summit assimilation - observations vs the MAP (J = {r['J']:.1f})",
                  fontsize=13)
     print(f"  summit_misfits: {fp.save(fig, FIGS / 'summit_misfits.png')}")
     plt.close(fig)
@@ -189,7 +189,7 @@ def figure_reanalysis():
     """
     jp, zp = RESULTS / "summit_reanalysis.json", RESULTS / "summit_reanalysis.npz"
     if not (jp.exists() and zp.exists()):
-        print("  summit_reanalysis: SKIP — run diagnostics/reanalysis.py first.")
+        print("  summit_reanalysis: SKIP - run diagnostics/reanalysis.py first.")
         return
     r = json.load(open(jp))
     npz = np.load(zp)
@@ -266,7 +266,7 @@ def figure_reanalysis():
                  fontsize=10.5)
     fig.colorbar(pc, ax=ax, pad=0.01)
 
-    fig.suptitle(f"Summit firn reanalysis — {r['map_file']} MAP, accumulation-driven "
+    fig.suptitle(f"Summit firn reanalysis - {r['map_file']} MAP, accumulation-driven "
                  f"(T forcing constant)", fontsize=12.5)
     print(f"  summit_reanalysis: {fp.save(fig, FIGS / 'summit_reanalysis.png')}")
     plt.close(fig)

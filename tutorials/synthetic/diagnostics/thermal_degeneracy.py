@@ -3,7 +3,7 @@
 The borehole-T profile is fit jointly by the conductivity scales (k_snow,
 k_firn), the basal flux (Q_base), the T-dependent stage-2 densification
 (hl_Ea2), and the surface-T history. If several of these produce the SAME
-borehole-T response, they are degenerate — interchangeable in the fit — so the
+borehole-T response, they are degenerate - interchangeable in the fit - so the
 inversion can trade them freely and they wander off truth even when the
 temperature RECONSTRUCTION (a different combination) is fine.
 
@@ -30,7 +30,7 @@ OUT = HERE / "output"
 _mapp = fp.newest_map(OUT, need=("m_map",), env="FIRN_OSSE_MAP",
                       pattern="synthetic_osse*.json")
 if _mapp is None:
-    raise SystemExit(f"no OSSE MAP in {OUT} — run tutorials/synthetic/run.py first")
+    raise SystemExit(f"no OSSE MAP in {OUT} - run tutorials/synthetic/run.py first")
 print(f"thermal-degeneracy MAP: {_mapp.name}")
 mp = json.load(open(_mapp))
 m = mp["m_map"]

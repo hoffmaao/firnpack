@@ -1,4 +1,4 @@
-"""diag_dage_sigma_origin.py — where does sigma_dage come from, and what SHOULD it be?
+"""diag_dage_sigma_origin.py - where does sigma_dage come from, and what SHOULD it be?
 
 MODEL-FREE. Uses only sp19_depth_age.csv (already in use) and no external
 uncertainty column, no Desroziers, no MAP. The question is internal:

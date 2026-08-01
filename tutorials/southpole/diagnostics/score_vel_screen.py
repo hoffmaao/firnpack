@@ -1,4 +1,4 @@
-"""score_vel_screen.py — rank ApRES sites by the misfit of the OTHER data.
+"""score_vel_screen.py - rank ApRES sites by the misfit of the OTHER data.
 
 For each screen result (sp_vel_<site>.json), evaluate the engine forward at
 that MAP (with the matching velocity config) and score

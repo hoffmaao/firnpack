@@ -1,12 +1,12 @@
-"""plot_temporal_probe.py — does denser temporal sampling help at South Pole?
+"""plot_temporal_probe.py - does denser temporal sampling help at South Pole?
 
 Three-panel verdict figure for the dense-knot probe (r8 coarse 13T+15b vs
 dense 20T+34b on the identical clean configuration):
   (a) b(t): both MAPs against the MODEL-FREE raw-layer apparent accumulation
-      (b_app = lambda*rho/rho_i) — the arbiter: structure the raw layers don't
+      (b_app = lambda*rho/rho_i) - the arbiter: structure the raw layers don't
       show is null-space artifact, not signal.
   (b) T(t): both recovered histories.
-  (c) fit rms per observable + J for both — what the extra 26 controls bought.
+  (c) fit rms per observable + J for both - what the extra 26 controls bought.
 
 Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diagnostics/plot_temporal_probe.py
 """

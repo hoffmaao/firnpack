@@ -5,7 +5,7 @@ the firn model: surface temperature, accumulation rate, and optionally
 other fields.  It can be built from pandas DataFrames, numpy arrays,
 or loaded from CSV files.
 
-These are not simple "forcing" — they represent the full complexity of
+These are not simple "forcing" - they represent the full complexity of
 environmental conditions at a site, potentially combining reanalysis
 products, paleoclimate reconstructions, and station observations.
 """

@@ -1,11 +1,11 @@
-"""tutorials/summit/config.py — build the Summit SiteConfig.
+"""tutorials/summit/config.py - build the Summit SiteConfig.
 
 Same pattern as tutorials/southpole/config.py: run.py and every script under
 diagnostics/ construct the SAME config by calling build_cfg(), which reads
 os.environ at call time. Returns a SimpleNamespace of every builder local;
 .cfg is the SiteConfig.
 
-Error model (2026-07-19, the SP recalibration program applied at Summit —
+Error model (2026-07-19, the SP recalibration program applied at Summit -
 sigma = what the model cannot fit at ANY control setting, measured from our
 own series):
   rho  : local rms about a smooth curve on the BINNED composite (residuals
@@ -13,7 +13,7 @@ own series):
   dage : sigma^2 = se^2 + repr^2, repr about the b-knot-resolvable scale
          (16-42 m of core, varies with local knot spacing). Replaces the
          hand-picked 5% floor (~1.7x too small).
-  age  : DELETED — GISP2 is layer-counted, so absolute age is a cumulative
+  age  : DELETED - GISP2 is layer-counted, so absolute age is a cumulative
          count (errors accumulate, not independent), and with age=0 pinned at
          the surface dage determines age everywhere. 61% of its points sat
          inside dage windows.
@@ -111,10 +111,10 @@ def build_cfg():
     #   GISP2 layers  : counted on a core whose youngest layer is 1989 (the file
     #                   says so: 1.51 m = 1989.0). Scoring them against the 2015
     #                   state misplaces the layer field by ~26 yr of burial
-    #                   (~15 m) — a bias the recent b-knots silently absorbed.
+    #                   (~15 m) - a bias the recent b-knots silently absorbed.
     #   GRIP density  : Fourteau pycnometry samples the GRIP core (drilled
     #                   1990-92) -> the firn STATE it measures is 1991's.
-    #   FirnCover core: 2017 — beyond present (2015), so it keeps the
+    #   FirnCover core: 2017 - beyond present (2015), so it keeps the
     #                   final-state path (the engine tags only pre-present).
     # The composite density block is therefore SPLIT at the instrument seam
     # (bins <= 23 m = FirnCover-only, >= 25 m = GRIP-only; the 22-25 m gap is
@@ -147,7 +147,7 @@ def build_cfg():
 
     # ---- FirnCover compaction-rate block (2026-07-20) --------------------------
     # A DIRECT densification-RATE constraint, independent of the density core:
-    # 6 borehole compaction coils (NOT ApRES — physical wire coils) measure the
+    # 6 borehole compaction coils (NOT ApRES - physical wire coils) measure the
     # shortening rate of a material firn interval [ztop, zbot]. Model pred =
     # (w@ztop - w@zbot)*yr, the densification strain integrated over the
     # interval (kind "compaction"). Records 2015-2019 straddle the model present
@@ -169,7 +169,7 @@ def build_cfg():
               f"rates {cmp.rate_m_yr.min():.3f}..{cmp.rate_m_yr.max():.3f} m/yr, "
               f"sigma {1000*cmp.sigma_m_yr.median():.0f} mm/yr median")
 
-    # ---- controls: densification (5, neutral literature prior — SAME as SP) ----
+    # ---- controls: densification (5, neutral literature prior - SAME as SP) ----
     scalars = [
         ScalarCtrl("hl_k0", 10.79, 10.79, 1.0, 0.5, 500, log=True),
         ScalarCtrl("hl_k1", 570.7, 570.7, 1.0, 10, 50000, log=True),

@@ -1,4 +1,4 @@
-"""diag_j_budget.py — WHICH observations actually drive the inversion?
+"""diag_j_budget.py - WHICH observations actually drive the inversion?
 
 Panel-by-panel rms hides the weighting: a block's pull on the controls is its
 chi^2 SHARE of J, which is 0.5 * N_b * rms_b^2 -- so a block with many points

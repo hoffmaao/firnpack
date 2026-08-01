@@ -1,4 +1,4 @@
-"""diag_knot_sensitivity.py — WHERE in time can the data see T(t) and b(t)?
+"""diag_knot_sensitivity.py - WHERE in time can the data see T(t) and b(t)?
 
 Knot COUNT is closed (temporal probe, both arms: denser layouts inject
 null-space noise). Knot PLACEMENT is not: the current layout encodes an

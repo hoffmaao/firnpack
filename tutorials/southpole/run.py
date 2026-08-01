@@ -1,4 +1,4 @@
-"""tutorials/southpole/run.py — South Pole assimilation via the shared engine.
+"""tutorials/southpole/run.py - South Pole assimilation via the shared engine.
 
 South Pole joint assimilation through firnpack.inverse.assimilate: coarse knots
 (knots_r8), corrected borehole-T datum (-5.8), k_snow pinned (USP50 1.29),

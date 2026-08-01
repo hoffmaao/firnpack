@@ -61,10 +61,10 @@ expensive artifact; `figures/` is not.
 
 The codebase follows a **model-solver separation pattern**:
 
-- **`src/firnpack/models/`** — Define PDE weak forms and physical relationships (using Firedrake's UFL)
-- **`src/firnpack/solvers/`** — Time-stepping logic, boundary conditions, Firedrake solver configuration
-- **`src/firnpack/inverse/`** — Config-driven adjoint assimilation engine (`SiteConfig` + `assimilate`)
-- **`src/firnpack/constants.py`** — Physical constants in SI units
+- **`src/firnpack/models/`** - Define PDE weak forms and physical relationships (using Firedrake's UFL)
+- **`src/firnpack/solvers/`** - Time-stepping logic, boundary conditions, Firedrake solver configuration
+- **`src/firnpack/inverse/`** - Config-driven adjoint assimilation engine (`SiteConfig` + `assimilate`)
+- **`src/firnpack/constants.py`** - Physical constants in SI units
 
 ### Core Classes
 
@@ -73,15 +73,15 @@ The codebase follows a **model-solver separation pattern**:
 **`FirnModel`** (`src/firnpack/models/firn.py`): Defines all physical closures (densification rates, grain growth, stress), temperature-enthalpy conversions, and UFL weak forms for each prognostic variable.
 
 **`FirnColumnSolver`** (`src/firnpack/solvers/firn_solver.py`): Time-stepper with two modes:
-- **Mode A** — Basic `(H, ρ, w)`: enthalpy, density, velocity (Arthern/Ligtenberg densification)
-- **Mode B** — Full-density `(H, ρ, σ, r², w)`: adds deviatoric stress and grain-radius-squared
+- **Mode A** - Basic `(H, ρ, w)`: enthalpy, density, velocity (Arthern/Ligtenberg densification)
+- **Mode B** - Full-density `(H, ρ, σ, r², w)`: adds deviatoric stress and grain-radius-squared
 
 ### Key Technologies
 
-- **Firedrake** — Finite element discretization and solver (Newton-Krylov, GMRES with LU preconditioning)
-- **`firedrake.adjoint`** — Automatic differentiation for inverse/parameter inference problems
-- **`firedrake.CheckpointFile`** (HDF5) — State persistence and checkpointing
-- **UFL** (Unified Form Language) — Symbolic PDE specification within Firedrake
+- **Firedrake** - Finite element discretization and solver (Newton-Krylov, GMRES with LU preconditioning)
+- **`firedrake.adjoint`** - Automatic differentiation for inverse/parameter inference problems
+- **`firedrake.CheckpointFile`** (HDF5) - State persistence and checkpointing
+- **UFL** (Unified Form Language) - Symbolic PDE specification within Firedrake
 
 ### Test Directory
 

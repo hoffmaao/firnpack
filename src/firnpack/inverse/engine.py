@@ -1,4 +1,4 @@
-"""firnpack.inverse.engine — the shared adjoint assimilation engine.
+"""firnpack.inverse.engine - the shared adjoint assimilation engine.
 
 Faithful refactor of sp_joint_assimilate_r5.py: same lean (H, rho, w, age)
 theta-scheme stepper, Gaussian-kernel scalar misfits, per-point chi^2,
@@ -113,7 +113,7 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
 
     # time-tagged observations: map each block's epoch to its nearest step.
     # Blocks whose epoch lands on (or past) the final step keep the cheaper
-    # final-state path — a measurement made after present_year is the closing
+    # final-state path - a measurement made after present_year is the closing
     # state as far as this run is concerned, which is what the Summit 2017
     # FirnCover core relies on. An epoch OLDER than the span has no such
     # reading: it would be snapped silently to step 0 and scored against a
@@ -254,7 +254,7 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
     # gradient, K/m, positive = warming downward), the flux is DERIVED from
     # the model's own conductivity at the base: q_up = k(rho, T_old) * G.
     # This decouples the BC control from the conductivity scales (with Q_base
-    # the same flux implies different gradients as k changes — a built-in
+    # the same flux implies different gradients as k changes - a built-in
     # posterior correlation). T lagged via H_o (consistent with the K lag).
     if "G_base" in scal_fn:
         k_expr = model.thermal_diffusivity(H_o, rho_f) * rho_f * c_i
@@ -463,7 +463,7 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
         # prior, so H is the full posterior precision in the internal
         # (log/linear, unscaled) coordinates. fd_names optionally restricts to
         # a column subset; fd_h is the step as a FRACTION of each control's
-        # prior sigma (signature default 1e-3; the SP UQ run passes 1e-2 —
+        # prior sigma (signature default 1e-3; the SP UQ run passes 1e-2 -
         # adjoint gradients are direct-solve accurate, so the FD noise floor is
         # far below curvature scale either way).
         names = [m[0] for m in ctrl_meta]

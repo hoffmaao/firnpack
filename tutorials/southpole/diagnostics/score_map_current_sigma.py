@@ -1,10 +1,10 @@
-"""score_map_current_sigma.py — re-score an archived MAP under the CURRENT error model.
+"""score_map_current_sigma.py - re-score an archived MAP under the CURRENT error model.
 
 Writes a forward-mode result JSON (same schema as an optimize result, so
 plot.py can draw misfit figures from it) for a stored MAP evaluated against
 the error model the config builds TODAY. The point: a MAP's own JSON carries
 the sigmas it was inverted under, so after a recalibration the misfit figure
-keeps showing the old bars until a new inversion lands — this closes that gap
+keeps showing the old bars until a new inversion lands - this closes that gap
 without waiting hours for L-BFGS-B.
 
 The tag is suffixed "_rescored" so it can never be mistaken for (or clobber)
@@ -43,4 +43,4 @@ print(f"J = {r['J']:.4f} under the current error model "
       f"(stored J_map was {MAP.get('J_map', float('nan')):.4f} under its own)")
 print("  rms: " + " ".join(f"{k[4:]}={v:.3f}" for k, v in r["diag"].items()
                            if k.startswith("rms_")))
-print(f"wrote {OUT / (tag + '.json')} — run plot.py to redraw figures")
+print(f"wrote {OUT / (tag + '.json')} - run plot.py to redraw figures")

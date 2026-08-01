@@ -1,9 +1,9 @@
-"""forward_summit.py — transferability test: does the South-Pole-calibrated firn
+"""forward_summit.py - transferability test: does the South-Pole-calibrated firn
 law predict Summit, Greenland?
 
 Takes the frozen South Pole densification + conductivity law (output/
-sp_joint_r8.json) — physical H&L Arrhenius rates + Calonne conductivity, which
-are temperature-independent constants — and runs the forward model under
+sp_joint_r8.json) - physical H&L Arrhenius rates + Calonne conductivity, which
+are temperature-independent constants - and runs the forward model under
 SUMMIT forcing (T ~ -28.8 C, accumulation ~ 0.246 m ice/yr; 3x warmer-and-
 wetter than SP). Compares the prediction to Summit observations:
   * depth-age  vs GISP2 layer-counted timescale
@@ -12,7 +12,7 @@ wetter than SP). Compares the prediction to Summit observations:
 
 This is the paper's Summit transferability figure in its simplest form (constant
 forcing, steady state). A Summit INVERSION (recover Summit's own law) is the next
-step. No adjoint — forward only.
+step. No adjoint - forward only.
 
 Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/summit/diagnostics/forward_summit.py
 Env: FIRN_SP_MAP (default sp_joint_r8.json), FIRN_SUMMIT_T_C, FIRN_SUMMIT_B,
@@ -58,7 +58,7 @@ else:
 params = FirnParameters(**_pk)
 model = FirnModel(params, densification_rate_fn=herron_langway)
 print("="*64)
-print(f"SUMMIT forward transferability test — SP law from {SP_MAP}")
+print(f"SUMMIT forward transferability test - SP law from {SP_MAP}")
 print(f"  law: k0={m['hl_k0']:.2f} k1={m['hl_k1']:.0f} Ea1={m['hl_Ea1']:.0f} "
       f"Ea2={m['hl_Ea2']:.0f} s2={m.get('s2_shape',1):.3f}")
 print(f"  Summit forcing: T={SUMMIT_T_C} C, b={SUMMIT_B} m ice/yr, H={H0} m, spin={SPIN_YEARS} yr")
@@ -152,7 +152,7 @@ if has_dens:
     ax.axhline(z_co,color="C3",ls=":",lw=1); ax.invert_yaxis(); ax.set_ylim(H0,0)
     ax.set_xlabel("density (kg/m3)"); ax.set_ylabel("depth (m)")
     ax.set_title("(c) density"); ax.legend(fontsize=8); ax.grid(alpha=0.3)
-fig.suptitle(f"Summit transferability — SP-calibrated law under Summit forcing "
+fig.suptitle(f"Summit transferability - SP-calibrated law under Summit forcing "
              f"(T={SUMMIT_T_C} C, b={SUMMIT_B} m/yr)", fontsize=11)
 fig.tight_layout(); fig.savefig(OUT/"forward_summit.png", dpi=140)
 json.dump(dict(sp_map=SP_MAP, summit_T_C=SUMMIT_T_C, summit_b=SUMMIT_B,

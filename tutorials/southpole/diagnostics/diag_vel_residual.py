@@ -1,4 +1,4 @@
-"""diag_vel_residual.py — the STRUCTURE of the velocity misfit, panel (e).
+"""diag_vel_residual.py - the STRUCTURE of the velocity misfit, panel (e).
 
 Not the rms: the shape. At the r10 MAP (velocity ON tape, so the model has
 already done its best), decompose the per-site residual r_s(z) into
@@ -82,7 +82,7 @@ print(f"  -> the residual is {'MOSTLY OURS (model/operator)' if v_common > v_sit
 
 _sig_med = float(np.median(np.concatenate([np.array(b["sig"]) for b in vb])))*1000.0
 print(f"\ncommon-mode in physical units: rms {np.sqrt(np.mean((Mm.mean(0))**2)):.2f} mm/yr"
-      f"  (vs the in-use sigma, median {_sig_med:.2f} mm/yr across these blocks —"
+      f"  (vs the in-use sigma, median {_sig_med:.2f} mm/yr across these blocks -"
       f" per-site now, not a single assumed 3.5)")
 print(f"peak |common| = {np.abs(Mm.mean(0)).max():.2f} mm/yr at z = "
       f"{Z[np.argmax(np.abs(Mm.mean(0)))]:.1f} m")

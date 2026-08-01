@@ -35,7 +35,7 @@ DATA = HERE / "data"
 H5 = Path(os.environ.get("FIRNCOVER_H5",
                          DATA / "raw" / "FirnCoverData_2_0_2021_07_30.h5"))
 if not H5.exists():
-    raise SystemExit(f"FirnCover HDF5 not found at {H5} — set FIRNCOVER_H5 "
+    raise SystemExit(f"FirnCover HDF5 not found at {H5} - set FIRNCOVER_H5 "
                      f"or download it there (see {DATA/'README.md'})")
 OUT = DATA / "firncover_summit_compaction.csv"
 
@@ -81,7 +81,7 @@ for _, m in su.iterrows():
           f"span {ty[-1]:.1f} yr  interann sd {1000*inter_sd:.1f} mm/yr (n={len(dvals)})")
 
 if not rows:
-    raise SystemExit(f"no Summit instrument in {H5} has a usable record — nothing to write")
+    raise SystemExit(f"no Summit instrument in {H5} has a usable record - nothing to write")
 R = pd.DataFrame(rows)
 # cross-instrument repr from the ~same-depth pair. Absent at another site (or
 # under a filtered/updated record) the floor falls back to interannual scatter

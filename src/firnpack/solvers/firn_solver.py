@@ -84,7 +84,7 @@ class FirnColumnSolver:
         self._fields["rho"] = density
         self._fields["w"] = firn_velocity
 
-        # Old copies — use Function() + assign() so the assignment is on
+        # Old copies - use Function() + assign() so the assignment is on
         # the pyadjoint tape (copy(deepcopy=True) may not be taped).
         self._fields["H_old"] = fd.Function(V, name="H_old")
         self._fields["H_old"].assign(enthalpy)
@@ -138,7 +138,7 @@ class FirnColumnSolver:
         # Inflow values for DG fields at inflow boundaries (surface).
         # Dict mapping field name to a UFL expression for the inflow value.
         # Supported keys: "rho", "r2".  For DG fields, this sets the upwind
-        # flux at the surface — the physically correct way to impose a
+        # flux at the surface - the physically correct way to impose a
         # boundary condition without artificial penalty terms.
         inflow_values=None,
         # Basal velocity BC: pass a DirichletBC for w at the base instead
@@ -261,7 +261,7 @@ class FirnColumnSolver:
             sigma = stress
             r2 = grain_radius2
 
-            # Lazily create old copies — use Function + assign so it's on tape
+            # Lazily create old copies - use Function + assign so it's on tape
             if self._fields["sigma_old"] is None:
                 self._fields["sigma_old"] = fd.Function(sigma.function_space(), name="sigma_old")
             self._fields["sigma_old"].assign(sigma)

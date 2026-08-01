@@ -1,4 +1,4 @@
-"""diag_dage_residual.py — the STRUCTURE of the d(age)/dz misfit, panel (c).
+"""diag_dage_residual.py - the STRUCTURE of the d(age)/dz misfit, panel (c).
 
 Panel (c) is the biggest misfit on the figure (2.2 sigma) and d(age)/dz is the
 observable that constrains b(t), so what KIND of 2.2 sigma it is decides

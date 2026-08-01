@@ -1,9 +1,9 @@
 # FirnGrain
 
-A 1D firn column model — densification, heat/enthalpy transport, and accumulation
-— with an **adjoint-based inverse framework** (Firedrake + pyadjoint) for
-assimilating ice-core and geophysical observations to recover firn physics and
-climate history.
+A 1D firn column model - densification, heat/enthalpy transport, and
+accumulation - with an **adjoint-based inverse framework** (Firedrake +
+pyadjoint) for assimilating ice-core and geophysical observations to recover
+firn physics and climate history.
 
 > **Status: research code.** The canonical model is stable; the inverse
 > framework and the three case studies below are being consolidated into a
@@ -11,10 +11,10 @@ climate history.
 
 ## What it does
 
-Given depth-resolved observations at a site — density, ice-core depth–age (as a
+Given depth-resolved observations at a site - density, ice-core depth–age (as a
 layer-gradient constraint), borehole temperature, and (where available)
 phase-sensitive radar (ApRES) vertical velocity or borehole compaction-coil
-shortening rates — FirnGrain solves an inverse problem for:
+shortening rates - FirnGrain solves an inverse problem for:
 
 - the **densification law** (Herron–Langway two-stage rates, with an optional
   deep-firn shape exponent),
@@ -42,7 +42,7 @@ Each is a thin configuration over one shared inverse engine
 FirnGrain runs inside a [Firedrake](https://www.firedrakeproject.org) environment.
 
 ```bash
-# 1. Install Firedrake (provides PETSc, pyadjoint) — see the Firedrake docs.
+# 1. Install Firedrake (provides PETSc, pyadjoint) - see the Firedrake docs.
 # 2. Into that environment:
 pip install -e .
 pip install -r requirements.txt   # numpy/scipy/pandas/matplotlib (pinned)
@@ -96,7 +96,8 @@ tutorials/         the three case studies, each a thin config over the engine
 
 test/              the pytest suites (adjoint FD/Taylor, conservation, MMS),
                    each self-contained, plus three parked scripts that assert
-                   nothing and are not collected - see CLAUDE.md
+                   nothing and are not collected - each one's module docstring
+                   says why it is parked and what unblocking it needs
 
 doc/               methods notes, derivations, and paper-facing documentation
 

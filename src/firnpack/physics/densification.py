@@ -11,10 +11,10 @@ Standard signature:
 This mirrors icepack's approach where viscosity/friction laws are pluggable.
 
 Available laws:
-    arthern_ligtenberg  — Arthern (2010) + Ligtenberg (2011) corrections
-    herron_langway      — Herron & Langway (1980) empirical two-stage
-    kingslake           — Kingslake (2022) stress + grain-size dependent
-    stokes_compressible — Compressible Stokes (Gagliardini & Meyssonnier 1997)
+    arthern_ligtenberg  - Arthern (2010) + Ligtenberg (2011) corrections
+    herron_langway      - Herron & Langway (1980) empirical two-stage
+    kingslake           - Kingslake (2022) stress + grain-size dependent
+    stokes_compressible - Compressible Stokes (Gagliardini & Meyssonnier 1997)
 """
 import firedrake as fd
 

@@ -77,7 +77,7 @@ def _to_display(block):
 
 def _title(lab):
     t = TITLES[fp.base_label(lab)]
-    return f"{t} — {lab[2:]}" if lab.startswith("v_") else t
+    return f"{t} - {lab[2:]}" if lab.startswith("v_") else t
 
 
 def _results_with_blocks():
@@ -111,7 +111,7 @@ def figure_misfits(results):
     a hole or a mislabelled panel.
     """
     if not results:
-        print("  sp_misfits: SKIP — no output/*.json carries obs blocks.\n"
+        print("  sp_misfits: SKIP - no output/*.json carries obs blocks.\n"
               "    Run run.py first. (sp_joint_r8.json is a warm-start input:\n"
               "    it predates the current velocity physics and is not replayable.)")
         return
@@ -132,10 +132,10 @@ def figure_misfits(results):
         rms = r["diag"].get("rms_" + lab, float("nan"))
         fp.profile(ax, d, o, sig=s, pred=p, hmax=HMAX, xlabel=unit,
                    model_label=f"model ({tag})",
-                   title=f"({string.ascii_lowercase[i]}) {_title(lab)} — "
+                   title=f"({string.ascii_lowercase[i]}) {_title(lab)} - "
                          f"rms {rms:.2f}σ (N={len(d)})")
         # NB the coherent 55-63 m borehole-T warm band (~9 m wide, ~100 mK) is a
-        # suspected logging artifact — sub-diffusion-kernel and too large for
+        # suspected logging artifact - sub-diffusion-kernel and too large for
         # conductivity layering. It is carried in the kernel-consistent sigma,
         # not chased by the model. No longer annotated in-figure: the paper
         # caption discusses it.
@@ -151,7 +151,7 @@ def figure_misfits(results):
         title=f"({string.ascii_lowercase[len(order)]}) standardized residuals, all observables",
     )
 
-    fig.suptitle(f"South Pole joint assimilation — observations vs the {tag} MAP "
+    fig.suptitle(f"South Pole joint assimilation - observations vs the {tag} MAP "
                  f"(J = {r['J']:.1f})", fontsize=13)
     print(f"  sp_misfits: {fp.save(fig, FIGS / 'sp_misfits.png')}")
     plt.close(fig)
@@ -178,7 +178,7 @@ def figure_resolution():
         if p.exists():
             loaded.append((lab, json.load(open(p)), c, ls))
     if len(loaded) < 2:
-        print("  resolution_sensitivity: SKIP — need r8 plus at least one "
+        print("  resolution_sensitivity: SKIP - need r8 plus at least one "
               "refined case (sp_engine_nz200 / sp_engine_dt25).")
         return
 
@@ -209,7 +209,7 @@ def figure_resolution():
     ax.grid(alpha=0.3, color=fp.GRID)
     ax.legend(fontsize=8)
 
-    fig.suptitle("South Pole — discretisation sensitivity of the recovered histories",
+    fig.suptitle("South Pole - discretisation sensitivity of the recovered histories",
                  fontsize=12)
     print(f"  resolution_sensitivity: {fp.save(fig, FIGS / 'resolution_sensitivity.png')}")
     plt.close(fig)
@@ -219,14 +219,14 @@ def figure_profiles(results):
     """The modelled column with its observations and structure.
 
     Model profiles from the stored MAP, observations overlaid from the stored
-    blocks (density and borehole T — the observables that live in profile
+    blocks (density and borehole T - the observables that live in profile
     space; d(age)/dz and differenced velocity are gradient/differenced
     operators and belong to the misfit figure). Close-off and the derived
     column numbers are annotated so the figure answers "what column did the
     inversion settle on" at a glance.
     """
     if not results:
-        print("  sp_profiles: SKIP — no output/*.json carries model profiles.")
+        print("  sp_profiles: SKIP - no output/*.json carries model profiles.")
         return
 
     tag, r = list(results.items())[-1]
@@ -282,7 +282,7 @@ def figure_profiles(results):
                       xy=(0.04, 0.16), xycoords="axes fraction", fontsize=8,
                       bbox=dict(boxstyle="round", fc="w", alpha=0.85))
 
-    fig.suptitle(f"South Pole — modelled column at the {tag} MAP "
+    fig.suptitle(f"South Pole - modelled column at the {tag} MAP "
                  f"(dotted line: pore close-off)", fontsize=12)
     print(f"  sp_profiles: {fp.save(fig, FIGS / 'sp_profiles.png')}")
     plt.close(fig)
@@ -299,7 +299,7 @@ def figure_T_history(results):
     withT = {t: r for t, r in results.items()
              if "T_knots" in r and "knot_years" in r}
     if not withT:
-        print("  sp_T_history: SKIP — no results carry T_knots.")
+        print("  sp_T_history: SKIP - no results carry T_knots.")
         return
 
     fig, ax = plt.subplots(figsize=(9, 4.6))
@@ -339,7 +339,7 @@ def figure_T_history(results):
                     capsize=2, lw=1.1, label="Laplace marginal ±1σ")
     ax.set_xlabel("year CE")
     ax.set_ylabel("surface temperature (°C)")
-    ax.set_title("South Pole — recovered surface-temperature history "
+    ax.set_title("South Pole - recovered surface-temperature history "
                  "(datum: USP50-corrected, ≈ −51 °C firn)", fontsize=11)
     ax.grid(alpha=0.3, color=fp.GRID)
     ax.legend(fontsize=8)
@@ -355,7 +355,7 @@ def figure_reanalysis():
     """
     jp, zp = RESULTS / "sp_reanalysis.json", RESULTS / "sp_reanalysis.npz"
     if not (jp.exists() and zp.exists()):
-        print("  sp_reanalysis: SKIP — run diagnostics/reanalysis.py first.")
+        print("  sp_reanalysis: SKIP - run diagnostics/reanalysis.py first.")
         return
     r = json.load(open(jp))
     npz = np.load(zp)
@@ -434,7 +434,7 @@ def figure_reanalysis():
                  fontsize=10.5)
     fig.colorbar(pc, ax=ax, pad=0.01)
 
-    fig.suptitle(f"South Pole firn reanalysis — {r['map_file']} MAP, "
+    fig.suptitle(f"South Pole firn reanalysis - {r['map_file']} MAP, "
                  f"scenario differencing through the engine", fontsize=12.5)
     print(f"  sp_reanalysis: {fp.save(fig, FIGS / 'sp_reanalysis.png')}")
     plt.close(fig)

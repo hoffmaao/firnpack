@@ -1,4 +1,4 @@
-# South Pole observation data — provenance
+# South Pole observation data - provenance
 
 Site: South Pole (SPICEcore / SP19), 89.99°S. Curated observation CSVs for the
 FirnGrain South Pole assimilation. All small; tracked in git for reproducibility.
@@ -19,7 +19,7 @@ FirnGrain South Pole assimilation. All small; tracked in git for reproducibility
 
 1. **Borehole-T datum (+5.8 °C error).** `spicecore_borehole_T.csv` reads
    −45.5 °C at depth, but the raw USP50 thermistors (and canonical SP 10-m firn
-   T) are ≈ −51 °C — the Buizert cloud→surface offset (+5.8) was applied to this
+   T) are ≈ −51 °C - the Buizert cloud→surface offset (+5.8) was applied to this
    series in staging. The file is kept as-is for provenance; the assimilation
    applies `FIRN_T_SHIFT=-5.8` to correct it coherently. Independently confirmed
    against USP50 (601525) thermistors. **Absolute temperatures are on the
@@ -27,7 +27,7 @@ FirnGrain South Pole assimilation. All small; tracked in git for reproducibility
 
 2. **ERA5 accumulation is ~27 % low.** ERA5 net accumulation (P−E) at SP
    (~0.073 m ice/yr) is biased low vs Buizert-era climatology (0.096), the raw
-   SP19 layer thickness (~0.093), and stake farms (0.085–0.093) — the known
+   SP19 layer thickness (~0.093), and stake farms (0.085–0.093) - the known
    ERA5 plateau sublimation/dry bias. The accumulation prior uses the Buizert
    climatology, not ERA5 (`FIRN_B_CLIM`).
 

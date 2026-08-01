@@ -1,11 +1,11 @@
-"""observability.py — OSSE observation-subset ablation (single subset per run).
+"""observability.py - OSSE observation-subset ablation (single subset per run).
 
 Answers: WHICH observations make the record (T-history, accumulation) and the
 firn parameters recoverable? Runs one cold-start inversion with the observation
 subset given by env FIRN_OBS_SUBSET (comma list from {rho,age,dage,Tdeep,Tsh,v}),
 identical truth + noise realization across subsets.
 
-ALL observations are CO-LOCATED with the column (Andrew, 2026-07-12) — the
+ALL observations are CO-LOCATED with the column (Andrew, 2026-07-12) - the
 truth carries dynamic strain (ezz = -4e-5/yr) so the velocity observable "v"
 (ApRES-like differenced profile, same dRdt_diff operator as South Pole) is
 meaningful, and ezz_yr is a free control in EVERY subset (prior 0 +/- 1e-4):

@@ -36,7 +36,7 @@ MAP_PATH = fp.newest_map(R, need=("m_map",), env="FIRN_OSSE_MAP",
 TRUTH_PATH = R / "synthetic_truth.json"
 if not (MAP_PATH.exists() and TRUTH_PATH.exists()):
     missing = [str(p) for p in (MAP_PATH, TRUTH_PATH) if not p.exists()]
-    raise SystemExit(f"nothing to plot — run run.py first (missing {', '.join(missing)})")
+    raise SystemExit(f"nothing to plot - run run.py first (missing {', '.join(missing)})")
 
 mp = json.load(open(MAP_PATH))
 tr = json.load(open(TRUTH_PATH))
@@ -69,10 +69,10 @@ ax.set_ylabel("recovered / truth"); ax.set_ylim(0.7, 1.3)
 ax.set_title("(a) densification + conductivity params (±30% band; ↑↓ = off-scale)")
 ax.grid(alpha=0.3, axis="y")
 
-# (b) T-history — RECONSTRUCTION shown only over the age of the snowpack.
+# (b) T-history - RECONSTRUCTION shown only over the age of the snowpack.
 # The firn column spans a finite age (surface -> base); it can only reconstruct
 # surface T over that span. Epochs OLDER than the firn base are not a firn
-# reconstruction — they are the model's INITIALIZATION (they set the deep
+# reconstruction - they are the model's INITIALIZATION (they set the deep
 # thermal state), and their surface-T information lives in the deep-ice /
 # borehole temperature, not the firn. So we plot the recovered curve only over
 # the snowpack age and shade the older region as the initialization domain.
@@ -116,7 +116,7 @@ if "db_exp" in tr:
 ax.set_xlabel("year CE"); ax.set_ylabel("accumulation (m ice/yr)")
 ax.set_title("(c) accumulation history"); ax.legend(fontsize=9); ax.grid(alpha=0.3)
 
-fig.suptitle(f"Synthetic OSSE ({MAP_PATH.stem}) — known truth vs recovery: recalibrated sigmas, "
+fig.suptitle(f"Synthetic OSSE ({MAP_PATH.stem}) - known truth vs recovery: recalibrated sigmas, "
              "SP knot layouts, exponential recent trends in the truth", fontsize=12, y=0.99)
 fig.savefig(FIGS/"osse_recovery.png", dpi=140, bbox_inches="tight")
 print("recovery (recovered/truth):")
@@ -165,7 +165,7 @@ if mp.get("obs") and mp.get("diag"):
         rms = mp["diag"].get("rms_" + lab, float("nan"))
         fp.profile(ax, d, o, sig=s, pred=pr, hmax=HMAX, xlabel=unit,
                    model_label="recovered model", obs_label="synthetic obs ±1σ",
-                   title=f"({string.ascii_lowercase[i]}) {_M_TITLES[lab]} — "
+                   title=f"({string.ascii_lowercase[i]}) {_M_TITLES[lab]} - "
                          f"rms {rms:.2f}σ (N={len(d)})")
     resid = {}
     for lab in order:
@@ -177,7 +177,7 @@ if mp.get("obs") and mp.get("diag"):
     fp.residual_panel(axesM[len(order)], resid, hmax=HMAX,
                       title=f"({string.ascii_lowercase[len(order)]}) standardized "
                             "residuals, all observables")
-    figM.suptitle(f"Synthetic OSSE ({MAP_PATH.stem}) — recovered model vs synthetic "
+    figM.suptitle(f"Synthetic OSSE ({MAP_PATH.stem}) - recovered model vs synthetic "
                   f"observations (J = {mp['J']:.1f}); generation noise = assimilation σ",
                   fontsize=13, y=0.995)
     # explicit layout (not fp.save): reserve top strip for the suptitle so the
@@ -187,11 +187,11 @@ if mp.get("obs") and mp.get("diag"):
     print(f"  osse_misfits: {FIGS / 'osse_misfits.png'}")
     plt.close(figM)
 else:
-    print("  osse_misfits: SKIP — MAP carries no obs/diag blocks.")
+    print("  osse_misfits: SKIP - MAP carries no obs/diag blocks.")
 
 
 # ===== reanalysis figure: RECOVERED vs TRUTH height-change attribution ========
-# The OSSE's decisive test — does the inversion recover the right height-change
+# The OSSE's decisive test - does the inversion recover the right height-change
 # DRIVERS, given known truth? Recovered = solid, truth = dashed throughout.
 _RA = R / "synthetic_reanalysis.json"
 if _RA.exists():
@@ -221,7 +221,7 @@ if _RA.exists():
     ax.plot(y, np.asarray(tru["dfac_m"])[show] * 100, "--", color=C_T, lw=2, label="truth")
     ax.axhline(0, color="k", lw=0.7)
     ax.set_ylabel("ΔFAC (cm)")
-    ax.set_title("(c) firn AIR response — RECOVERED", fontsize=10.5)
+    ax.set_title("(c) firn AIR response - RECOVERED", fontsize=10.5)
     ax.legend(fontsize=8); ax.grid(alpha=0.3)
     ax.annotate(f"2015: rec {rec['dfac_m'][-1]*100:+.0f}, truth {tru['dfac_m'][-1]*100:+.0f} cm\n"
                 f"(sign + ~{abs(rec['dfac_m'][-1]/tru['dfac_m'][-1])*100:.0f}% recovered)",
@@ -242,7 +242,7 @@ if _RA.exists():
     ax.plot(y, np.asarray(tru["mass_m"])[show] * 100, ":", color=C_T, lw=1.4, label="truth mass")
     ax.axhline(0, color="k", lw=0.7)
     ax.set_ylabel("total h' (cm)")
-    ax.set_title("(e) TOTAL height change — mass term FLIPS SIGN", fontsize=10.5)
+    ax.set_title("(e) TOTAL height change - mass term FLIPS SIGN", fontsize=10.5)
     ax.legend(fontsize=7.5); ax.grid(alpha=0.3)
 
     ax = figR.add_subplot(gs[1, 2])
@@ -258,10 +258,10 @@ if _RA.exists():
     ax.set_title("(f) 2015 attribution: recovered vs truth", fontsize=10.5)
     ax.legend(fontsize=8); ax.grid(alpha=0.3, axis="y")
 
-    figR.suptitle("Synthetic OSSE reanalysis — the firn AIR response (ΔFAC) is recovered in "
-                  "sign & ~magnitude;\nthe ice-eq MASS term (hence total h') is NOT — it hinges "
+    figR.suptitle("Synthetic OSSE reanalysis - the firn AIR response (ΔFAC) is recovered in "
+                  "sign & ~magnitude;\nthe ice-eq MASS term (hence total h') is NOT - it hinges "
                   "on the unconstrained absolute-accumulation baseline", fontsize=12.5)
     print(f"  osse_reanalysis: {fp.save(figR, FIGS / 'osse_reanalysis.png')}")
     plt.close(figR)
 else:
-    print("  osse_reanalysis: SKIP — run diagnostics/reanalysis.py first.")
+    print("  osse_reanalysis: SKIP - run diagnostics/reanalysis.py first.")

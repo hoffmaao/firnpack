@@ -1,4 +1,4 @@
-"""plot_temporal_resolution.py — OSSE arbiter for the knot-density question.
+"""plot_temporal_resolution.py - OSSE arbiter for the knot-density question.
 
 Truth WITH decadal structure, inverted with coarse (22-ctrl) vs dense (87-ctrl)
 layouts from identical observations. Shows truth vs both recoveries for T(t)
@@ -59,7 +59,7 @@ ax.set_ylabel("accumulation (m ice/yr)"); ax.set_xlabel("year CE")
 ax.set_title("(b) accumulation history: decadal structure unrecoverable; dense adds spurious variance", fontsize=11)
 ax.legend(fontsize=8.5); ax.grid(alpha=0.3)
 
-fig.suptitle("OSSE temporal-resolution twin — known decadally-structured truth, identical observations,\n"
+fig.suptitle("OSSE temporal-resolution twin - known decadally-structured truth, identical observations,\n"
              "coarse vs dense knot layouts: extra temporal freedom harms, not helps", fontsize=12)
 fig.tight_layout()
 out = FIGS/"temporal_resolution_osse.png"

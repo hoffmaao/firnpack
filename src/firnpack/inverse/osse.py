@@ -1,4 +1,4 @@
-"""firnpack.inverse.osse — truth and synthetic-observation generation for OSSEs.
+"""firnpack.inverse.osse - truth and synthetic-observation generation for OSSEs.
 
 Shared by the synthetic tutorial's experiments (observation-subset ablation,
 temporal-resolution, velocity). Defines ONE truth and one noise realization
@@ -65,7 +65,7 @@ def truth_profiles(out_dir, spin=1600.0, dt=5.0, NZ=100,
 
 def dense_truth(seed=7):
     """Truth WITH decadal structure (temporal-resolution experiment):
-    the smooth truth plus seeded AR(1) decadal anomalies — b ±~5% (log),
+    the smooth truth plus seeded AR(1) decadal anomalies - b ±~5% (log),
     T ±~0.3 °C (post-1800 only; deep time stays smooth/unobservable)."""
     rng = np.random.default_rng(seed)
     By = np.arange(1000.0, 2016.0, 10.0)
@@ -133,7 +133,7 @@ def inversion_cfg(obs, out_dir, tag, spin=1600.0, dt=5.0, NZ=100, maxit=40,
                   T_years=None, B_years=None, with_ezz=False):
     """Neutral literature-prior inversion config (cold start). Custom knot
     layouts (temporal-resolution experiment) via T_years/B_years. with_ezz
-    frees uniform dynamic strain (SP prior: center 0, sigma 1e-4) — velocity
+    frees uniform dynamic strain (SP prior: center 0, sigma 1e-4) - velocity
     OSSE; default False preserves the archived observability configs."""
     Ty = T_YEARS if T_years is None else np.asarray(T_years, float)
     By = B_YEARS if B_years is None else np.asarray(B_years, float)
