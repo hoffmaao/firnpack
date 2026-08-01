@@ -55,6 +55,15 @@ script files (PETSc intercepts `python -c`):
 PYTHONPATH=src OMP_NUM_THREADS=1 python tutorials/southpole/run.py
 ```
 
+The test suite runs in two tiers. `pytest` alone runs the fast tier (the
+`slow` marker is deselected by default in `pyproject.toml`); the long-running
+end-to-end tests opt in explicitly:
+
+```bash
+pytest              # fast tier
+pytest -m slow      # long-running end-to-end tests
+```
+
 ## Layout
 
 The repository has four top-level parts: the **package**, the **tests**, the
