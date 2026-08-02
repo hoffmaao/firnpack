@@ -1,8 +1,8 @@
-"""reanalysis.py — Summit firn structure + height change from the calibrated model.
+"""reanalysis.py - Summit firn structure + height change from the calibrated model.
 
 Scenario-differencing through the shared engine's forward mode (untaped), at a
 given MAP. Summit's temperature forcing is CONSTANT (no deep thermal data), so
-unlike South Pole there is no T scenario — the firn response here is entirely
+unlike South Pole there is no T scenario - the firn response here is entirely
 accumulation-driven:
 
   CTRL : b held at the recovered year-1000 value
@@ -17,7 +17,7 @@ Firn structure: FAC(t), close-off depth (rho=830) per snapshot, and the
 density-anomaly field rho_FULL − rho_CTRL.
 
 The FULL run's J is checked against the MAP's stored J_map (guard against an
-env/error-model mismatch — legacy flags must match the MAP's vintage).
+env/error-model mismatch - legacy flags must match the MAP's vintage).
 
 Outputs (pure data; figures are plot.py's job):
   output/summit_reanalysis.json / .npz
@@ -41,7 +41,7 @@ MAP = json.load(open(OUT / MAP_NAME))
 m = MAP["m_map"]
 
 print("=" * 64)
-print(f"Summit firn reanalysis — engine forward at {MAP_NAME}, CTRL vs FULL "
+print(f"Summit firn reanalysis - engine forward at {MAP_NAME}, CTRL vs FULL "
       "(accumulation-driven; T forcing constant)")
 print(f"  MAP: " + " ".join(f"{k}={v:.4g}" for k, v in m.items()))
 print("=" * 64)
@@ -66,7 +66,7 @@ C = scenario("CTRL", warm_ctrl)
 
 jmap = MAP.get("J_map")
 if jmap is not None and abs(F["J"] - jmap) > 0.05:
-    print(f"  ** WARNING: FULL J={F['J']:.4f} != stored J_map={jmap:.4f} — "
+    print(f"  ** WARNING: FULL J={F['J']:.4f} != stored J_map={jmap:.4f} - "
           f"config/env does not match the MAP's error model **")
 
 yr = np.asarray(F["series"]["year"], float)
@@ -135,4 +135,4 @@ np.savez_compressed(
     depth=snap_z, snap_years=np.asarray(F["snaps"]["year"], float),
     rho_full=F["snaps"]["rho"], rho_ctrl=C["snaps"]["rho"],
     w_full=F["snaps"]["w"], w_ctrl=C["snaps"]["w"])
-print(f"\nSaved {OUT/'summit_reanalysis.json'} and .npz — figures: run plot.py")
+print(f"\nSaved {OUT/'summit_reanalysis.json'} and .npz - figures: run plot.py")

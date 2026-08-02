@@ -1,4 +1,4 @@
-"""tutorials/southpole/config.py — build the South Pole SiteConfig.
+"""tutorials/southpole/config.py - build the South Pole SiteConfig.
 
 Extracted verbatim from run.py so both run.py and the diagnostics under
 output/ construct the SAME config by calling build_cfg(), instead of the old
@@ -38,7 +38,7 @@ def build_cfg():
     SPIN = float(os.environ.get("FIRN_SPIN", "2500.0"))
 
     # ---- knot layouts (r8 coarse; override with FIRN_KNOTS=<json> for the
-    # temporal-sampling probe — file holds {"knot_years": [...], "b_knot_years": [...]}) ----
+    # temporal-sampling probe - file holds {"knot_years": [...], "b_knot_years": [...]}) ----
     KNOT_YEARS = np.array([1000.,1300.,1550.,1750.,1850.,1900.,1930.,1955.,1975.,1990.,2000.,2008.,2015.])
     KNOT_B_YEARS = np.array([1000.,1100.,1200.,1300.,1400.,1500.,1600.,1700.,1800.,1850.,1900.,1930.,1960.,1990.,2015.])
     _kf = os.environ.get("FIRN_KNOTS", "")
@@ -174,13 +174,13 @@ def build_cfg():
               f"median {1000*np.median(bT_sig):.0f} mK (white {1000*_t_white:.0f} mK; "
               f"depth spread {bT_sig.max()/bT_sig.min():.1f}x; thinned lag-1 {_t_acf:+.2f})")
     # ---- ApRES velocity: FIRN_VEL_SITE selects the observable ----
-    #   "pooled" (default): legacy all-site bin-median absolute velocity (chimera —
+    #   "pooled" (default): legacy all-site bin-median absolute velocity (chimera -
     #     kept only for r8/r9 reproduction).
     #   "<site>" (e.g. x11n6): that site's DIFFERENCED profile v(z)-v(z_ref)
     #     (antenna-offset immune) with n(rho) depth REGISTRATION (both pipelines
     #     assumed eps_ice=3.18; true depth > reported range in firn).
     #   "none": no velocity block (control for the site-selection screen).
-    # Default: x11n6, the same column the ezz pin is measured from — one site's
+    # Default: x11n6, the same column the ezz pin is measured from - one site's
     # strain and one site's velocity, never the pooled chimera.
     VEL_SITE = os.environ.get("FIRN_VEL_SITE", "x11n6")
     ap=pd.read_csv(DATA/"apres_vertical_velocity_processed.csv")
@@ -229,21 +229,21 @@ def build_cfg():
 
     # ---- ezz measured BELOW the firn -------------------------------------------
     # ezz is the vertical strain due to horizontal extension (less often
-    # compression). It acts on FIRN AND ICE ALIKE — the model imposes it on the
-    # whole column — but it is UNDIAGNOSABLE within the firn, where compaction
+    # compression). It acts on FIRN AND ICE ALIKE - the model imposes it on the
+    # whole column - but it is UNDIAGNOSABLE within the firn, where compaction
     # contributes to the same apparent vertical strain rate. The two enter the firn
     # velocity gradient as a SUM, so no amount of ApRES precision separates them;
     # that confound (not any operator bug) is why the inverted ezz flipped twice.
     #
     # Below close-off compaction ceases and n(z)=n_ice, so the reported range rate
-    # dR/dt IS w(z) and ezz = d(dR/dt)/dz — a straight slope, with no densification
+    # dR/dt IS w(z) and ezz = d(dR/dt)/dz - a straight slope, with no densification
     # model, no refractive-index operator and no null space. Measure it there,
     # impose it on the whole column, and the firn dR/dt profile is freed to TEST
     # densification instead of fighting for ezz.
     #
     # Uncertainty by Zeising's own method (phase errors weight the fit, residual
     # scatter sets the covariance). Andrew 2026-07-14: pin it hard with the fit
-    # error — i.e. adopt the selected column's measured strain as the core's. The
+    # error - i.e. adopt the selected column's measured strain as the core's. The
     # pin is hard, so the value and the error both have to survive scrutiny; three
     # corrections to the first cut (2026-07-15), each of which loosened it:
     #
@@ -251,25 +251,25 @@ def build_cfg():
     #     slope is 13 sigma from the 127-864 m one. So the window is a real choice,
     #     and it is FIRN_EZZ_ZMIN -> FIRN_EZZ_ZMAX. See the window note below.
     #  2. SANDWICH COVARIANCE. The estimator is WEIGHTED least squares, so the
-    #     covariance must be too. Zeising's menke_fit uses inv(G'G) — the OLS normal
-    #     matrix — and we deliberately depart from it here: his weights would have to
+    #     covariance must be too. Zeising's menke_fit uses inv(G'G) - the OLS normal
+    #     matrix - and we deliberately depart from it here: his weights would have to
     #     be near-uniform for that to hold, and ours span ~45x in this window.
     #  3. AUTOCORRELATION. The range bins are 6 m windows stepped 2 m, i.e. ~3x
     #     oversampled, so the raw residuals are correlated (lag-1 0.59 here) and
     #     an i.i.d. variance would understate the slope error. We THIN [::3] to
-    #     independent samples — the same choice the firn velocity block already
-    #     makes — rather than inflating by a rho-dependent factor, because thinning
+    #     independent samples - the same choice the firn velocity block already
+    #     makes - rather than inflating by a rho-dependent factor, because thinning
     #     is checkable: the printed lag-1 of the thinned residuals shows whether it
     #     worked (it lands at -0.22). The cost is N, which the sigma then reflects.
     #
     # NOTE: Zeising's published vsr_per_year fits from cfg.firn_depth_m = 100 m
     # (apres/config.py:158), which is ABOVE SP's close-off (~127 m), so it still
-    # carries ~27 m of firn compaction — that shifts x11n0 by 38%. Hence our own
+    # carries ~27 m of firn compaction - that shifts x11n0 by 38%. Hence our own
     # refit over a deeper window.
     #
     # ---- THE WINDOW: 250-500 m (Andrew 2026-07-15). Measured, not assumed. ------
     # Why not start at close-off (~127 m)? Because 127 m is OUR OWN MODELLED
-    # close-off — an output of the very density solution ezz feeds into — so a hard
+    # close-off - an output of the very density solution ezz feeds into - so a hard
     # pin anchored there rests on a number we chose. It is also a real lever, not a
     # nominal one: over a 127-300 m window, moving zmin 127 -> 150 moves x11n6 by
     # 18% (1.8 sigma of that pin). Starting at 250 m sits clear of the close-off
@@ -290,8 +290,8 @@ def build_cfg():
     #   zmin 200/225/250/275/300 -> -1.086e-4 .. -8.66e-5; zmin=300 sits +3.7 sigma
     #     from the default. The zmin half is NOT insensitive, and this comment does
     #     not claim it is. The sub-windows stay mutually consistent given their own
-    #     (larger) errors — zmin=300 is -1.4 sigma from the default on its own
-    #     sigma of 1.9e-5 — but the pin's sigma does NOT span the zmin choice.
+    #     (larger) errors - zmin=300 is -1.4 sigma from the default on its own
+    #     sigma of 1.9e-5 - but the pin's sigma does NOT span the zmin choice.
     #     250 m is chosen for independence from the modelled close-off, NOT because
     #     the answer is insensitive to it. It is not.
     EZZ_SITE = os.environ.get("FIRN_EZZ_SITE", "x11n6")   # nearest clean site, 9.05 km
@@ -319,18 +319,18 @@ def build_cfg():
         return float(M[1]), float(np.sqrt(cov[1, 1])), float(np.sqrt(var)), len(d), acf1
 
     def _zeising_site_points(site, zref_range=30.0):
-        """One site's Zeising points and its error terms — the SINGLE definition.
+        """One site's Zeising points and its error terms - the SINGLE definition.
 
         The velocity builder and error_model_audit.py both call this, so the audit
         cannot drift from the error model actually in use (it once subtracted a
         sig_shape=3.5 mm/yr that the builder had already stopped using).
 
-        Zeising raw-burst product (proper phase errors; no 25-m smoothing — the
+        Zeising raw-burst product (proper phase errors; no 25-m smoothing - the
         pipeline-A smoothing biased firn gradients by up to 4x): 6-m fine windows
         stepped 2 m -> thin [::3] for independent samples.
-          sigma_meas = the stated phase errors (~0.003 mm/yr — negligible, but free)
+          sigma_meas = the stated phase errors (~0.003 mm/yr - negligible, but free)
           sigma_repr = residual scatter about a smooth curve, per Zeising's own
-                       menke_fit. Per-site: 3.06 (x11n6) .. 5.42 (x17s2) mm/yr —
+                       menke_fit. Per-site: 3.06 (x11n6) .. 5.42 (x17s2) mm/yr -
                        a 1.8x spread the old single 3.5 could not express. The
                        broken sites convict themselves here: x5n2 71.2, x8n0 92.6.
         """
@@ -358,7 +358,7 @@ def build_cfg():
         # a DIAGONAL sigma cannot express; carrying it in quadrature is the
         # conservative diagonal approximation, so the block's effective information
         # is somewhat LESS than these independent-looking sigmas imply. (The eref
-        # phase term below is the reference's measurement error — ~0.003 mm/yr, a
+        # phase term below is the reference's measurement error - ~0.003 mm/yr, a
         # negligible stand-in for this, which is why it alone was not enough.)
         sig = np.sqrt(d["sig_meas"]**2 + 2.0*sig_repr**2)
         print(f"  [{site}] sigma_repr = {sig_repr*1000:.2f} mm/yr (own scatter, Zeising method); "
@@ -425,8 +425,8 @@ def build_cfg():
     # ---- observation epochs (ObsBlock.year): deliberately UNTAGGED at SP -------
     # The engine supports per-block epochs (Summit needed them: its GISP2 core
     # is 26 yr older than present). SP's observations all sit within a few
-    # years of present=2015 — SP19 core 2015-16 (age datum = 2015 by
-    # construction), SPICEcore borehole T logged 2016-18, USP50 2015-16 — and
+    # years of present=2015 - SP19 core 2015-16 (age datum = 2015 by
+    # construction), SPICEcore borehole T logged 2016-18, USP50 2015-16 - and
     # the ApRES campaigns (2018-20) POSTdate present, where the engine's
     # nearest-step rule keeps the final-state path anyway. At dt=5 none of
     # these offsets reaches one time step, so tagging would change nothing
@@ -463,7 +463,7 @@ def build_cfg():
                    np.maximum(np.array([r[2]/max(r[3],1)**0.5 for r in _vr]),0.01), label="v"))
     elif VEL_SITE != "none":
         # "+"-separated multi-site: one differenced block per site (distinct labels;
-        # sites are genuinely different columns — never pool across sites)
+        # sites are genuinely different columns - never pool across sites)
         _sl = VEL_SITE.split("+")
         _build = site_vel_block_zeising if VEL_SRC == "zeising" else site_vel_block
         for _s in _sl:
@@ -472,7 +472,7 @@ def build_cfg():
                   f"({obs[-1].n} pts, ref z={obs[-1].ref_depth:.1f} m)")
     if os.environ.get("FIRN_SEAS", "0") == "1":
         # USP50 seasonal-amplitude damping IN the inversion (WKB ln-ratio operator
-        # through the on-tape k law; replaces the offline k_snow pin — the OSSE
+        # through the on-tape k law; replaces the offline k_snow pin - the OSSE
         # matrix shows mean profiles carry no k_snow info, the amplitude does).
         # obs pre-corrected for the WKB-vs-exact operator bias at s*=1.29.
         sa = pd.read_csv(DATA/"usp50_seasonal_lnratio.csv")
@@ -505,8 +505,8 @@ def build_cfg():
          ScalarCtrl("k_snow_scale",1.29,1.29,0.08,0.02,5.0,log=True)), # USP50 pin (offline)
         ScalarCtrl("k_firn_scale",1.0,1.0,0.15,0.5,2.0,log=True),
         # Basal thermal BC control (Andrew, 2026-07-11): parameterize by the basal
-        # TEMPERATURE GRADIENT G_base (K/m, warming-downward positive) — the
-        # quantity the borehole data actually constrain at a truncation boundary —
+        # TEMPERATURE GRADIENT G_base (K/m, warming-downward positive) - the
+        # quantity the borehole data actually constrain at a truncation boundary -
         # rather than the flux Q (which entangles the BC with the conductivity
         # scales; flux is now the DERIVED product q = k*G). FIRN_BASAL=Q restores
         # the r8-era flux control (needed to reproduce archived r8 exactly).

@@ -1,4 +1,4 @@
-"""stage_seasonal_obs.py — validate the in-engine WKB seasonal-damping operator
+"""stage_seasonal_obs.py - validate the in-engine WKB seasonal-damping operator
 against the exact complex harmonic BVP, and stage the USP50 observation block.
 
 The engine predicts ln A(z_j)/A(ref) = -int sqrt(w rho c / 2k) dz on the coarse

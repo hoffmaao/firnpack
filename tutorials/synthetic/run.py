@@ -1,11 +1,11 @@
-"""tutorials/synthetic/run.py — Observing System Simulation Experiment (OSSE).
+"""tutorials/synthetic/run.py - Observing System Simulation Experiment (OSSE).
 
 Method-credibility anchor: set a KNOWN truth (densification law + conductivity +
 surface-T history + accumulation history), generate synthetic observations from
 the forward model with realistic noise, then invert with the SAME engine from a
 neutral literature prior and check the MAP recovers the truth.
 
-2026-07-20 REVISION — the OSSE now tests the configuration we actually run:
+2026-07-20 REVISION - the OSSE now tests the configuration we actually run:
 
   TRUTH   : a smooth base history carrying a LARGE old-time (1000-1600)
             excursion (~3 K medieval swing, the sharpest test of the thermal
@@ -28,7 +28,7 @@ neutral literature prior and check the MAP recovers the truth.
             compaction-rate block + an ApRES-like differenced-velocity block
             (FIRN_OSSE_COMP=0 / FIRN_OSSE_VEL=0 drop those two).
   LAYOUT  : the SP 17-knot T layout (5-yr spacing toward the present;
-            knots_recent_T) and the SP 15-knot b layout — NOT truth's knots,
+            knots_recent_T) and the SP 15-knot b layout - NOT truth's knots,
             so layout error is part of the experiment.
   DEEP    : FIRN_OSSE_DEEP=1 extends the domain into the deep ice (see the
             DEEP block below) so the old climate that advected OUT of the firn
@@ -67,7 +67,7 @@ NZ = 180 if DEEP else 100
 # ---- KNOWN TRUTH ----
 TRUTH = dict(hl_k0=11.5, hl_k1=540.0, hl_Ea1=10600.0, hl_Ea2=22400.0,
              k_snow_scale=1.15, k_firn_scale=1.0, Q_base=0.045, s2_shape=0.85)
-# smooth base with a LARGE old-time (1000-1600) excursion — this is
+# smooth base with a LARGE old-time (1000-1600) excursion - this is
 # deliberate: a big pre-observable-window signal is the sharpest test of the
 # thermal null space (if even a 3 K medieval swing is not recovered, the old
 # record is unobservable, not merely under-signalled). 1000 cold, 1300 warm,
@@ -109,7 +109,7 @@ def make_cfg(scalars, T_knots, b_knots, obs, tag, maxit=80):
 
 # ---- dynamic vertical strain (ezz) in the truth (FIRN_OSSE_EZZ, /yr) --------
 # 0 = pure firn (the archived trend OSSE); nonzero exercises the ezz
-# decomposition — the truth velocity then carries dynamic thinning that the
+# decomposition - the truth velocity then carries dynamic thinning that the
 # density/dage blocks are BLIND to, so recovering it REQUIRES the velocity
 # block paired with a below-firn ezz constraint (the South Pole mechanism).
 EZZ_TRUTH = float(os.environ.get("FIRN_OSSE_EZZ", "0.0"))
@@ -151,7 +151,7 @@ for cc in np.arange(6.0, H0 - 1.0, 2.0):
     dc.append(cc); do_.append(sl); dsg.append(max(0.085 * abs(sl), 0.15))
 dc = np.array(dc); do_ = np.array(do_); dsg = np.array(dsg)
 dage_obs = do_ + rng.normal(0, dsg)
-# borehole T: ONE consistent block — a single instrument's profile through the
+# borehole T: ONE consistent block - a single instrument's profile through the
 # firn (13-125 m, 7-m spacing) at SP's kernel-consistent sigma (depth-dependent:
 # SP's realized span is 25-85 mK about a 67 mK median; the profile sampled below
 # spans 27-68 mK), extended in DEEP mode straight down the same log into the
@@ -190,7 +190,7 @@ if os.environ.get("FIRN_OSSE_TSH", "0") == "1":
 # ---- synthetic firn-compaction-rate block (FirnCover coils) -----------------
 # A direct densification-RATE observable: material intervals [ztop, zbot] whose
 # shortening rate = (w@ztop - w@zbot) is measured. Mirrors the Summit FirnCover
-# coils — physical wire coils on material intervals, NOT ApRES (the ApRES
+# coils - physical wire coils on material intervals, NOT ApRES (the ApRES
 # analog here is the differenced-velocity block below). ~8-12% sigma. Tests
 # whether the RATE observable improves recovery of the law/accumulation.
 # FIRN_OSSE_COMP=0 drops it (before/after comparison against synthetic_osse_trend).
@@ -264,7 +264,7 @@ T_ctr = np.full(len(INV_TY), -51.5)             # flat neutral prior
 # without touching the data-derived observation sigma.
 _TSIG_DEEP = float(os.environ.get("FIRN_OSSE_TPRIOR_DEEP", "0.6"))
 # In DEEP mode the pre-1600 knots are OBSERVABLE via the deep borehole, so they
-# must NOT be pinned — only the very oldest (near/below the domain base, ~pre-
+# must NOT be pinned - only the very oldest (near/below the domain base, ~pre-
 # -500 CE) are still initialization and keep a tight prior.
 _pin_before = -500.0 if DEEP else 1600.0
 T_sig = np.where(INV_TY <= _pin_before, _TSIG_DEEP, 0.6)

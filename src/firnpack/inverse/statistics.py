@@ -1,4 +1,4 @@
-"""firnpack.inverse.statistics — icepack-style data assimilation problem/solver.
+"""firnpack.inverse.statistics - icepack-style data assimilation problem/solver.
 
 Modelled on icepack's ``StatisticsProblem`` + ``MaximumProbabilityEstimator``
 (``icepack/statistics.py``): a passive problem object holds the four pieces of an
@@ -18,14 +18,14 @@ Two deliberate divergences from icepack, both forced by firn:
   it in the icepack object shape rather than adopting ROL.
 
 * **loss/regularization return objective scalars, not forms.** icepack's
-  observable is a field and its loss is ``∫(u-u_obs)² dx`` — one assemblable
+  observable is a field and its loss is ``∫(u-u_obs)² dx`` - one assemblable
   form. firn observables are kernel-averaged point predictions, so the misfit is
   a sum of scalar residuals²; ``loss_functional(state)`` and
   ``regularization(controls)`` therefore return the on-tape objective
   contribution (an ``AdjFloat``) directly, and ``solve`` sums them into J.
 
 ``simulation`` stays a plain callable, so callers evaluate the forward at any
-controls for diagnostics or truth-synthesis without touching the optimiser —
+controls for diagnostics or truth-synthesis without touching the optimiser -
 exactly as icepack's tests and notebooks call ``simulation(θ)`` directly.
 """
 from __future__ import annotations
@@ -73,7 +73,7 @@ class StatisticsProblem:
         ``solve`` cannot mutate the caller's initial guess. firnpack's
         ``simulation`` reads the controls through deep closure capture (params →
         model → forms), so the forward model and the stored controls must be the
-        *same* objects — the firn factory passes ``copy_controls=False``.
+        *same* objects - the firn factory passes ``copy_controls=False``.
     bounds
         Optional box bounds aligned with ``controls`` as a list of ``(lo, hi)``
         in the controls' internal coordinates (log-space where the control is
@@ -137,7 +137,7 @@ class StatisticsProblem:
 
         1.0 for ordinary Function controls. For firn's Real-space (mesh-attached
         scalar) controls the raw gradient is integral-normalised, so the true
-        derivative is ``raw * domain_length`` — the factor the historical engine
+        derivative is ``raw * domain_length`` - the factor the historical engine
         applied as ``*dlen``.
         """
         return self._grad_scale

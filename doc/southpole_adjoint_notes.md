@@ -1,12 +1,13 @@
-# South Pole Firn Inversion — Working Notes
+# South Pole Firn Inversion - Working Notes
 
-> **⚠️ 2026-06 UPDATE — much of the history below is SUPERSEDED.**
-> The inversion now WORKS end-to-end. **Read `scripts/assimilation/HANDOFF.md` first.**
+> **⚠️ 2026-06 UPDATE - much of the history below is SUPERSEDED.**
+> The inversion now WORKS end-to-end. **Read `doc/southpole_inversion_handoff.md` first.**
 > The old "H&L can't fit / max density 646 / degenerate MAP" conclusions were setup
 > bugs (under-spinup, −50 °C forcing, pyadjoint tape-replay), NOT physics. With those
 > fixed, a 12-control joint inversion fits density+age+velocity+temperature and
-> recovers densification + firn conductivity + a surface-T history. See HANDOFF.md
-> and the `sp_*` memory notes. The notes below are kept for historical context only.
+> recovers densification + firn conductivity + a surface-T history. See
+> `doc/southpole_inversion_handoff.md`. The notes below are kept for historical
+> context only.
 
 ## Overview
 
@@ -27,7 +28,7 @@ Scripts in `scripts/herron_langway/` (H&L model) and `scripts/{arthern,kingslake
 ## Temperature Forcing
 
 > **⚠ 2026-07-05 DATUM CORRECTION.** The claim below that "borehole deep
-> temperature is ~−45.5 C" is WRONG — `processed/spicecore_borehole_T.csv`
+> temperature is ~−45.5 C" is WRONG - `processed/spicecore_borehole_T.csv`
 > carries the +5.8 offset applied to the wrong series at staging. Raw USP50
 > thermistors (data/usap_dc/601525, uncorrected) measure 20–40 m firn at
 > −50.8..−51.3 C, matching (staged − 5.8) exactly, and the canonical SP 10-m
@@ -35,7 +36,7 @@ Scripts in `scripts/herron_langway/` (H&L model) and `scripts/{arthern,kingslake
 > reproducibility; r5b+ inversions apply `FIRN_T_SHIFT=-5.8` coherently
 > (obs, prior ramp, knot bounds). All pre-r5b absolute temperatures (and the
 > "H&L rates at −45 C" statements) are in the WRONG datum; anomalies/shapes
-> are unaffected. See HANDOFF.md and memory `sp_usp50_ksnow_and_datum_bug`.
+> are unaffected. See `doc/southpole_inversion_handoff.md`.
 
 **Buizert cloud-to-surface offset: +5.8 C.**
 Buizert reconstruction is cloud temperature (~-51 C mean). Borehole deep temperature
@@ -43,12 +44,12 @@ is ~-45.5 C. The +5.8 C offset corrects for the difference between precipitating
 temperature and surface temperature. ERA5 temperatures are already surface (2m) values
 (~-45.9 C mean) and do NOT need the offset.
 
-## Inversion Scripts — Version History
+## Inversion Scripts - Version History
 
 ### v11 (working, 2026-04-16)
 - H&L, 6 controls, on-tape Buizert+ERA5 spinup
 - J: 1238 → 997, 4/6 params data-constrained
-- **No Buizert T offset** — used raw Buizert temps
+- **No Buizert T offset** - used raw Buizert temps
 - MAP: k0=11.4, k1=562, Ea1=8598, Ea2=28963 J/mol
 
 ### v12 (working)
@@ -71,19 +72,19 @@ temperature and surface temperature. ERA5 temperatures are already surface (2m) 
 
 ### v20 (H&L + corrected T, 2026-04-27)
 - H&L densification with +5.8 C Buizert offset
-- Multiple attempts — see "v20 Attempts" below
+- Multiple attempts - see "v20 Attempts" below
 
-## v20 Attempts — What We Tried
+## v20 Attempts - What We Tried
 
 ### Attempt 1: Time-varying forcing (Buizert+ERA5), no tape replay fix
-- **Result**: J_init=59,871 vs J_replay=37,059 — tape replay bug!
+- **Result**: J_init=59,871 vs J_replay=37,059 - tape replay bug!
 - Optimizer fitted the corrupted replay (constant forcing at last step's T)
-- MAP: Ea1=31,573 J/mol (3x initial) — kills densification entirely
+- MAP: Ea1=31,573 J/mol (3x initial) - kills densification entirely
 
 ### Attempt 2: Constant forcing at Buizert mean (-50 C), sig_T=0.5 C
 - Tape replay correct (J_init = J_replay = 112,078)
 - J converged to 37,732
-- **MAP: Ea1=36,085, Ea2=31,765 — again kills densification (rho stays at 350)**
+- **MAP: Ea1=36,085, Ea2=31,765 - again kills densification (rho stays at 350)**
 - Temperature data dominated objective despite icepack 1/N normalization
 - Q_base=0.036 W/m2 drove 8 C temperature gradient to fit borehole
 
@@ -94,8 +95,8 @@ temperature and surface temperature. ERA5 temperatures are already surface (2m) 
 ### Attempt 4: Time-varying forcing with pre-created R-space Constants + T_offset control
 - Forcing values as R-space Functions (created off-tape, never reassigned)
 - T_offset control (initial 0, prior sigma=1 C) makes interpolation control-dependent
-- **Result**: J_init=59,871 vs J_replay=37,058 — tape replay STILL broken!
-- Pre-created Constants don't fix the bug — the solver's internal operations
+- **Result**: J_init=59,871 vs J_replay=37,058 - tape replay STILL broken!
+- Pre-created Constants don't fix the bug - the solver's internal operations
   also have R-space assigns that get skipped
 - MAP: same bad result (Ea1=31,926, no densification)
 
@@ -103,8 +104,8 @@ temperature and surface temperature. ERA5 temperatures are already surface (2m) 
 
 ### Tape replay drift (not a simple "skip all assigns" bug)
 R-space `.assign(float_value)` calls that change per time step are NOT faithfully
-replayed by pyadjoint. The error is **not** "all steps use the last assigned value"
-— it's a gradual drift that accumulates over steps.
+replayed by pyadjoint. The error is **not** "all steps use the last assigned
+value" - it's a gradual drift that accumulates over steps.
 
 **Quantified behavior** (2026-04-28 test):
 
@@ -131,7 +132,7 @@ unnoticed because results were plausible.
 (steady-state synthetic problems don't vary T or accumulation per step).
 
 **Root cause unclear**: The exact pyadjoint mechanism causing the drift needs
-investigation. It's not a simple skip — the behavior suggests partial replay
+investigation. It's not a simple skip - the behavior suggests partial replay
 or incorrect checkpointing of R-space state.
 
 ### H&L at -50 C can't fit SP19 density
@@ -141,7 +142,7 @@ finds a degenerate solution that kills densification (extreme Ea values).
 
 This may be because:
 1. -50 C is too cold for near-surface densification (the actual surface T is -45.5 C)
-2. The H&L Arrhenius sensitivity is too strong — small T changes cause large rate changes
+2. The H&L Arrhenius sensitivity is too strong - small T changes cause large rate changes
 3. The constant-forcing steady state doesn't match the transient observed profile
 
 ### Model/framework limitations
@@ -161,7 +162,7 @@ uncertainties or forcing conventions.
    ERA5 on tape. Shorter tape = fewer blocks that can fail.
 3. **Use ERA5 mean as constant forcing**: -45.9 C is the actual surface T.
    With Q_base for geothermal, this should produce reasonable profiles.
-4. **Revisit v14 with the offset**: v14 worked — understand WHY (was it the
+4. **Revisit v14 with the offset**: v14 worked - understand WHY (was it the
    tape bug accidentally helping?)
 5. **Try the firnstokes model**: Full Stokes PDE has different coupling
    (velocity from momentum, not continuity) which may behave differently.
@@ -171,4 +172,4 @@ uncertainties or forcing conventions.
 - Inversion scripts: `scripts/herron_langway/southpole_inversion_v{11..20}_*.py`
 - Plotting: `scripts/herron_langway/plot_v{14,20}_results.py`
 - Results: `results/southpole_map_v{11..20}*.json`
-- Firnstokes (standalone): `/home/andrew/projects/firnstokes/`
+- Firnstokes (standalone): `/media/andrew/wd1/projects/firnstokes/`

@@ -1,9 +1,9 @@
-"""knot_observability.py — WHY is the initial part of the T record not recovered?
+"""knot_observability.py - WHY is the initial part of the T record not recovered?
 
 Direct test of the thermal null space: perturb each surface-T knot by +1 K in
 the truth forward and measure the RMS change it produces in the BOREHOLE-T
 observations (13-125 m). A knot the borehole cannot see (response ~ 0) is
-unrecoverable at ANY signal size — its recovered value must revert to the prior.
+unrecoverable at ANY signal size - its recovered value must revert to the prior.
 
 Reports, per knot year:
   - response (mK per K) at the borehole depths,
@@ -50,7 +50,7 @@ for i, yr in enumerate(Ty):
     rms_mK = float(np.sqrt(np.mean(dT ** 2)) * 1000)
     in_sig = float(np.sqrt(np.mean((dT / Td_sig) ** 2)))   # response in sigma units
     zpk = float(Td_d[int(np.argmax(np.abs(dT)))])
-    tag = "YES" if in_sig > 1.0 else ("marginal" if in_sig > 0.3 else "NO — null space")
+    tag = "YES" if in_sig > 1.0 else ("marginal" if in_sig > 0.3 else "NO - null space")
     rows.append((yr, rms_mK, in_sig, zpk, tag))
     print(f"{yr:6.0f}{rms_mK:15.1f}{in_sig:10.2f}{zpk:14.0f}  {tag}")
 

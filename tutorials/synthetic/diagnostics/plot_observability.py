@@ -1,4 +1,4 @@
-"""plot_observability.py — the "what does each observable buy" matrix.
+"""plot_observability.py - the "what does each observable buy" matrix.
 
 Reads the six obsv_<slug>.json results + obsv_truth_profiles.json and shows,
 per observation subset, the information fraction recovered for each target
@@ -69,16 +69,16 @@ def hist_metrics(r):
 
 rows = [q[0] for q in QUANT] + ["recent T contrast", "deep-time T(1000)", "accum b(t) shape"]
 # rows whose prior error is too small to test recovery (prior ~ truth):
-# f is ill-conditioned there — hatch them instead of coloring.
+# f is ill-conditioned there - hatch them instead of coloring.
 MIN_PERR = {"stage-1 rate": 0.05, "stage-2 rate": 0.05, "s2 (deep shape)": 0.05,
             "k_snow": 0.05, "Q_base": 0.01, "ezz (dyn. strain)": 1e-5}
 # rows that are structurally realization-dominated: the observing system's
 # precision for them is no better than the prior, so single-draw f would
 # color pure noise. Hatch with the reason instead.
 ROW_NOTE = {"ezz (dyn. strain)":
-            "not constrained at this geometry — single-profile w slope se(ezz) ≈ 1.2×10⁻⁴/yr ≥ prior σ; cells would show the noise draw",
+            "not constrained at this geometry - single-profile w slope se(ezz) ≈ 1.2×10⁻⁴/yr ≥ prior σ; cells would show the noise draw",
             "k_snow":
-            "mean T/ρ profiles carry ~no k_snow information (cells = noise/trades; same in the ezz-free archive) — the SEASONAL T amplitude does"}
+            "mean T/ρ profiles carry ~no k_snow information (cells = noise/trades; same in the ezz-free archive) - the SEASONAL T amplitude does"}
 F = np.full((len(rows), len(SUBSETS)), np.nan)
 UNTESTABLE = np.zeros(len(rows), bool)
 for i, (nm, err_fn, perr) in enumerate(QUANT):
@@ -125,7 +125,7 @@ print("f matrix (raw; negative = worse than prior):")
 print(f"{'':22s}" + "".join(f"{PRETTY[s]:>12s}" for s in SUBSETS))
 for i, nm in enumerate(rows):
     tag = " [hatched]" if (nm in ROW_NOTE or (i < len(UNTESTABLE) and UNTESTABLE[i])) else ""
-    print(f"{nm:22s}" + "".join((f"{F[i,j]:12.2f}" if np.isfinite(F[i,j]) else f"{'—':>12s}")
+    print(f"{nm:22s}" + "".join((f"{F[i,j]:12.2f}" if np.isfinite(F[i,j]) else f"{'-':>12s}")
                                 for j in range(len(SUBSETS))) + tag)
 out = FIGS/"observability_matrix.png"
 fig.savefig(out, dpi=140); print(f"Saved {out}")

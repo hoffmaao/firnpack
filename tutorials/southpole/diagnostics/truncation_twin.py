@@ -1,15 +1,15 @@
-"""truncation_twin.py — is the fixed-G basal BC at 130 m adequate?
+"""truncation_twin.py - is the fixed-G basal BC at 130 m adequate?
 
 Andrew (2026-07-13): the true gradient at 130 m = quasi-steady geothermal part
 + a transient part from the surface T-history advected/diffused down; a fixed
 G clamps the latter. Analytic scale: +/-0.5 C centennial anomalies induce
-~1 mK/m transient gradients at 130 m — same order as the fitted G (-4.4 mK/m).
+~1 mK/m transient gradients at 130 m - same order as the fitted G (-4.4 mK/m).
 
 Twin: forward at the SAME MAP (sp_r10v_pair) with
-  A: H_col=130 m (baseline; G imposed AT the data boundary — clamped), and
+  A: H_col=130 m (baseline; G imposed AT the data boundary - clamped), and
   B: H_col=300 m (NZ 230 keeps dz; spin 3200 > thermal equilibration
      300^2/kappa ~ 2400 yr; same G imposed at 300 m, where the forcing
-     window's transients are negligible — the 130-m gradient EMERGES).
+     window's transients are negligible - the 130-m gradient EMERGES).
 Report: max |dT| over the data range, per-block rms changes, and the emergent
 130-m gradient in B vs the imposed G.
 

@@ -1,11 +1,11 @@
-"""tutorials/summit/run.py — Summit (Greenland) inversion via the shared engine.
+"""tutorials/summit/run.py - Summit (Greenland) inversion via the shared engine.
 
 Recovers Summit's OWN densification law + accumulation history from density
 (composite core) + layer-gradient d(age)/dz (GISP2), under a prescribed
 near-isothermal temperature forcing (FirnCover deep-mean -28.8 C; Summit's
 12 m firn-T can't support a deep thermal inversion, so T is an input, not a
 target). Same neutral literature-H&L prior as South Pole, so the two recovered
-laws are directly comparable — the paper's transferability result.
+laws are directly comparable - the paper's transferability result.
 
 No velocity/ApRES and no deep borehole T at Summit -> those observables and the
 ezz / conductivity / Q_base controls are simply dropped (fixed).

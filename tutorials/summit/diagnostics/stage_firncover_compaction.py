@@ -34,7 +34,7 @@ DATA = HERE / "data"
 H5 = Path(os.environ.get("FIRNCOVER_H5",
                          DATA / "raw" / "FirnCoverData_2_0_2021_07_30.h5"))
 if not H5.exists():
-    raise SystemExit(f"FirnCover HDF5 not found at {H5} — set FIRNCOVER_H5 "
+    raise SystemExit(f"FirnCover HDF5 not found at {H5} - set FIRNCOVER_H5 "
                      f"or download it there (see {DATA/'README.md'})")
 OUT = DATA / "firncover_summit_compaction_raw.csv"
 
@@ -88,4 +88,4 @@ for iid in su_ids:
 out = pd.DataFrame(rows).sort_values("zbot_mean_m")
 out.to_csv(OUT, index=False)
 print(f"\nwrote {OUT} (raw fits; lag1 ~ 1 => rate_se_m_yr is NOT the "
-      f"assimilation sigma — see derive_compaction_sigma.py)")
+      f"assimilation sigma - see derive_compaction_sigma.py)")

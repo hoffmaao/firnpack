@@ -16,7 +16,7 @@ from firnpack.inverse import SiteConfig, ObsBlock, ScalarCtrl, KnotCtrl, assimil
 OUT = HERE / "output"
 _truth = OUT / "synthetic_truth.json"
 if not _truth.exists():
-    raise SystemExit(f"missing {_truth} — run tutorials/synthetic/run.py first")
+    raise SystemExit(f"missing {_truth} - run tutorials/synthetic/run.py first")
 tr = json.load(open(_truth))
 TRUTH = tr["truth"]
 Ty = np.array(tr["T_years"], float); Tv = np.array(tr["T_truth"], float)

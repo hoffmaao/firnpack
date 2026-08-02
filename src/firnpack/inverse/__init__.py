@@ -1,4 +1,4 @@
-"""firnpack.inverse — adjoint data assimilation for firn columns.
+"""firnpack.inverse - adjoint data assimilation for firn columns.
 
 The assimilation is modelled on icepack's statistics interface: a
 ``StatisticsProblem`` bundles the forward simulation, the model-data misfit

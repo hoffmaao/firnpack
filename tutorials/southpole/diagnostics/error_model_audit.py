@@ -1,4 +1,4 @@
-"""error_model_audit.py — misfits against STATED/derived measurement errors.
+"""error_model_audit.py - misfits against STATED/derived measurement errors.
 
 The model predictions don't depend on sigma, so this re-normalizes the MAP
 residuals per observation block against (a) the in-use error model and (b) the
@@ -15,7 +15,7 @@ strict stated/derived measurement errors:
 Also reports the implied representation error per block,
   sigma_repr = sqrt(max(<r^2> - sigma_meas^2, 0)),
 i.e. the sigma_repr a two-component model sigma^2 = sigma_meas^2 + sigma_repr^2
-would need for chi2/N = 1 — measured from the data, not chosen.
+would need for chi2/N = 1 - measured from the data, not chosen.
 
 Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diagnostics/error_model_audit.py
 Env: FIRN_MAP_JSON (default frozen r8), FIRN_KNOTS to match.

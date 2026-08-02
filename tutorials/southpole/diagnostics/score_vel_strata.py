@@ -1,4 +1,4 @@
-"""score_vel_strata.py — rank ApRES sites by consistency with the STRATA-ONLY model.
+"""score_vel_strata.py - rank ApRES sites by consistency with the STRATA-ONLY model.
 
 The 40-km region around South Pole carries real flow variation, so pooling all
 ApRES sites and calling their spread "noise" conflates genuine between-site
@@ -7,7 +7,7 @@ that: its sigma was ~100% between-site spread, ~70x the instrument precision).
 The right question is instead: which site is the SP strata's own column?
 
 This scores every Zeising site against a MAP inverted WITHOUT any velocity on
-the tape (default sp_r10_novel) — so the model's w(z) is implied purely by
+the tape (default sp_r10_novel) - so the model's w(z) is implied purely by
 density + depth-age + d(age)/dz + borehole T. A site consistent with the
 observed strata is predicted by that model for free; an inconsistent one is a
 different column.
@@ -18,7 +18,7 @@ inversion per site) is the expensive confirmation.
 
 Env:
   FIRN_WARM_JSON   MAP to score against   (default output/sp_r10_novel.json)
-  FIRN_HCOL_SCAN   comma list of column depths to try (default "130,300") —
+  FIRN_HCOL_SCAN   comma list of column depths to try (default "130,300") -
                    the MAP's provenance does not record FIRN_HCOL, so scan and
                    report which reproduces the MAP's logged non-velocity rms.
 
@@ -41,7 +41,7 @@ ZSITES = sorted(pd.read_csv(HERE / "data" / "apres_zeising_processed.csv").site.
 MAP_PATH = os.environ.get("FIRN_WARM_JSON", str(R / "sp_r10_novel.json"))
 # H_col=300 CONFIRMED for the r10 MAPs (2026-07-14: it reproduced r10_novel's
 # logged rms exactly, 130 did not). The old H_col scan + logged-rms probe are
-# retired — those logged values were under the SUPERSEDED error model (age
+# retired - those logged values were under the SUPERSEDED error model (age
 # block present, sigma_dage on the 4% floor), so they no longer compare.
 SCAN = [float(x) for x in os.environ.get("FIRN_HCOL_SCAN", "300").split(",")]
 LOGGED = {}
@@ -89,7 +89,7 @@ r, rms, worst = results[best_h]
 print(f"===== RANKING at H_col = {best_h:.0f} m "
       f"(max non-velocity deviation {worst:.2f}) =====")
 if worst >= 0.05:
-    print("  WARNING: no scanned H_col reproduces the MAP's logged rms — the")
+    print("  WARNING: no scanned H_col reproduces the MAP's logged rms - the")
     print("  MAP's provenance is unrecorded, so this ranking is provisional.")
 
 rows = []

@@ -1,4 +1,4 @@
-"""reanalysis.py — firn-driven surface-height change from the calibrated model.
+"""reanalysis.py - firn-driven surface-height change from the calibrated model.
 
 Scenario-differencing through the SHARED ENGINE's forward mode (untaped, so a
 2500-yr scenario is seconds, not minutes), at a given MAP. Three scenarios:
@@ -22,13 +22,13 @@ baseline-dependent by construction; report it separately, never summed blindly.
 
 Unlike the archived archive/southpole/scripts/reanalysis/sp_reanalysis.py this
 runs the ENGINE's own stepper (G_base basal BC, pinned ezz, calonne2019 k,
-s2_shape — whatever the config says), so the reanalysis is exactly the physics
+s2_shape - whatever the config says), so the reanalysis is exactly the physics
 the MAP was inverted under. The FULL run's J is checked against the MAP's
 stored J_map as a consistency guard.
 
 Outputs (pure data; figures are plot.py's job):
-  output/sp_reanalysis.json  — series + headline numbers
-  output/sp_reanalysis.npz   — profile snapshots (for the Hovmoller panel)
+  output/sp_reanalysis.json  - series + headline numbers
+  output/sp_reanalysis.npz   - profile snapshots (for the Hovmoller panel)
 
 Env: FIRN_MAP (MAP json in output/, default sp_recal.json); usual FIRN_* knobs.
 Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/southpole/diagnostics/reanalysis.py
@@ -49,7 +49,7 @@ MAP = json.load(open(OUT / MAP_NAME))
 m = MAP["m_map"]
 
 print("=" * 64)
-print(f"SP firn reanalysis — engine forward at {MAP_NAME}, CTRL vs TONLY vs FULL")
+print(f"SP firn reanalysis - engine forward at {MAP_NAME}, CTRL vs TONLY vs FULL")
 print(f"  MAP: " + " ".join(f"{k}={v:.4g}" for k, v in m.items()))
 print("=" * 64)
 
@@ -80,7 +80,7 @@ C = scenario("CTRL", warm_ctrl)
 
 jmap = MAP.get("J_map")
 if jmap is not None and abs(F["J"] - jmap) > 0.05:
-    print(f"  ** WARNING: FULL J={F['J']:.4f} != stored J_map={jmap:.4f} — "
+    print(f"  ** WARNING: FULL J={F['J']:.4f} != stored J_map={jmap:.4f} - "
           f"config/env does not match the MAP's error model **")
 
 yr = np.asarray(F["series"]["year"], float)
@@ -125,7 +125,7 @@ print(f"  h'(2015) total     = {headline['hprime_2015_cm']:+.1f} cm "
       f"b-driven {headline['hprime_b_2015_cm']:+.1f}; "
       f"of the b part, ice-eq mass {headline['mass_2015_cm']:+.1f})")
 print(f"  air part dFAC      = {headline['dfac_2015_cm']:+.1f} cm "
-      f"(T-only dFAC {headline['dfac_T_2015_cm']:+.1f} — "
+      f"(T-only dFAC {headline['dfac_T_2015_cm']:+.1f} - "
       f"cross-check vs h'_T)")
 print(f"  peak drawdown      = {headline['hprime_min_cm']:+.1f} cm @ "
       f"{headline['hprime_min_year']:.0f}")
@@ -156,4 +156,4 @@ np.savez_compressed(
     rho_full=F["snaps"]["rho"], rho_ctrl=C["snaps"]["rho"],
     T_full=F["snaps"]["T"], T_ctrl=C["snaps"]["T"],
     w_full=F["snaps"]["w"], w_ctrl=C["snaps"]["w"])
-print(f"\nSaved {OUT/'sp_reanalysis.json'} and .npz — figures: run plot.py")
+print(f"\nSaved {OUT/'sp_reanalysis.json'} and .npz - figures: run plot.py")

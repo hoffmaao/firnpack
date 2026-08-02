@@ -1,4 +1,4 @@
-"""uq_laplace.py — Laplace posterior marginals from an engine Hessian.
+"""uq_laplace.py - Laplace posterior marginals from an engine Hessian.
 
 Reads output/<tag>_hessian.json (written by FIRN_MODE=hessian) and reports,
 per control: the posterior marginal sigma, the prior sigma, and the shrinkage
@@ -8,7 +8,7 @@ sigma; T-knots in K.
 
 J includes the prior, so H is the full posterior precision; Sigma = inv(H).
 The known caveat from the archived UQ ([[sp-pp-uq-verdict]]) applies: the
-DIAGONAL of Sigma understates joint uncertainty when controls trade — the
+DIAGONAL of Sigma understates joint uncertainty when controls trade - the
 correlation table at the bottom shows the biggest trades.
 
 Env: FIRN_HESS (default sp_recal2_hessian.json).
@@ -31,7 +31,7 @@ print(f"{HP.name}: {n}x{n} block at J0={d['J0']:.4f} (tag {d['tag']})")
 # Work in PRIOR-SCALED coordinates (x/sigma_prior): J includes the prior, so
 # the scaled Hessian is ~identity + data information and its spectrum is tame
 # (the raw spectrum spans ~1e10 because the ezz pin's precision dwarfs
-# everything — any absolute ridge chosen against ev.max() there flattens every
+# everything - any absolute ridge chosen against ev.max() there flattens every
 # other marginal, which is an artifact, not a posterior).
 D = np.diag(pri)
 Hs = D @ H @ D

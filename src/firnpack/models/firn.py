@@ -977,7 +977,7 @@ class FirnModel:
           the just-solved density equation, not the densification rate
           dρ/dt alone.
         * The surface boundary value  q_s = −ḃ ρ_i / spy  is independent
-          of the surface density ρ_s — the key advantage for inversions
+          of the surface density ρ_s - the key advantage for inversions
           with ρ_s as a control.
         """
         dx = fd.dx

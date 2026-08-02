@@ -1,4 +1,4 @@
-"""firnpack.inverse.config — declarative configuration for a site assimilation.
+"""firnpack.inverse.config - declarative configuration for a site assimilation.
 
 A SiteConfig is a pure-data description of one inverse problem: the column,
 the forcing knot layouts, which scalar controls are active, and a list of
@@ -54,15 +54,15 @@ class ObsBlock:
     # <w @ zbot>) * YEAR_S, i.e. the firn densification strain integrated over
     # the interval. `depths` hold the deep (anchor) end; ztop the shallow
     # (buried-install-surface) end. No refractive index (physical coil, not
-    # radar). Independent of the density CORE — constrains the current
+    # radar). Independent of the density CORE - constrains the current
     # densification RATE.
     ztop: np.ndarray | None = None
     # Observation EPOCH (calendar year CE). None (default) = evaluated at the
-    # final state (present_year) — the historical behavior. A year tags the
+    # final state (present_year) - the historical behavior. A year tags the
     # block to the nearest simulation step, and its predictions are computed
     # from the state AT THAT STEP (on tape, so gradients flow), not the final
     # one. Matters when an observation predates the present: e.g. Summit's
-    # GISP2 layers were counted on a 1989 core — at 0.65 m/yr of snow, scoring
+    # GISP2 layers were counted on a 1989 core - at 0.65 m/yr of snow, scoring
     # them against the 2015 state misplaces them by ~15 m of burial, a bias
     # the recent accumulation knots silently absorb. Depths are relative to
     # the surface at the obs epoch, which is the surface-following frame's
@@ -96,7 +96,7 @@ class ScalarCtrl:
 
 @dataclass
 class KnotCtrl:
-    """A time-varying forcing series on knots — either inverted or prescribed.
+    """A time-varying forcing series on knots - either inverted or prescribed.
 
     values in physical units (T in C for temperature; b in m ice/yr for accum).
     If invert=True the knots are controls with the given prior; else they are

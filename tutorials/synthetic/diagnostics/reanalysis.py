@@ -1,9 +1,9 @@
-"""reanalysis.py — OSSE firn height-change attribution, RECOVERED vs TRUTH.
+"""reanalysis.py - OSSE firn height-change attribution, RECOVERED vs TRUTH.
 
 The synthetic analog of the South Pole reanalysis, with the OSSE's decisive
 extra: the truth is known, so we run the scenario differencing at BOTH the
 recovered MAP and the true forcing/law, and ask whether the inversion recovers
-the right height-change drivers — not just the right profiles.
+the right height-change drivers - not just the right profiles.
 
 Scenarios (engine forward mode, untaped, ~15 s each):
   CTRL  : T and b held at their year-1000 value
@@ -36,7 +36,7 @@ OUT = HERE / "output"
 _mapp = fp.newest_map(OUT, need=("m_map",), env="FIRN_OSSE_MAP",
                       pattern="synthetic_osse*.json")
 if _mapp is None:
-    raise SystemExit(f"no OSSE MAP in {OUT} — run tutorials/synthetic/run.py first")
+    raise SystemExit(f"no OSSE MAP in {OUT} - run tutorials/synthetic/run.py first")
 print(f"reanalysis MAP: {_mapp.name}")
 mp = json.load(open(_mapp))
 tr = json.load(open(OUT / "synthetic_truth.json"))
@@ -94,7 +94,7 @@ def attribution(params, Ty, Tv, By, Bv, label):
                 drho=(np.asarray(F["snaps"]["rho"]) - np.asarray(C["snaps"]["rho"])).tolist())
 
 
-print("OSSE reanalysis — recovered vs truth scenario differencing")
+print("OSSE reanalysis - recovered vs truth scenario differencing")
 rec = attribution(REC, REC_TY, REC_TV, REC_BY, REC_BV, "recovered")
 tru = attribution(TRU, TRU_TY, TRU_TV, TRU_BY, TRU_BV, "truth")
 

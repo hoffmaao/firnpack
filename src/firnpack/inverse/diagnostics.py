@@ -1,4 +1,4 @@
-"""firnpack.inverse.diagnostics — analysis of an assimilation result.
+"""firnpack.inverse.diagnostics - analysis of an assimilation result.
 
 Pure-numpy functions that operate on a forward-evaluation result -- the dict
 ``assimilate(cfg, mode="forward")`` returns, whose ``obs`` field is a list of

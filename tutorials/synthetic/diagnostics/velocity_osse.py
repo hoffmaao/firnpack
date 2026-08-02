@@ -1,8 +1,8 @@
-"""velocity_osse.py — vertical-velocity (ApRES-like) OSSE: what does velocity
+"""velocity_osse.py - vertical-velocity (ApRES-like) OSSE: what does velocity
 data add, and what does adopting a NON-CO-LOCATED profile cost?
 
 NOTE (2026-07-12): the PAPER OSSE assumes all observations co-located
-(Andrew) — that lives in observability.py (v is a subset member there, same
+(Andrew) - that lives in observability.py (v is a subset member there, same
 truth/operator). This script remains as the SP-motivated transfer SIDE-STUDY
 (vmis/vmis_sig); its nov/vco/vrho results were promoted into the co-located
 observability matrix (see output/*provenance fields).
@@ -16,16 +16,16 @@ same protocol is tested under KNOWN truth.
 All cases share one core-column truth (ezz = -4e-5/yr, the kinematic-scale
 value) and the same noise realizations. Cases (env FIRN_VCASE):
 
-  nov       core obs only, ezz free                — is ezz observable at all
+  nov       core obs only, ezz free                - is ezz observable at all
                                                      without velocity?
-  vco       + v co-located (same column)           — the value of velocity
-  vrho      rho + v only                           — what velocity alone (with
+  vco       + v co-located (same column)           - the value of velocity
+  vrho      rho + v only                           - what velocity alone (with
                                                      the density column) carries
-  vmis      + v from a companion column with       — TRANSFER BIAS: assimilate
+  vmis      + v from a companion column with       - TRANSFER BIAS: assimilate
             ezz = -7e-5 (spatial strain             a mismatched remote profile
             variability; the steep-regime case),    as if co-located, stated
             sigma_v = 0.012 as stated               sigma
-  vmis_sig  same, sigma_v inflated to 0.030        — does an honest transfer
+  vmis_sig  same, sigma_v inflated to 0.030        - does an honest transfer
             (cross-regime spread)                    systematic contain the bias?
 
 Key outputs per case: recovered ezz vs truth, and the bias induced in the

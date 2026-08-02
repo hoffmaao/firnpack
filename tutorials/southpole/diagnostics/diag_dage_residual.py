@@ -1,4 +1,4 @@
-"""diag_dage_residual.py — the STRUCTURE of the d(age)/dz misfit, panel (c).
+"""diag_dage_residual.py - the STRUCTURE of the d(age)/dz misfit, panel (c).
 
 Panel (c) is the biggest misfit on the figure (2.2 sigma) and d(age)/dz is the
 observable that constrains b(t), so what KIND of 2.2 sigma it is decides
@@ -12,7 +12,7 @@ Split the residual by SCALE rather than by site:
               multidecadal; a layer is ~10 yr/m, so 10 m ~ a century). If this
               dominates -> a real model/forcing bias, and b(t) is biased.
   wiggle(z) = sub-decadal oscillation. The model CANNOT represent it at any
-              control setting (memory: d(age)/dz operator has a broad NULL
+              control setting (d(age)/dz operator has a broad NULL
               SPACE at sub-decadal scales; b spikes are smeared ~4x). If this
               dominates -> representativeness, not error: the honest fix is
               the error model, not the physics.

@@ -1,4 +1,4 @@
-"""temporal_resolution.py — does denser temporal sampling of T(t)/b(t) help?
+"""temporal_resolution.py - does denser temporal sampling of T(t)/b(t) help?
 
 The OSSE arbiter for the knot-density question: a truth WITH decadal structure
 (AR(1) anomalies: b ±5% log, T ±0.3 °C post-1800) is inverted twice from the

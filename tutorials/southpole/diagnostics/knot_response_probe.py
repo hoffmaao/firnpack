@@ -1,11 +1,11 @@
-"""knot_response_probe.py — can T-knots fit the deep borehole-T residual AT ALL?
+"""knot_response_probe.py - can T-knots fit the deep borehole-T residual AT ALL?
 
 Measures each T-knot's RESPONSE FUNCTION at the borehole obs depths by direct
 perturbation (+dT on one knot, untaped engine forward, difference the T preds),
 then least-squares fits the observed T residual with the span of those
 responses. Because the LSQ ignores every other block and all priors, the
 result is an UPPER BOUND on what a re-inversion with that layout could remove
-from the T misfit — a few minutes of forwards instead of a 6-hour L-BFGS-B to
+from the T misfit - a few minutes of forwards instead of a 6-hour L-BFGS-B to
 decide whether a denser layout is worth running.
 
 Physics being tested: a surface pulse old enough to reach 60-100 m has a
@@ -70,7 +70,7 @@ np.savez(OUT / "knot_response_probe.npz", years=years, R=R, resid=resid,
 # Ridge-regularized bound: the mid-record responses are near-collinear (they
 # all peak at the column base with ~90 m FWHM), so unregularized LSQ "explains"
 # the residual with +-1e8 K amplitude combinations the 0.6 K knot prior forbids.
-# Penalize amplitudes at the prior sigma — the same weight the inversion uses —
+# Penalize amplitudes at the prior sigma - the same weight the inversion uses -
 # so the bound is what a re-inversion could ACTUALLY reach on the T block.
 PRIOR_SIG = float(cfg.T_knots.sigma)
 
