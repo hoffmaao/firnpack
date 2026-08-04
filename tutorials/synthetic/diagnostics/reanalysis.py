@@ -21,7 +21,7 @@ Output: output/synthetic_reanalysis.{json,npz} (pure data; plot.py draws it).
 Run: PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/synthetic/diagnostics/reanalysis.py
 """
 from __future__ import annotations
-import json, time
+import json, os, time
 from pathlib import Path
 import numpy as np
 from firnpack.inverse import SiteConfig, ObsBlock, ScalarCtrl, KnotCtrl, assimilate
@@ -53,8 +53,12 @@ DUMMY = [ObsBlock("rho", np.array([50.0]), np.array([600.0]), np.array([1e3]), l
 
 
 def scenario(params, Ty, Tv, By, Bv, tag):
+    # log-space only for genuinely positive scalars. Q_base is a signed flux, and
+    # ezz_yr is a signed strain rate (negative = dynamic thinning), so keying the
+    # flag off the name alone raised `math domain error` on any MAP carrying ezz.
     scal = [ScalarCtrl(k, params[k], params[k], 1.0, 1e-6, 1e9,
-                       log=(k != "Q_base"), active=False) for k in params]
+                       log=(k != "Q_base" and params[k] > 0.0), active=False)
+            for k in params]
     cfg = SiteConfig(name="SynRA", out_dir=str(OUT), tag=tag, H_col=130.0, NZ=100,
                      spin_years=2500.0, dt_years=5.0, rho_surf=350.0,
                      rho_ic_deep=820.0, rho_ic_scale=25.0, conductivity_law="calonne2019",
@@ -65,10 +69,30 @@ def scenario(params, Ty, Tv, By, Bv, tag):
     return assimilate(cfg, mode="forward", record_series=True, annotate=False, verbose=False)
 
 
+# CTRL baseline year. The default (None) pins CTRL at the OLDEST knot, which at
+# this layout is year -1000 - the knot the borehole cannot see (0.087 sigma
+# response), so its value is set by the prior, not the data. Differencing every
+# scenario against a prior-valued baseline puts that error straight into the
+# attribution. FIRN_RA_BASE_YEAR=1600 anchors CTRL at the oldest knot the
+# observations actually constrain (>=2 sigma response) instead.
+_BASE_YEAR = os.environ.get("FIRN_RA_BASE_YEAR")
+BASE_YEAR = float(_BASE_YEAR) if _BASE_YEAR else None
+
+
+def _ctrl_level(years, vals, log=False):
+    """The constant CTRL value: oldest knot by default, else the BASE_YEAR value."""
+    if BASE_YEAR is None:
+        return vals[0]
+    if log:   # interpolate accumulation in log space, as the control is optimized
+        return float(np.exp(np.interp(BASE_YEAR, years, np.log(vals))))
+    return float(np.interp(BASE_YEAR, years, vals))
+
+
 def attribution(params, Ty, Tv, By, Bv, label):
     """CTRL / TONLY / FULL for one (law, forcing) set -> attribution dict."""
     t0 = time.perf_counter()
-    Tc = np.full_like(Tv, Tv[0]); Bc = np.full_like(Bv, Bv[0])
+    Tc = np.full_like(Tv, _ctrl_level(Ty, Tv))
+    Bc = np.full_like(Bv, _ctrl_level(By, Bv, log=True))
     F = scenario(params, Ty, Tv, By, Bv, f"ra_{label}_full")
     T = scenario(params, Ty, Tv, By, Bc, f"ra_{label}_tonly")
     C = scenario(params, Ty, Tc, By, Bc, f"ra_{label}_ctrl")
@@ -95,17 +119,27 @@ def attribution(params, Ty, Tv, By, Bv, label):
 
 
 print("OSSE reanalysis - recovered vs truth scenario differencing")
+if BASE_YEAR is None:
+    print("  CTRL baseline: OLDEST knot (default)")
+else:
+    print(f"  CTRL baseline: year {BASE_YEAR:.0f}  "
+          f"(T rec {_ctrl_level(REC_TY, REC_TV):.2f} vs truth {_ctrl_level(TRU_TY, TRU_TV):.2f} C; "
+          f"b rec {_ctrl_level(REC_BY, REC_BV, log=True):.4f} vs truth "
+          f"{_ctrl_level(TRU_BY, TRU_BV, log=True):.4f} m/yr)")
 rec = attribution(REC, REC_TY, REC_TV, REC_BY, REC_BV, "recovered")
 tru = attribution(TRU, TRU_TY, TRU_TV, TRU_BY, TRU_BV, "truth")
 
-json.dump(dict(recovered=rec, truth=tru,
+# keep the default-baseline product at the canonical name so plot.py is unaffected;
+# a re-baselined run writes a suffixed file so the two can be compared side by side.
+_sfx = "" if BASE_YEAR is None else f"_base{BASE_YEAR:.0f}"
+json.dump(dict(recovered=rec, truth=tru, base_year=BASE_YEAR,
                dT_exp=tr.get("dT_exp"), db_exp=tr.get("db_exp"), tau=tr.get("tau")),
-          open(OUT / "synthetic_reanalysis.json", "w"))
-np.savez_compressed(OUT / "synthetic_reanalysis.npz",
+          open(OUT / f"synthetic_reanalysis{_sfx}.json", "w"))
+np.savez_compressed(OUT / f"synthetic_reanalysis{_sfx}.npz",
                     depth=np.asarray(rec["snap_depth"]),
                     snap_years=np.asarray(rec["snap_years"]),
                     drho_rec=np.asarray(rec["drho"]), drho_tru=np.asarray(tru["drho"]))
 h_r, h_t = rec["hprime_m"][-1] * 100, tru["hprime_m"][-1] * 100
 print(f"\nh'(2015): recovered {h_r:+.1f} cm, truth {h_t:+.1f} cm "
       f"(recovered/truth {h_r/h_t:.2f})")
-print(f"Saved {OUT/'synthetic_reanalysis.json'} and .npz")
+print(f"Saved {OUT/f'synthetic_reanalysis{_sfx}.json'} and .npz")
