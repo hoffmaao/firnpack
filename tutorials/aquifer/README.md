@@ -162,7 +162,7 @@ the retention curve as much as about climate (see Caveats).
   the mid-century climate, where it is thin and breathes with the 20-year
   forcing cycle. The refrozen fraction is nearly constant, 74-78%, so net
   recharge scales with melt, and the water table rises with it: from 45 m at
-  0.43 m w.e./yr of melt to 26 m at 0.71.
+  0.46 m w.e./yr of melt to 26 m at 0.71.
 * `recent_a72_deep` repeats `recent_a72` with the conductivity reduced
   ten-fold in the density range where it was measured. Under the downwinded
   gravity flux the two agreed to three digits, but that conclusion is
@@ -178,7 +178,7 @@ the retention curve as much as about climate (see Caveats).
   depth and the water fills down to 60 m. The recharge that reaches depth,
   19-70 kg m^-2 yr^-1, is at or below the observed 90-300; with the observed
   base the same water would stand in a thinner, shallower layer.
-* `recent_a72` (0.58 m w.e./yr of melt) is the reference: inside the RACMO
+* `recent_a72` (0.62 m w.e./yr of melt) is the reference: inside the RACMO
   melt range for these sites and the middle of the sweep.
 
 ## Caveats

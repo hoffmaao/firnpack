@@ -68,7 +68,15 @@ def load(csv_path=None):
 
 
 def model_albedo(seb, forcing):
-    """Our own ageing albedo, reset by snowfall above a threshold."""
+    """Our own ageing albedo, reset by snowfall above a threshold.
+
+    Deliberate duplicate of the ``albedo == "model"`` branch of
+    ``firnpack.aquifer.ReanalysisSite.__init__``, which applies the identical
+    rule. Kept separate because this diagnostic must keep running without the
+    column. The two must agree - this script generates the melt record the
+    ERA5 runs are judged against, so a drift would make the audit table and
+    the runs disagree about the forcing while both still look right.
+    """
     p = seb.params
     sf = forcing["snowfall"]
     step_days = forcing["block_s"] / 86400.0

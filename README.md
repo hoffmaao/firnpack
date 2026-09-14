@@ -80,7 +80,7 @@ src/firnpack/      the package - everything importable
   inverse/         shared config-driven assimilation engine
                    (SiteConfig + assimilate); the through-line for the
                    assimilation tutorials
-firnmice/        FirnMICE experiment table + column driver, shared by
+  firnmice.py      FirnMICE experiment table + column driver, shared by
                    tutorials/firnmice/run.py and the integration test
 
 tutorials/         the case studies
@@ -89,7 +89,14 @@ tutorials/         the case studies
   synthetic/       OSSE: truth -> synthetic obs -> recover (validates adjoint)
   southpole/       South Pole assimilation + reanalysis (flagship)
   summit/          Summit, Greenland assimilation (transferability)
-  aquifer/         SE Greenland firn aquifer persistence (forward, ERA5-forced)
+  aquifer/         SE Greenland firn aquifer persistence: a 1D confined
+                     column coupling densification to mixed-form Richards
+                     percolation with refreezing (forward, no inversion).
+                     run.py, four synthetic contrast cases each changing
+                     one control; run_era5.py, the real belt forced by
+                     3-hourly ERA5 through the firnpack surface energy
+                     balance; fetch_era5_aoi.py stages that forcing into
+                     data/. Methods: doc/firn_hydrology.md
 
   The three assimilation tutorials have the same shape (firnmice/ is
 forward-only: just run.py + plot.py, no config.py and no inversion):
@@ -108,19 +115,6 @@ forward-only: just run.py + plot.py, no config.py and no inversion):
   MAPs sp_joint_r8.json and usp50_k_snow_fit.json. They are results by
   provenance but inputs by use - run.py warm-starts from r8 and the plot
   scripts compare against it - so they are version-controlled deliberately.
-
-  aquifer/         firn aquifer persistence in southeast Greenland: a 1D
-                   confined column coupling densification to mixed-form
-                   Richards percolation with refreezing (no inversion).
-                   Two run scripts: run.py, four synthetic contrast cases
-                   each changing one control; run_era5.py, the real aquifer
-                   belt forced by 3-hourly ERA5 through the firnpack surface
-                   energy balance. config.py holds the column settings and
-                   the ERA5 experiment table; plot.py, plot_history.py and
-                   plot_fac_saturation.py are pure readers of output/;
-                   fetch_era5_aoi.py stages the forcing into data/ (with a
-                   provenance README); diagnostics/ has the energy-balance
-                   audit and the site/AOI maps. Methods: doc/firn_hydrology.md
 
 test/              the pytest suites (adjoint FD/Taylor, conservation, MMS,
                    percolation/refreezing), each self-contained, plus two

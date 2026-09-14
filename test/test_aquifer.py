@@ -295,8 +295,8 @@ def test_melt_does_not_add_mass_to_the_column(tmp_path):
     their melt totals must differ and their mass inputs must not.
     """
     from firnpack.aquifer import ReanalysisSite
+    from firnpack.constants import ice_density as rho_i, water_density as rho_w
 
-    rho_i, rho_w = 917.0, 1000.0
     cold = ReanalysisSite(_synthetic_forcing_csv(tmp_path / "cold.csv",
                                                  sw_peak=150.0), 2010, 2010,
                           albedo="era5")

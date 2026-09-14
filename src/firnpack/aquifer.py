@@ -77,6 +77,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, List
 
+import warnings
+
 import numpy as np
 
 try:
@@ -84,7 +86,7 @@ try:
 except Exception:  # pragma: no cover
     fd = None
 
-from firnpack.constants import year as YEAR_S, water_density
+from firnpack.constants import year as YEAR_S, ice_density, water_density
 from firnpack.models.firn import FirnModel, FirnParameters
 from firnpack.models.firn_richards import (
     FirnRichardsModel, FirnRichardsParameters,
@@ -208,18 +210,17 @@ class ReanalysisSite:
     intervals would miss most of the melt entirely.
     """
 
-    # Southeast Greenland albedo calibration. The ageing-albedo floor is the
-    # one free parameter in the melt, and it spans the aquifer outcome: at the
-    # library default of 0.60 the column floods, at ERA5's 0.85 it stays dry.
-    # The measured recharge into the Helheim aquifer is 9-30 cm/yr (J. Glaciol.
-    # hydrologic-modelling study, field data), which at the 56-70% refreezing
-    # the column shows implies gross melt of 0.3-0.7 m w.e./yr, centre ~0.45.
-    # Mapping the floor through the energy balance, in m w.e./yr over the
-    # 14 complete years 2006-2019 of the 83-year record - the authoritative
-    # copy of this mapping, which the tutorial config and data notes cite:
+    # Southeast Greenland ageing-albedo floor. It is the one free parameter in
+    # the melt and it spans the aquifer outcome - at the library default of
+    # 0.60 the column floods, at ERA5's 0.85 it stays dry - so it is swept
+    # across the experiments in tutorials/aquifer/config.py rather than fitted:
+    # calibrating the largest free knob against the runs it controls would be
+    # circular. Reference table for choosing sweep points, gross melt in
+    # m w.e./yr over the 14 complete years 2006-2019 of the 83-year record -
+    # the authoritative copy, which the tutorial config and data notes cite:
     #   0.60 -> 1.20   0.70 -> 0.71   0.72 -> 0.62   0.74 -> 0.54   0.76 -> 0.46
-    # so 0.76 reproduces the observed recharge. A site calibration, kept here
-    # with the application rather than in SurfaceEnergyParameters.
+    # This constant is one of the swept floors, and the one a caller who
+    # passes no seb_params gets; it is not a fitted value.
     ALBEDO_FIRN_SE_GREENLAND = 0.76
 
     def __init__(self, csv_path, year0, year1, *, albedo="model",
@@ -235,6 +236,8 @@ class ReanalysisSite:
 
         df = pd.read_csv(csv_path, parse_dates=["time"])
         df = df[(df["time"].dt.year >= year0) & (df["time"].dt.year <= year1)]
+        if df.empty:
+            raise SystemExit(f"no ERA5 rows for {year0}-{year1} in {csv_path}")
         df = df.dropna(
             subset=["t2m", "ssrd", "strd", "sp", "d2m", "u10", "v10", "sf"])
         if df.empty:
@@ -252,6 +255,11 @@ class ReanalysisSite:
             # Our own ageing albedo, reset by snowfall. Kept as an option
             # because ERA5's is bright (0.845 mean) for firn that melts every
             # summer, and albedo is the largest single lever on the melt.
+            # Deliberately duplicated as `model_albedo` in
+            # tutorials/aquifer/diagnostics/seb_forcing.py, which is a
+            # diagnostic that must keep running without the column. The two
+            # must agree or the audit table and the runs disagree about the
+            # forcing while both still look right: change one, change both.
             step_days = float(df["sample_hours"].iloc[0]) / 24.0
             since, days = 30.0, np.empty(len(df))
             for i, snow in enumerate(df["sf"].values):
@@ -278,6 +286,22 @@ class ReanalysisSite:
             [[0.0], np.cumsum(df["sf"].values)])          # m w.e.
         self._edges = np.concatenate([self.t, [self.t[-1] + block_s / YEAR_S]])
         self.span_years = float(self._edges[-1])
+        # The record has download gaps - whole years are absent from the CSV,
+        # not present as NaN rows - so the retained blocks can cover less than
+        # the wall-clock span. Rates are per unit time actually observed:
+        # dividing a partial total by the full span reports every rate low by
+        # the missing fraction, silently. `span_years` stays the wall-clock
+        # span because it is the period the time axis wraps on.
+        self.covered_years = float(len(df) * block_s / YEAR_S)
+        self.coverage = self.covered_years / self.span_years
+        if self.coverage < 1.0 - 1e-9:
+            warnings.warn(
+                f"ERA5 window {year0}-{year1} of {csv_path} covers "
+                f"{100 * self.coverage:.1f}% of its {self.span_years:.1f}-year "
+                f"span; rates are taken over the {self.covered_years:.1f} "
+                f"years present, but the gaps still distort the trailing "
+                f"windows that cross them",
+                stacklevel=2)
 
         # The driver seeds the column from a mean and reports an amplitude, so
         # expose both from the record rather than requiring a climatology.
@@ -297,13 +321,16 @@ class ReanalysisSite:
         # balance. Driving the velocity BC with gross snowfall while also
         # injecting the melt counted that mass twice and put 30-50% more into
         # the column than the climate delivers.
-        self._ie = water_density / 917.0
+        # ice_density must be the same rho_i the surface velocity BC uses
+        # (FirnParameters.rho_i): the mass-neutrality invariant is stated in
+        # terms of it, as accum_m_ie_yr * rho_i + melt_m_we_yr * rho_w == snow.
+        self._ie = water_density / ice_density
         self._net_cum = self._snow_cum - self._melt_cum
         self.accum_m_ie_yr = float(
-            self._net_cum[-1] / self.span_years * self._ie)
+            self._net_cum[-1] / self.covered_years * self._ie)
         self.snowfall_m_ie_yr = float(
-            self._snow_cum[-1] / self.span_years * self._ie)
-        self.melt_m_we_yr = float(self._melt_cum[-1] / self.span_years)
+            self._snow_cum[-1] / self.covered_years * self._ie)
+        self.melt_m_we_yr = float(self._melt_cum[-1] / self.covered_years)
 
     def _wrap(self, t_yr):
         """Runs longer than the record repeat it rather than run dry."""
