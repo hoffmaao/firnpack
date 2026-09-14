@@ -64,10 +64,12 @@ ERA5_COLUMN = dict(
 #                m w.e./yr. Mapping and its provenance:
 #                ReanalysisSite.ALBEDO_FIRN_SE_GREENLAND in firnpack.aquifer.
 # permeability   "calonne"  Calonne et al. (2012) from density and grain size
-#                "deep0.1"  the same, reduced 10x only in firn denser than
-#                           ~600 kg/m3, where the Helheim aquifer conductivity
-#                           was measured (Miller et al. 2017) and Calonne runs
-#                           high. Whether recharge is sensitive to this
+#                "deep0.1"  the same, ramped down to 10x lower across
+#                           550-650 kg/m3 and held 10x lower in anything
+#                           denser. That band is where the Helheim aquifer
+#                           conductivity was measured (Miller et al. 2017)
+#                           and where Calonne runs high; lighter firn is
+#                           left alone. Whether recharge is sensitive to this
 #                           is an open question: the earlier "insensitive"
 #                           result was obtained with a gravity flux that
 #                           took the receiving cell's conductivity, which

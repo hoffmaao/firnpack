@@ -254,10 +254,12 @@ class FirnRichardsParameters:
     # deep correction slows percolation through the cold-wave zone and makes
     # the column refreeze 89-97% of its melt, which is what suppressed the
     # aquifer. perm_scale_deep multiplies k only above perm_rho_lo, ramping to
-    # its full value by perm_rho_hi; the default of 1.0 changes nothing.
+    # its full value by perm_rho_hi and holding it above: the band is exactly
+    # the 550-650 kg/m^3 the measurement was made in. The default of 1.0
+    # changes nothing.
     perm_scale_deep: float = 1.0
-    perm_rho_lo: float = 450.0
-    perm_rho_hi: float = 600.0
+    perm_rho_lo: float = 550.0
+    perm_rho_hi: float = 650.0
     r2_default: float = 2.5e-7
     rho_co: float = closeoff_density
     conn_exp: float = 3.0

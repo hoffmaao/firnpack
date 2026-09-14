@@ -66,8 +66,12 @@ connectivity factor that falls to zero at solid ice but is deliberately left
 non-zero below bubble close-off: close-off is gradual and wet firn keeps some
 deep mobility. An optional density-dependent correction (`perm_scale_deep`)
 applies a measured conductivity only in the density range where it was
-measured (Miller et al. 2017 measured 2.7e-4 m/s inside the Helheim aquifer,
-at 550-650 kg m^-3, where Calonne's snow-based fit runs about 10x high).
+measured: Miller et al. (2017) measured 2.7e-4 m/s inside the Helheim aquifer
+at 550-650 kg m^-3, where Calonne's snow-based fit runs about 10x high, so the
+correction ramps in over exactly that band (`perm_rho_lo` to `perm_rho_hi`)
+and holds at its full value in anything denser. In firn lighter than
+550 kg m^-3 - the near-surface firn of the cold-wave zone, where Calonne rests
+on direct snow measurements - it does nothing.
 
 ### Discretisation
 

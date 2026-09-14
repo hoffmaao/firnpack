@@ -174,9 +174,18 @@ def test_a_sealed_base_keeps_every_kilogram_in_the_column(base_run):
     assert melt > 0.0
     assert res["drained_kg_m2"] == 0.0
     assert abs(res["budget_residual_kg_m2"]) < 1e-4 * melt
-    # and the water the open base let go is still here
+    # and the water the open base let go is still here - as liquid or as ice.
+    # Comparing liquid storage alone would not show it: the retained water
+    # sits against the cold base and most of it refreezes, so the sealed
+    # column ends with slightly *less* standing water than the open one while
+    # holding more total mass. Water plus refrozen ice is the quantity the
+    # sealed base actually conserves.
     assert base_run["drained_kg_m2"] > 0.0
-    assert res["storage_kg_m2"][-1] > base_run["storage_kg_m2"][-1]
+    held = res["storage_kg_m2"][-1] + res["refreeze_cum_kg_m2"][-1]
+    held_open = (base_run["storage_kg_m2"][-1]
+                 + base_run["refreeze_cum_kg_m2"][-1])
+    assert held - held_open == pytest.approx(base_run["drained_kg_m2"],
+                                             rel=0.05)
 
 
 def test_wet_layer_reports_the_thickest_contiguous_zone():

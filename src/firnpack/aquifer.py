@@ -431,13 +431,38 @@ def wet_layer(depth_sorted: np.ndarray, theta_sorted: np.ndarray,
     Firedrake, and importing this module pulls in ``firnpack.models.firn``,
     which imports Firedrake unconditionally. Change one and change the other.
     """
-    wet = np.asarray(theta_sorted) >= theta_threshold
-    if not wet.any():
+    starts, ends = _wet_runs(theta_sorted, theta_threshold)
+    if starts is None:
         return float("nan"), float("nan")
-    edges = np.flatnonzero(np.diff(np.concatenate([[0], wet.view(np.int8), [0]])))
-    starts, ends = edges[::2], edges[1::2]
     k = int(np.argmax(ends - starts))
     return float(depth_sorted[starts[k]]), float(depth_sorted[ends[k] - 1])
+
+
+def _wet_runs(values_sorted: np.ndarray, threshold: float):
+    wet = np.asarray(values_sorted) >= threshold
+    if not wet.any():
+        return None, None
+    edges = np.flatnonzero(np.diff(np.concatenate([[0], wet.view(np.int8), [0]])))
+    return edges[::2], edges[1::2]
+
+
+def water_table_depth(depth_sorted: np.ndarray, theta_sorted: np.ndarray,
+                      theta_threshold: float) -> float:
+    """Depth of the water table: the top of the DEEPEST saturated run, or nan.
+
+    Deepest, not thickest, and the difference is deliberate. This column fills
+    from the base upward, so the deepest saturated run is the aquifer whatever
+    its thickness, and a perched lens above it is correctly ignored. Taking the
+    thickest run instead - which is the right rule for :func:`wet_layer`, where
+    the question is which zone to report the extent of - inverts the failure
+    before an aquifer forms: the only saturated run is then the shallow perched
+    layer, so the water table reads a couple of metres and everything below it
+    counts as flooded.
+    """
+    starts, _ = _wet_runs(theta_sorted, theta_threshold)
+    if starts is None:
+        return float("nan")
+    return float(depth_sorted[starts[-1]])
 
 
 def persists(res: Dict[str, Any], last_years: float = 3.0,
@@ -555,15 +580,20 @@ def run_aquifer_column(
         site.rho_surf_kg_m3
         + (params.rho_i - site.rho_surf_kg_m3) * (1.0 - fd.exp(-depth_expr / 20.0))
     )
-    w.assign(-site.accum_m_ie_yr * params.rho_i / site.rho_surf_kg_m3 / YEAR_S)
+    w.assign(-site.snowfall_m_ie_yr * params.rho_i / site.rho_surf_kg_m3
+             / YEAR_S)
     sigma.assign(0.0)
     r2.assign(float(getattr(params, "r2_surf", 2.5e-7)))
     age.assign(0.0)
     state = FirnState(H=H, rho=rho, w=w, sigma=sigma, r2=r2, age=age)
 
     # --- BCs for the firn half ---
-    # net: this builds the surface velocity BC, which is matrix kinematics
-    sbc = make_surface_bcs(V, params, accum=accum_net, rho_surf=rho_surf,
+    # gross for the spinup, which is dry: no melt occurs there, so the mass
+    # the column carries is the whole snowfall, and loading it at gross while
+    # feeding it at net would build an overburden the column never receives.
+    # Switched to net once the wet transient starts, where melt water does
+    # arrive through the Richards surface flux - see the switch below.
+    sbc = make_surface_bcs(V, params, accum=accum, rho_surf=rho_surf,
                            Hs_bc=Hs, surface_id=SURFACE_ID)
     bc_sigma = fd.DirichletBC(V, make_real(R, 0.0, "sig_s"), SURFACE_ID)
     bc_r2 = fd.DirichletBC(
@@ -610,6 +640,12 @@ def run_aquifer_column(
     # ------------------------------------------------------------------
     # Wet transient
     # ------------------------------------------------------------------
+    # Melt water now arrives separately, through the Richards surface flux, so
+    # the matrix influx becomes the net. Done unconditionally rather than left
+    # to the guard in the loop: for a climatological site accum_net never
+    # changes, so the guard would never fire and the BC would stay at gross.
+    update_surface_velocity_bc(sbc, params, accum_net, rho_surf)
+
     dt_s = dt_days * 86400.0
     dt.assign(dt_s)
     n_steps = int(round(run_years * YEAR_S / dt_s))
@@ -818,14 +854,14 @@ def run_aquifer_column(
             S_profiles.append(sat)
             out["fac_m"].append(float(fd.assemble(
                 model.porosity(state.rho) * dxq)))
-            # Pore space above the water table. The water table is the top of
-            # the thickest contiguous saturated zone, the same rule wet_layer
-            # applies: masking every unsaturated node instead would also
-            # subtract a near-surface melt-season wet layer sitting well above
-            # the aquifer, which is the drawdown this series exists to isolate.
-            wt_top, _ = wet_layer(depth_sorted, sat, 0.5)
-            above = (np.ones_like(por, dtype=bool) if np.isnan(wt_top)
-                     else depth_sorted < wt_top)
+            # Pore space above the water table. Masking every unsaturated
+            # node instead would also subtract a near-surface melt-season wet
+            # layer sitting well above the aquifer, which is the drawdown this
+            # series exists to isolate. With no saturated cell there is no
+            # water table, so the whole profile is above it.
+            wt = water_table_depth(depth_sorted, sat, 0.5)
+            above = (np.ones_like(por, dtype=bool) if np.isnan(wt)
+                     else depth_sorted < wt)
             # depth_sorted ascends, so integrate in that order: reversing
             # both arrays integrates from the base up and flips the sign
             out["fac_above_wt_m"].append(float(np.trapezoid(
