@@ -78,7 +78,9 @@ even the 3-hourly `snowmelt` runs at a third of an energy-balance estimate.
 Why an area: the aquifer is a belt, and the two published core sites sit in
 ERA5 cells whose elevations bracket the true ones from opposite sides. Cells
 containing bare rock are excluded by late-summer albedo; with them in, the
-melt trend was +102% instead of +23%. `data/README.md` has the details.
+melt trend was +102% instead of +23% (both at the 0.72 aged-firn albedo
+floor that `data/aquifer_annual_forcing.csv` is built at, which is the
+record `plot_history.py` reads). `data/README.md` has the details.
 
 Each experiment cycles one block of years for 80 years so the column
 equilibrates to that climate (a column started from a dry spinup carries a
@@ -112,8 +114,9 @@ python tutorials/aquifer/plot_history.py
 ```
 
 Settings come from `config.py` and are env-overridable (`AQ_YEARS`, `AQ_NZ`,
-`AQ_ERA5_YEARS`, ...). An 80-year ERA5 experiment takes about two hours on one
-core; the experiments are independent and can run in parallel.
+`AQ_ERA5_YEARS`, ...). An 80-year ERA5 experiment takes roughly 45 minutes
+on one core (measured: 2760-2790 s for the completed runs); the experiments
+are independent and can run in parallel.
 
 ## What the runs show
 

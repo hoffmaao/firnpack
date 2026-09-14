@@ -39,6 +39,14 @@ from firnpack.surface_energy import (  # noqa: E402
 
 SECONDS_PER_YEAR = 365.25 * 86400.0
 
+# The aged-firn albedo floor the tracked data/aquifer_annual_forcing.csv was
+# built at, and the default here so the command in data/README.md reproduces
+# that file. The floor is the dominant control on the melt - at the library
+# default of 0.60 every melt value in the table roughly doubles and the melt
+# trend the tutorial quotes moves from +23% to +19% - so it is recorded as a
+# column in the table rather than left implicit in whoever ran the script.
+ANNUAL_TABLE_FLOOR = 0.72
+
 
 def load(csv_path=None):
     csv_path = Path(csv_path or DATA / "era5_hourly_aoi_seb.csv.gz")
@@ -134,12 +142,15 @@ def report(forcing, res, label=""):
     return melt_yr
 
 
-def annual_table(forcing, res):
+def annual_table(forcing, res, albedo_floor):
     """Per-year melt (ours and ERA5's), snowfall and mean temperature.
 
     Only years with a complete forcing record are kept: a year with a
     partial download would report a fraction of its melt as if it were the
     whole, and plot_history draws the gaps deliberately.
+
+    ``albedo_floor`` is recorded as a column because the melt scales with
+    it and the table is a tracked artifact read by plot_history.py.
     """
     df = pd.DataFrame({
         "year": forcing["time"].year,
@@ -156,15 +167,18 @@ def annual_table(forcing, res):
                                  era5_melt_m_we=("era5_melt_m_we", "sum"),
                                  snowfall_m_we=("snowfall_m_we", "sum"),
                                  T_C=("T_C", "mean")).reset_index()
+    out["albedo_floor"] = float(albedo_floor)
     return out
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--csv", default=None)
-    ap.add_argument("--floor", type=float, default=None,
+    ap.add_argument("--floor", type=float, default=ANNUAL_TABLE_FLOOR,
                     help="aged-firn albedo floor for the annual table "
-                         "(default: the library default)")
+                         f"(default: {ANNUAL_TABLE_FLOOR}, the floor the "
+                         "tracked data/aquifer_annual_forcing.csv was built "
+                         "at; the melt in that table scales with it)")
     a = ap.parse_args()
 
     f = load(a.csv)
@@ -175,12 +189,11 @@ def main():
           f"SW down {np.nanmean(f['sw_in']):.1f} W/m2, "
           f"LW down {np.nanmean(f['lw_in']):.1f} W/m2")
 
-    seb = SurfaceEnergyBalance(SurfaceEnergyParameters(albedo_firn=a.floor)
-                               if a.floor is not None else None)
+    seb = SurfaceEnergyBalance(SurfaceEnergyParameters(albedo_firn=a.floor))
     report(f, run(f, seb, albedo="era5"), "ERA5 albedo")
     res = run(f, seb, albedo="model")
     report(f, res, f"model ageing albedo (floor {seb.params.albedo_firn:.2f})")
-    table = annual_table(f, res)
+    table = annual_table(f, res, seb.params.albedo_firn)
     out = DATA / "aquifer_annual_forcing.csv"
     table.to_csv(out, index=False, float_format="%.6g")
     print(f"\nannual table: {len(table)} complete years -> {out}")

@@ -161,6 +161,17 @@ is exact; the sub-annual phasing is approximate, which does not affect annual
 burial. If the trailing year ever goes net negative the site is ablating,
 which this column cannot represent, so runs report `ablation_steps`.
 
+The split is of the *kinematics* only. The densification sees the **gross**
+snowfall, because `bdot` in the overburden stress is a loading rate and this
+column has no runoff: every kilogram that falls stays in it, as matrix ice, as
+refrozen melt or as pore water, and all of it weighs on the firn below. So the
+driver carries two surface rates - net into the surface velocity boundary
+condition, gross into `prognostic_solve(accumulation=...)`. Feeding the net to
+both would understate the loading by the melt fraction, which slows
+densification and pushes bubble close-off deeper, and close-off depth is
+already this model's largest disagreement with the observed aquifer base
+(section 6).
+
 ## 5. Four ways the aquifer failed to appear, and what each was
 
 These are recorded because each looked like physics before it was found.
@@ -236,7 +247,8 @@ and the water table rises with it (45 to 26 m). The aquifer sits deeper than
 observed (table 10-22.5 m, base 27.7 m) because the column
 reaches bubble close-off at 50-52 m rather than ~28 m: the remaining
 discrepancy is in the densification of wet firn, not in the hydrology. Each
-80-year experiment takes about 45 minutes on one core.
+80-year experiment takes roughly 45 minutes on one core (measured:
+2760-2790 s for the completed runs).
 
 ## References
 

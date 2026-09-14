@@ -10,7 +10,7 @@ extension, so nothing else changes.
 | File | Contents | Made by |
 |------|----------|---------|
 | `era5_hourly_aoi_seb.csv.gz` | 3-hourly, 1940 on: `time, sf, tp, t2m, d2m, sp, ssrd, strd, smlt, u10, v10, fal, sample_hours`. Area mean over the ice-only ERA5 cells of the 1200-1800 m band inside 65.5-67.0 N, 40.5-38.0 W. Accumulated fields (`sf, tp, ssrd, strd, smlt`) are per 3-hour block. Rows are blank where a year has not been downloaded. | `fetch_era5_aoi.py` (download) then `fetch_era5_aoi.py --reduce` |
-| `aquifer_annual_forcing.csv` | `year, seb_melt_m_we, era5_melt_m_we, snowfall_m_we, T_C`: the annual budget of the record above through `firnpack.surface_energy` with the ageing albedo, next to ERA5's own `snowmelt` | `diagnostics/seb_forcing.py` |
+| `aquifer_annual_forcing.csv` | `year, seb_melt_m_we, era5_melt_m_we, snowfall_m_we, T_C, albedo_floor`: the annual budget of the record above through `firnpack.surface_energy` with the ageing albedo, next to ERA5's own `snowmelt`. Built at an aged-firn albedo floor of **0.72**, recorded in the `albedo_floor` column because the melt scales with it | `diagnostics/seb_forcing.py` (the floor defaults to 0.72, so the bare command reproduces the tracked file; `--floor` overrides it) |
 | `aquifer_sites.csv` | The two published aquifer sites with the ERA5 *monthly* point values at each: the monthly product gives 0.03-0.08 m w.e./yr of melt where an aquifer needs about 0.5, which is why the forcing is built from 3-hourly fields and a surface energy balance instead | `diagnostics/map_sites.py` |
 | `era5_monthly_segreenland.csv` | Monthly ERA5 at the PFA-13 point, 1990-2024 (the first-pass forcing, kept for the finding above) | `fetch_era5.py` |
 
@@ -22,7 +22,8 @@ sides, so the forcing is an area mean rather than a point value. Cells are
 kept when their ERA5 orography is inside 1200-1800 m **and** their August-
 September `forecast_albedo` is at least 0.845: any cell containing bare rock
 has a lower late-summer albedo and a spuriously strong melt trend (+102%
-1940-2019 with those cells, +23% without). 18 of the 22 band cells survive.
+1940-2019 with those cells, +23% without, both at the 0.72 albedo floor the
+annual table is built at). 18 of the 22 band cells survive.
 `diagnostics/map_aoi_optical.py` draws them on MODIS imagery.
 
 ## Sites

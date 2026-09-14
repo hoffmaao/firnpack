@@ -150,8 +150,18 @@ class AquiferSite:
         return self.T_mean_C + self.T_amp_C * np.cos(2.0 * np.pi * (phase - 0.5))
 
     def accum_m_ie_yr_at(self, t_yr: float) -> float:
-        """Accumulation rate [m ice-equivalent/yr]; constant for a climatology."""
+        """NET accumulation rate [m i.e./yr]; constant for a climatology."""
         return self.accum_m_ie_yr
+
+    def snowfall_m_ie_yr_at(self, t_yr: float) -> float:
+        """GROSS snowfall rate [m i.e./yr]: the loading rate on the firn.
+
+        ``accum_m_ie_yr`` is net of melt, so the gross total is that plus the
+        melt in ice equivalent. The two are not interchangeable: the net is
+        what buries the matrix, the gross is what weighs on it.
+        """
+        return (self.accum_m_ie_yr
+                + self.melt_m_we_yr * water_density / ice_density)
 
     def melt_flux_m_s(self, t_yr: float, dt_yr: float | None = None) -> float:
         """Surface meltwater flux [m s^-1], positive into the firn.
@@ -237,11 +247,11 @@ class ReanalysisSite:
         df = pd.read_csv(csv_path, parse_dates=["time"])
         df = df[(df["time"].dt.year >= year0) & (df["time"].dt.year <= year1)]
         if df.empty:
-            raise SystemExit(f"no ERA5 rows for {year0}-{year1} in {csv_path}")
+            raise ValueError(f"no ERA5 rows for {year0}-{year1} in {csv_path}")
         df = df.dropna(
             subset=["t2m", "ssrd", "strd", "sp", "d2m", "u10", "v10", "sf"])
         if df.empty:
-            raise SystemExit(
+            raise ValueError(
                 f"no complete ERA5 rows for {year0}-{year1} in {csv_path}: "
                 f"every row in the window is missing at least one of "
                 f"t2m, ssrd, strd, sp, d2m, u10, v10, sf")
@@ -387,6 +397,16 @@ class ReanalysisSite:
         total = self._interval(self._net_cum, t_yr, window_yr)
         return total / window_yr * self._ie
 
+    def snowfall_m_ie_yr_at(self, t_yr, window_yr=1.0):
+        """Trailing-window GROSS snowfall rate [m i.e./yr]: the loading rate.
+
+        The gross counterpart of :meth:`accum_m_ie_yr_at`, on the same
+        trailing window. Not interchangeable with it: the net buries the
+        matrix, the gross weighs on it.
+        """
+        total = self._interval(self._snow_cum, t_yr, window_yr)
+        return total / window_yr * self._ie
+
 
 # ----------------------------------------------------------------------
 # Diagnostics
@@ -494,7 +514,18 @@ def run_aquifer_column(
 
     # --- forcing scalars ---
     Ts = make_real(R, site.T_mean_C + 273.15, "Ts")
-    accum = make_real(R, site.accum_m_ie_yr, "accum")
+    # Two surface mass fluxes, not one, because their consumers want
+    # different quantities. `accum` is the GROSS snowfall and drives the
+    # densification: with no runoff every kilogram that falls stays in the
+    # column - as matrix ice, as refrozen melt, or as pore water - and all of
+    # it loads the firn below, so bdot in the overburden stress is the gross
+    # rate. `accum_net` is the snowfall that stays *matrix*, gross minus melt,
+    # and drives only the surface velocity boundary condition, which is
+    # kinematics: the melted fraction re-enters as water through the Richards
+    # surface flux, so counting it in the matrix influx too is the double
+    # count this formulation exists to remove.
+    accum = make_real(R, site.snowfall_m_ie_yr_at(0.0), "accum")
+    accum_net = make_real(R, site.accum_m_ie_yr, "accum_net")
     rho_surf = make_real(R, site.rho_surf_kg_m3, "rho_surf")
     dt = make_real(R, spinup_dt_years * YEAR_S, "dt")
     Hs = make_real(R, params.c_i * (site.T_mean_C + 273.15 - params.T_ref), "Hs")
@@ -522,7 +553,8 @@ def run_aquifer_column(
     state = FirnState(H=H, rho=rho, w=w, sigma=sigma, r2=r2, age=age)
 
     # --- BCs for the firn half ---
-    sbc = make_surface_bcs(V, params, accum=accum, rho_surf=rho_surf,
+    # net: this builds the surface velocity BC, which is matrix kinematics
+    sbc = make_surface_bcs(V, params, accum=accum_net, rho_surf=rho_surf,
                            Hs_bc=Hs, surface_id=SURFACE_ID)
     bc_sigma = fd.DirichletBC(V, make_real(R, 0.0, "sig_s"), SURFACE_ID)
     bc_r2 = fd.DirichletBC(
@@ -543,6 +575,7 @@ def run_aquifer_column(
         update_rhoCoef()
         firn_solver.prognostic_solve(
             enthalpy=state.H, density=state.rho, firn_velocity=state.w, dt=dt,
+            # gross: `accumulation` forms bdot, the overburden loading rate
             accumulation=accum, surface_density=rho_surf,
             boundary_conditions=bcs_list,
             surface_temperature=Ts, enthalpy_bc_constant=Hs,
@@ -659,6 +692,7 @@ def run_aquifer_column(
         # be refreshed - otherwise the column is buried at a constant rate no
         # matter what the record says.
         a_now = site.accum_m_ie_yr_at(t_yr)
+        g_now = site.snowfall_m_ie_yr_at(t_yr)
         if a_now < 0.0:
             # Net surface mass balance negative: the melt outruns the snowfall
             # over the trailing window, which is surface lowering. A fixed-mesh
@@ -668,9 +702,11 @@ def run_aquifer_column(
             # the mass back, which is the double count this formulation exists
             # to remove.
             ablation_steps += 1
-        if abs(a_now - float(accum.dat.data_ro[0])) > 1e-12:
-            accum.dat.data[:] = a_now
-            update_surface_velocity_bc(sbc, params, accum, rho_surf)
+        if abs(g_now - float(accum.dat.data_ro[0])) > 1e-12:
+            accum.dat.data[:] = g_now
+        if abs(a_now - float(accum_net.dat.data_ro[0])) > 1e-12:
+            accum_net.dat.data[:] = a_now
+            update_surface_velocity_bc(sbc, params, accum_net, rho_surf)
 
         firn_step(refreezing=m_prev)
 
