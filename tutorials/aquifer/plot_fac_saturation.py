@@ -139,8 +139,11 @@ def figure(runs):
         _tidy(ax)
         del cs
 
-    cb = fig.colorbar(im, ax=[a for row in axes for a in row],
-                      fraction=0.022, pad=0.015)
+    # Beside the saturation row only, which is all it describes. The bar's
+    # length is capped at aspect * fraction * row width, so with one panel the
+    # default aspect leaves it short and centred up into the FAC axis.
+    cb = fig.colorbar(im, ax=list(axes[1]), fraction=0.022, pad=0.015,
+                      aspect=40)
     cb.set_label("saturation  S = $\\theta$ / porosity", fontsize=9, color=MUTED)
     cb.ax.tick_params(colors=MUTED, labelsize=8)
     cb.outline.set_visible(False)
