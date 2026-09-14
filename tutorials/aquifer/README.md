@@ -87,6 +87,19 @@ floor is the largest free knob in the balance and is swept, not calibrated.
 Observations to compare against: water table 10-22.5 m, aquifer base 27.7 m,
 recharge 9-30 cm/yr (Montgomery et al. 2017; Miller et al. 2017).
 
+## Two things this column does not yet do
+
+* **The surface energy balance is only half coupled.** It supplies the melt
+  rate; its skin temperature and conductive flux `Q_C` are computed and
+  discarded, and the enthalpy boundary condition still prescribes the clamped
+  2 m air temperature. Closing that loop with a Neumann `Q_C` condition is the
+  next step, and is deliberately separate because it changes the thermal
+  structure that sets how much of the melt refreezes.
+* **The surface cannot lower.** The matrix influx is the net surface mass
+  balance, snowfall minus melt, taken on a trailing year. If that ever goes
+  negative the site is ablating, which a fixed-mesh Eulerian column cannot
+  represent; runs report `ablation_steps` so it is visible rather than silent.
+
 ## Running
 
 ```bash

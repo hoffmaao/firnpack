@@ -137,6 +137,30 @@ degree-day rule whose factor spanned the answer (0.26 to 0.53 m w.e./yr over
 the same forcing for 3 vs 6 mm/C/day). The aged-firn albedo floor is the
 largest remaining free parameter and is swept, not calibrated.
 
+### Surface mass balance
+
+Snowfall is the surface mass balance. Melt adds no mass and removes none: it
+converts snow that is already at the surface into water, which Richards then
+carries down. In the discrete column that is a split of the top-boundary flux
+rather than an extra inflow: the matrix influx is `snowfall - melt` and the
+water influx is `melt`, so the net crossing the surface is the snowfall
+itself. Driving the surface velocity with gross snowfall *and* injecting the
+melt counts the melted snow twice, once as the snow that fell and again as the
+water it became, which put 30-50% more mass into the ERA5-forced column than
+the climate delivers. Regression test:
+`test_melt_does_not_add_mass_to_the_column`.
+
+Applying that debit as a volumetric ice sink inside the column instead does
+not work in a fixed-mesh Eulerian model, and the reason is physical rather
+than numerical: over a melt season the melt exceeds the entire ice content of
+the top metre, so no cell can supply it, and the attempt drives the near
+surface density and enthalpy to nonsense. In reality the surface lowers. The
+debit therefore belongs at the surface, where the mass is arriving, and it is
+taken on the same trailing year as the accumulation so the annual mass balance
+is exact; the sub-annual phasing is approximate, which does not affect annual
+burial. If the trailing year ever goes net negative the site is ablating,
+which this column cannot represent, so runs report `ablation_steps`.
+
 ## 5. Four ways the aquifer failed to appear, and what each was
 
 These are recorded because each looked like physics before it was found.

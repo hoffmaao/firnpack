@@ -65,7 +65,12 @@ ERA5_COLUMN = dict(
 #                "deep0.1"  the same, reduced 10x only in firn denser than
 #                           ~600 kg/m3, where the Helheim aquifer conductivity
 #                           was measured (Miller et al. 2017) and Calonne runs
-#                           high. Recharge is insensitive to this choice.
+#                           high. Whether recharge is sensitive to this
+#                           is an open question: the earlier "insensitive"
+#                           result was obtained with a gravity flux that
+#                           took the receiving cell's conductivity, which
+#                           would be insensitive to the donor's by
+#                           construction. Withdrawn pending the re-run.
 ERA5_EXPERIMENTS = {
     "recent_a76":     (2006, 2019, 0.76, "calonne"),
     "recent_a74":     (2006, 2019, 0.74, "calonne"),

@@ -18,6 +18,10 @@ letting the atmosphere set it. The balance below returns that conductive flux,
 so the enthalpy equation can take a Neumann condition instead and the two
 halves agree on how much energy crossed the surface.
 
+That coupling is not wired yet at the driver level: :mod:`firnpack.aquifer`
+consumes only the melt rate this returns and still prescribes the surface
+temperature. ``Q_C`` and ``T_s`` are returned, and correct, and unused.
+
 The balance
 -----------
 Positive downward, all in W m^-2::

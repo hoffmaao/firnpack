@@ -47,6 +47,22 @@ WATER = LinearSegmentedColormap.from_list(
 OBS_TABLE, OBS_BASE = (10.0, 20.0), 27.7
 
 
+def _thickest_wet(depth, sat, threshold=0.5):
+    """Top and bottom of the thickest contiguous saturated zone.
+
+    Mirrors firnpack.aquifer.wet_layer. Taking the first and last saturated
+    node instead spans both the near-surface wet layer and the aquifer during
+    a melt season, reporting the dry firn between them as part of the aquifer.
+    """
+    wet = np.asarray(sat) >= threshold
+    if not wet.any():
+        return float("nan"), float("nan")
+    edges = np.flatnonzero(np.diff(np.concatenate([[0], wet.view(np.int8), [0]])))
+    starts, ends = edges[::2], edges[1::2]
+    k = int(np.argmax(ends - starts))
+    return float(depth[starts[k]]), float(depth[ends[k] - 1])
+
+
 def _tidy(ax):
     for side in ("top", "right"):
         ax.spines[side].set_visible(False)
@@ -138,9 +154,8 @@ def table(runs):
         S = np.asarray(r["S_profiles"])
         fac = np.asarray(r["fac_m"])
         last = S[-1]
-        wet = np.nonzero(last >= 0.5)[0]
-        tbl = d[wet[0]] if wet.size else float("nan")
-        thick = (d[wet[-1]] - d[wet[0]]) if wet.size > 1 else 0.0
+        tbl, base = _thickest_wet(d, last)
+        thick = (base - tbl) if np.isfinite(tbl) else 0.0
         melt = max(float(r["melt_cum_kg_m2"][-1]), 1e-9)
         refr = 100.0 * float(r["refreeze_cum_kg_m2"][-1]) / melt
         drn = 100.0 * float(r.get("drained_kg_m2", 0.0)) / melt

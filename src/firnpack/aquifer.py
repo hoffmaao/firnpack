@@ -39,6 +39,18 @@ Two solvers are stepped in sequence each step:
 2. :class:`~firnpack.solvers.firn_richards_solver.FirnRichardsSolver` advances
    the pressure head and applies phase change.
 
+The surface energy balance is only half coupled, deliberately and for now.
+:class:`~firnpack.surface_energy.SurfaceEnergyBalance` returns a skin
+temperature and a conductive flux ``Q_C`` as well as a melt rate, but only the
+melt rate is used: the column's enthalpy boundary condition still prescribes
+the clamped 2 m air temperature. That is the over-determination
+``surface_energy`` was written to remove - prescribing the surface temperature
+fixes the conductive flux to whatever the interior gradient implies instead of
+letting the atmosphere set it - so closing the loop with a Neumann ``Q_C``
+condition is the next step. It is left out here because it changes the thermal
+structure of the column, and the thermal structure is what sets how much of
+the melt refreezes, so it needs its own validation rather than riding along.
+
 Only the firn solver transports enthalpy; the Richards half touches ``H`` solely
 through the latent heat of refreezing. Running both would advect and diffuse
 ``H`` twice per step.
@@ -103,6 +115,17 @@ class AquiferSite:
     raised cosine of fixed length, independent of the temperature cycle, so
     lowering ``T_mean_C`` deepens the cold content and changes nothing else
     (see :meth:`melt_flux_m_s`).
+
+    ``accum_m_ie_yr`` is the **net** surface mass balance of the ice matrix,
+    i.e. what is left of the snowfall after the melt has been converted to
+    water. Melting adds no mass to the column and removes none: it is a phase
+    change in the surface skin, so the mass that arrives as snow and leaves
+    the matrix as melt is one and the same. The column's total mass input is
+    therefore ``accum + melt``, the gross snowfall, and a site quoting
+    ``accum_m_ie_yr=1.5`` with ``melt_m_we_yr=0.80`` is a place where about
+    2.4 m i.e./yr of snow falls and a third of it melts. Reading ``accum`` as
+    gross snowfall instead would count the melted snow twice, once as the snow
+    that fell and again as the water it became.
     """
 
     name: str
@@ -259,9 +282,20 @@ class ReanalysisSite:
         self.label = label or f"ERA5 + firnpack SEB, {year0}-{year1}"
         self.rho_surf_kg_m3 = rho_surf_kg_m3
         self.year0, self.year1 = year0, year1
-        # ice-equivalent accumulation for the surface velocity BC
+        # Net ice-equivalent accumulation for the surface velocity BC. ERA5
+        # `sf` is GROSS snowfall, and the melt derived from it is injected
+        # into the column as water, so the matrix influx has to be the
+        # snowfall that stays snow: the melted fraction leaves the matrix in
+        # the surface skin at the moment it becomes water. Net top-boundary
+        # mass flux is then the snowfall itself, which is the surface mass
+        # balance. Driving the velocity BC with gross snowfall while also
+        # injecting the melt counted that mass twice and put 30-50% more into
+        # the column than the climate delivers.
         self._ie = water_density / 917.0
+        self._net_cum = self._snow_cum - self._melt_cum
         self.accum_m_ie_yr = float(
+            self._net_cum[-1] / self.span_years * self._ie)
+        self.snowfall_m_ie_yr = float(
             self._snow_cum[-1] / self.span_years * self._ie)
         self.melt_m_we_yr = float(self._melt_cum[-1] / self.span_years)
 
@@ -303,8 +337,21 @@ class ReanalysisSite:
         return total / (dt_yr * YEAR_S)
 
     def accum_m_ie_yr_at(self, t_yr, window_yr=1.0):
-        """Trailing-year accumulation rate, so burial follows the record."""
-        total = self._interval(self._snow_cum, t_yr, window_yr)
+        """Trailing-year NET accumulation rate, so burial follows the record.
+
+        Net of melt (see ``__init__``). The debit is taken on the same
+        trailing window as the snowfall rather than instantaneously, which
+        makes the mass balance exact over a year while spreading the matrix
+        loss evenly through it instead of confining it to the melt season.
+        That approximation is deliberate: the instantaneous melt rate peaks
+        several times above the snowfall rate, so an instantaneous debit
+        would drive the net surface mass balance sharply negative for months,
+        and a negative matrix influx is surface lowering, which a fixed-mesh
+        Eulerian column cannot represent (its surface density boundary
+        condition is an inflow condition). Annual burial, which is what sets
+        whether meltwater outruns the cold wave, is unaffected.
+        """
+        total = self._interval(self._net_cum, t_yr, window_yr)
         return total / window_yr * self._ie
 
 
@@ -550,6 +597,7 @@ def run_aquifer_column(
     # theta and a final density profile.
     S_profiles: List[np.ndarray] = []
     rho_profiles: List[np.ndarray] = []
+    ablation_steps = 0
     m_prev = None
     refreeze_cum = 0.0
     melt_cum = 0.0
@@ -572,6 +620,15 @@ def run_aquifer_column(
         # be refreshed - otherwise the column is buried at a constant rate no
         # matter what the record says.
         a_now = site.accum_m_ie_yr_at(t_yr)
+        if a_now < 0.0:
+            # Net surface mass balance negative: the melt outruns the snowfall
+            # over the trailing window, which is surface lowering. A fixed-mesh
+            # Eulerian column cannot lower its surface, and its surface density
+            # condition is an inflow condition, so the result is not meaningful
+            # there. Counted rather than clamped: clamping would quietly put
+            # the mass back, which is the double count this formulation exists
+            # to remove.
+            ablation_steps += 1
         if abs(a_now - float(accum.dat.data_ro[0])) > 1e-12:
             accum.dat.data[:] = a_now
             update_surface_velocity_bc(sbc, params, accum, rho_surf)
@@ -704,6 +761,10 @@ def run_aquifer_column(
     result["elastic_storage_kg_m2"] = elastic
     # in = frozen + drained + (stored now - at the start) + elastic
     result["drained_kg_m2"] = drain_cum
+    # steps whose trailing-window surface mass balance was negative; nonzero
+    # means the column spent time outside the percolation zone this model
+    # represents (see the ablation note in the step loop)
+    result["ablation_steps"] = ablation_steps
     result["budget_residual_kg_m2"] = (
         melt_cum - refreeze_cum - drain_cum
         - (float(fd.assemble(theta_fn * dxq)) * water_density - storage0)

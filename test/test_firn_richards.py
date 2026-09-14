@@ -135,19 +135,31 @@ def test_the_gravity_facet_flux_takes_the_donor_cells_conductivity():
     assert upper == pytest.approx(K_upper, rel=1e-10)
 
 
-def test_a_saturated_head_boundary_wets_the_column_at_its_own_conductivity():
-    """The 'h' boundary is upwinded too: inflow carries the *exterior* K.
+def test_a_saturated_head_boundary_admits_water_through_the_surface():
+    """A Dirichlet head boundary lets water in, and the amount is bounded.
 
-    Same sign convention as the interior gravity flux, and the same failure if
-    it is inverted. A saturated boundary (``h = 0``) against dry firn drives
-    water in; the donor there is the boundary, not the dry interior cell, so
-    the gravity part of the influx is the boundary's conductivity. Inverted,
-    the dry cell throttles it and the column barely wets. The bound below is
-    the interior conductivity's own flux over the same time, which the
-    inverted form cannot exceed by much.
+    What this does NOT pin, despite an earlier docstring here claiming it:
+    the donor-cell convention of the boundary's gravity term. Two reasons.
+    Placed at the base, as it originally was, the outward normal is -e_z, the
+    gravity flux -K e_z points into the domain, and the exterior-conductivity
+    term 0.5*(fn_g - |fn_g|) is identically zero for every state the test can
+    reach, so the branch was never executed at all. Moved to the surface it
+    does execute, but a saturated boundary against firn at h = -5 m drives a
+    Nitsche diffusive influx about twelve times the gravity influx, so
+    inverting the gravity upwinding would barely move the total and the test
+    could not tell. The donor-cell convention is pinned instead by
+    test_the_gravity_facet_flux_uses_the_donor_cell, which assembles the term
+    directly.
+
+    What remains here is still worth keeping: the boundary admits water at
+    all, it is not throttled to the dry interior conductivity, and it cannot
+    admit more than the pore space can hold. The column is throttled by
+    perm_scale so the influx is resolvable; at full firn conductivity a
+    saturated surface floods the top cell within two steps and Newton
+    refuses it at any step size, which is physical rather than a defect.
     """
-    st = _column(h_val=-5.0)
-    st["bcs"] = {1: {"h": fd.Constant(0.0)}, 2: {"flux": fd.Constant(0.0)}}
+    st = _column(h_val=-5.0, perm_scale=1.0e-4)
+    st["bcs"] = {1: {"flux": fd.Constant(0.0)}, 2: {"h": fd.Constant(0.0)}}
     st["solver"] = FirnRichardsSolver(st["model"])
     curves, dxq = st["curves"], _dxq(st["mesh"])
     theta0 = fd.assemble(curves.moisture_content(st["head"]) * dxq)
@@ -161,10 +173,9 @@ def test_a_saturated_head_boundary_wets_the_column_at_its_own_conductivity():
     gained = fd.assemble(curves.moisture_content(st["head"]) * dxq) - theta0
     K_dry = fd.Function(st["V"]).interpolate(
         curves.relative_conductivity(fd.Constant(-5.0))).dat.data_ro.max()
-    K_wet = fd.Function(st["V"]).interpolate(
-        curves.relative_conductivity(fd.Constant(0.0))).dat.data_ro.max()
-    assert gained > 100.0 * K_dry * dt * n
-    assert gained < K_wet * dt * n            # and not more than the boundary can pass
+    pore = fd.assemble(curves.theta_s * dxq)
+    assert gained > 100.0 * K_dry * dt * n    # not throttled to the dry interior
+    assert gained < pore                      # and bounded by the pore space
 
 
 def test_mass_is_conserved_under_infiltration():

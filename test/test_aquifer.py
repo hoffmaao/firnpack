@@ -239,3 +239,78 @@ def test_the_trailing_accumulation_window_wraps_instead_of_truncating(tmp_path):
     # and a window longer than the record still averages the whole of it
     assert site.accum_m_ie_yr_at(0.3, window_yr=2.0 * site.span_years) \
         == pytest.approx(mid, rel=1e-6)
+
+
+def _synthetic_forcing_csv(path, *, sw_peak):
+    """A year of 3-hourly forcing: fixed snowfall, melt set by the shortwave.
+
+    Self-contained rather than reading the tutorial's ERA5 extract, so the
+    suite stays independent of case-study data. Only the shortwave differs
+    between the two columns the test compares, which is what changes the melt
+    while leaving the snowfall identical.
+    """
+    import pandas as pd
+
+    block_h = 3.0
+    block_s = block_h * 3600.0
+    t = pd.date_range("2010-01-01", "2010-12-31 21:00", freq="3h")
+    day = t.dayofyear.values
+    season = np.maximum(np.cos(2.0 * np.pi * (day - 195) / 365.0), 0.0)
+    diurnal = np.maximum(np.cos(2.0 * np.pi * (t.hour.values - 13) / 24.0), 0.0)
+    sw = sw_peak * season * diurnal                       # W/m2
+    df = pd.DataFrame({
+        "time": t,
+        "sf": 1.4 / len(t),                               # m w.e. per block, ~1.4 m/yr
+        "tp": 1.4 / len(t),
+        "t2m": 273.15 - 14.0 + 17.0 * season,             # peaks at +3 C
+        "d2m": 273.15 - 17.0 + 17.0 * season,
+        "sp": 84000.0,
+        "ssrd": sw * block_s,                             # accumulated over the block
+        "strd": 260.0 * block_s,
+        "smlt": 0.0,
+        "u10": 4.0,
+        "v10": 0.0,
+        "fal": 0.6,
+        "sample_hours": block_h,
+    })
+    df.to_csv(path, index=False)
+    return path
+
+
+def test_melt_does_not_add_mass_to_the_column(tmp_path):
+    """Total surface mass input is the snowfall, whatever the melt rate.
+
+    Melting adds no mass and removes none: it converts snow that is already
+    at the surface into water, which Richards then carries down. So the
+    matrix influx (the surface velocity boundary condition, accum * rho_i)
+    plus the water influx (melt * rho_w) must equal the gross snowfall,
+    independent of how much melts.
+
+    The regression: `accum_m_ie_yr` was built from ERA5 gross snowfall while
+    the melt derived from that same snowfall was injected on top of it, so
+    the melted fraction entered the column twice and the total mass input
+    rose with the melt rate. At the aquifer forcing that was 30-50% more mass
+    than the climate delivers, which inflates every aquifer result. Two
+    columns differing only in shortwave, and therefore only in melt, pin it:
+    their melt totals must differ and their mass inputs must not.
+    """
+    from firnpack.aquifer import ReanalysisSite
+
+    rho_i, rho_w = 917.0, 1000.0
+    cold = ReanalysisSite(_synthetic_forcing_csv(tmp_path / "cold.csv",
+                                                 sw_peak=150.0), 2010, 2010,
+                          albedo="era5")
+    warm = ReanalysisSite(_synthetic_forcing_csv(tmp_path / "warm.csv",
+                                                 sw_peak=400.0), 2010, 2010,
+                          albedo="era5")
+
+    # the two really do differ in melt, or the test proves nothing
+    assert warm.melt_m_we_yr > cold.melt_m_we_yr + 0.05
+
+    def mass_in(site):
+        return site.accum_m_ie_yr * rho_i + site.melt_m_we_yr * rho_w
+
+    assert cold.snowfall_m_ie_yr == pytest.approx(warm.snowfall_m_ie_yr, rel=1e-12)
+    snowfall_mass = cold.snowfall_m_ie_yr * rho_i
+    assert mass_in(cold) == pytest.approx(snowfall_mass, rel=1e-9)
+    assert mass_in(warm) == pytest.approx(snowfall_mass, rel=1e-9)
