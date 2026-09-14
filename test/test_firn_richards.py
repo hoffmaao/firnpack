@@ -393,10 +393,9 @@ def test_aquifer_perches_on_a_low_permeability_layer():
 
     # Note: this asserts perching (a raised head above the lens), not a fully
     # saturated zone. Driving it to h >= 0 needs more water than a closed
-    # column can take - with an impermeable base and no lateral outlet the head
-    # runs away instead of settling, and the solve fails. Lateral drainage is
-    # the missing term; it exists in the moisture-form model
-    # (HydrologyModel.drainage_rate) and has not been ported here yet.
+    # column can take - with an impermeable base the head runs away instead of
+    # settling, and the solve fails. In the aquifer driver the base is open and
+    # the outlet is the advective flux theta*w, not a drainage law.
 
 
 def test_free_drainage_lets_a_wet_column_drain_and_closes_the_budget():

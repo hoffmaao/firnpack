@@ -171,13 +171,6 @@ class HydrologyParameters:
     sat_width: float = 0.02   # smoothing width in saturation for the transition
     S_pot_max: float = 2.0    # cap on S used for the potential (keeps it finite)
 
-    # --- lateral drainage from the saturated zone ---------------------------
-    # Water above ``S_drain`` is removed on a timescale ``tau_drain``, a linear
-    # reservoir standing in for lateral flow to streams, crevasses and moulins.
-    # ``tau_drain = None`` (or <= 0) disables drainage, giving a closed column.
-    S_drain: float = 1.0      # saturation above which lateral loss begins
-    tau_drain: float | None = None   # drainage timescale [s]
-
     # --- numerics -----------------------------------------------------------
     # Gravity drainage is a nonlinear advection (k_rel ~ S^m), so wetting fronts
     # are near-shocks. Unstabilised CG1 oscillates across them and drives W
@@ -435,41 +428,15 @@ class HydrologyModel:
         return p.L * f / fd.max_value(rho, 1.0)
 
     # ------------------------------------------------------------------
-    # Lateral drainage
-    # ------------------------------------------------------------------
-    def drainage_rate(self, W, rho):
-        """Lateral water loss from the saturated zone [kg m^-3 s^-1].
-
-        A linear reservoir on the water held above ``S_drain``:
-
-            R = max(0, W - rho_w phi S_drain) / tau_drain
-
-        This is the term Meyer & Hewitt's closed column omits, and it is the
-        one that decides whether a firn aquifer persists: a perennial aquifer
-        requires the summer recharge reaching the water table to exceed what
-        lateral flow removes over the rest of the year. ``tau_drain`` is the
-        natural control to invert for against observed water-table depth.
-
-        Returns exactly zero when ``tau_drain`` is unset.
-        """
-        p = self.params
-        if p.tau_drain is None or p.tau_drain <= 0.0:
-            return None
-        phi = self.porosity(rho)
-        W_hold = p.rho_w * phi * fd.Constant(p.S_drain)
-        return fd.max_value(W - W_hold, 0.0) / fd.Constant(p.tau_drain)
-
-    # ------------------------------------------------------------------
     # Weak forms
     # ------------------------------------------------------------------
     def water_form(self, W, W_old, rho, w, test, dt, *,
                    grain_radius2=None,
                    surface_flux=None, surface_id=2,
-                   basal_flux=None, base_id=1,
-                   include_drainage=True):
+                   basal_flux=None, base_id=1):
         """Weak form for bulk water content ``W``.
 
-            dW/dt + d/dx[ W w + q ] = -R_drain
+            dW/dt + d/dx[ W w + q ] = 0
 
         Phase change is **not** here. Applying the freezing sink through the
         FEM mass matrix spreads a pointwise bound across neighbouring nodes, so
@@ -529,12 +496,6 @@ class HydrologyModel:
             if isinstance(basal_flux, (int, float)):
                 basal_flux = fd.Constant(float(basal_flux))
             F += basal_flux * psi * ds(int(base_id))
-
-        # --- lateral drainage ---
-        if include_drainage:
-            R = self.drainage_rate(W_mid, rho)
-            if R is not None:
-                F += R * psi * dx_m
 
         return F
 

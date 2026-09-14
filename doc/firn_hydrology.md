@@ -225,20 +225,21 @@ These are recorded because each looked like physics before it was found.
 ## 6. What the ERA5-forced column says
 
 > **Numbers below are stale and are being regenerated.** They were produced
-> before two physics fixes. First, the surface mass balance double-counted
-> melt: the surface velocity BC was driven with gross snowfall while the melt
-> derived from it was also injected as water, putting 30-50% more mass into
-> the ERA5-forced column than the climate delivers. This is the larger effect
-> on the ERA5 table. Second, the interior gravity flux took its conductivity
-> from the receiving cell rather than the donor cell, which throttles a
-> wetting front descending into dry firn and therefore biases the split
-> between refreezing in the cold-wave zone and recharge reaching depth. The
-> matrix influx is now snowfall minus melt and the flux is donor-cell
-> upwinded. The figures are kept here for comparison until the runs are
-> repeated; treat every rate and depth in this section as provisional.
+> before three physics fixes: the interior gravity flux took its conductivity
+> from the receiving cell rather than the donor cell, throttling a wetting
+> front descending into dry firn and biasing the split between refreezing in
+> the cold-wave zone and recharge reaching depth; the surface mass balance
+> double-counted melt, putting 30-50% more mass into the ERA5-forced column
+> than the climate delivers (the larger effect on the ERA5 table); and the
+> densification loading moved from the net surface mass balance to the gross
+> snowfall, which moves close-off depth. The flux is now donor-cell upwinded,
+> the matrix influx is snowfall minus melt, and the loading is the gross
+> snowfall. All ten experiments - the four synthetic contrasts as well as the
+> six ERA5 runs - are pending regeneration; the figures are kept here for
+> comparison only, and every rate and depth in this section is provisional.
 
 Full tables in `tutorials/aquifer/README.md`. In brief, produced before the
-mass-balance and gravity-flux fixes above: a perennial aquifer forms under
+three fixes above: a perennial aquifer forms under
 every aged-firn albedo
 floor from 0.76 to 0.70 (melt 0.46 to 0.71 m w.e./yr over 2006-2019), and
 under the 1940-1959 climate, where it is marginal. The refrozen fraction is

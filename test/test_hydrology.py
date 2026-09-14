@@ -1,4 +1,4 @@
-"""Percolation, refreezing, drainage and aquifer formation.
+"""Percolation, refreezing and aquifer formation.
 
 This file used to be parked: it was the original script, it asserted nothing,
 and its physics was unresolved - ``W_surf`` was pinned at 0 so no water was ever
@@ -58,14 +58,13 @@ def _column(rho_val=400.0, T_C=-5.0, W_val=0.0, **hyd_kw):
     return state
 
 
-def _run(st, *, dt=600.0, nsteps=100, melt=None, basal=None, drainage=True):
+def _run(st, *, dt=600.0, nsteps=100, melt=None, basal=None):
     tot_frozen = 0.0
     for _ in range(nsteps):
         st["H"], st["W"], m = st["solver"].prognostic_solve(
             enthalpy=st["H"], water=st["W"], density=st["rho"],
             firn_velocity=st["w"], dt=dt,
             surface_melt_flux=melt, basal_flux=basal,
-            include_drainage=drainage,
         )
         tot_frozen += fd.assemble(m * fd.dx) * dt
     return tot_frozen
@@ -131,10 +130,10 @@ def test_energy_budget_closes():
 
 
 def test_closed_temperate_column_conserves_water():
-    """With no source, no drainage and no phase change, water is conserved."""
+    """With no source and no phase change, water is conserved."""
     st = _column(T_C=0.0, W_val=20.0)   # temperate: no cold content to freeze into
     W0 = fd.assemble(st["W"] * fd.dx)
-    _run(st, nsteps=100, melt=None, drainage=False)
+    _run(st, nsteps=100, melt=None)
     assert fd.assemble(st["W"] * fd.dx) == pytest.approx(W0, rel=1e-10)
 
 
@@ -229,34 +228,8 @@ def test_permeability_follows_prognostic_grain_size():
 
 
 # ----------------------------------------------------------------------
-# Drainage and the water table
+# The water table
 # ----------------------------------------------------------------------
-def test_lateral_drainage_removes_saturated_excess():
-    """Above S_drain, water is lost on the drainage timescale.
-
-    Started from an already-wet temperate column so the drainage term is tested
-    directly, rather than waiting on a wetting front to arrive and happening to
-    cross the threshold.
-    """
-    # phi = 1 - 400/917 = 0.564, so S = 0.3 is W = 169 kg/m^3
-    st = _column(T_C=0.0, W_val=300.0, S_drain=0.3, tau_drain=5.0e5)
-    st2 = _column(T_C=0.0, W_val=300.0)        # tau_drain None -> closed column
-
-    W0 = fd.assemble(st["W"] * fd.dx)
-    _run(st, dt=3600.0, nsteps=50, melt=None)
-    _run(st2, dt=3600.0, nsteps=50, melt=None)
-
-    W_drained = fd.assemble(st["W"] * fd.dx)
-    W_closed = fd.assemble(st2["W"] * fd.dx)
-    assert W_closed == pytest.approx(W0, rel=1e-10)   # closed column loses nothing
-    assert W_drained < 0.99 * W_closed
-
-
-def test_drainage_is_off_by_default():
-    st = _column(T_C=0.0)
-    assert st["hyd"].drainage_rate(st["W"], st["rho"]) is None
-
-
 @pytest.mark.xfail(
     reason="the moisture form cannot hold a perched saturated zone; this is "
            "what test_firn_richards.py exists for",
@@ -287,7 +260,7 @@ def test_aquifer_perches_on_a_low_permeability_layer():
                     fd.Constant(900.0), fd.Constant(400.0),
                 )
             )
-        _run(st, dt=7200.0, nsteps=250, melt=1.0e-3, drainage=False)
+        _run(st, dt=7200.0, nsteps=250, melt=1.0e-3)
         z = st["mesh"].coordinates.dat.data_ro.ravel()
         S = fd.Function(st["V"]).interpolate(
             st["hyd"].saturation(st["W"], st["rho"])
@@ -403,7 +376,7 @@ def test_water_stays_non_negative_at_a_sharp_front():
     phase-change closure deliberately refuses to launder a negative W.
     """
     st = _column(T_C=0.0)
-    _run(st, dt=3600.0, nsteps=120, melt=2.0e-3, drainage=False)
+    _run(st, dt=3600.0, nsteps=120, melt=2.0e-3)
     # Ahead of the front the scheme leaves an exponentially small positive
     # residue, not a negative one: the bound is >= 0, not == 0.
     assert st["W"].dat.data_ro.min() >= 0.0
@@ -413,6 +386,6 @@ def test_stabilisation_does_not_leak_mass():
     """Upwinding and lumping change accuracy, never the budget."""
     st = _column(T_C=0.0)
     dt, nsteps, melt = 3600.0, 60, 1.0e-3
-    _run(st, dt=dt, nsteps=nsteps, melt=melt, drainage=False)
+    _run(st, dt=dt, nsteps=nsteps, melt=melt)
     injected = melt * dt * nsteps
     assert fd.assemble(st["W"] * fd.dx) == pytest.approx(injected, rel=1e-12)

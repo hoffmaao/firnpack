@@ -68,7 +68,6 @@ class HydrologySolver:
             grain_radius2=kw["grain_radius2"],
             surface_flux=kw["surface_flux"], surface_id=kw["surface_id"],
             basal_flux=kw["basal_flux"], base_id=kw["base_id"],
-            include_drainage=kw["include_drainage"],
         )
         problem = fd.NonlinearVariationalProblem(
             F, W, bcs=kw["bcs"], J=fd.derivative(F, W, fd.TrialFunction(V))
@@ -154,7 +153,6 @@ class HydrologySolver:
         base_id=1,
         water_bcs=None,
         update_enthalpy=True,
-        include_drainage=True,
     ):
         """Advance ``(W, H)`` by one step.
 
@@ -203,8 +201,7 @@ class HydrologySolver:
             W, W_old, float(dt) if not isinstance(dt, fd.Constant) else float(dt),
             rho=rho, w=w, grain_radius2=grain_radius2,
             surface_flux=surface_melt_flux, surface_id=surface_id,
-            basal_flux=basal_flux, base_id=base_id,
-            include_drainage=include_drainage, bcs=water_bcs,
+            basal_flux=basal_flux, base_id=base_id, bcs=water_bcs,
         )
 
         # 2) enthalpy transport

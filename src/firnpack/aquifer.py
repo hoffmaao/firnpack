@@ -153,7 +153,8 @@ class AquiferSite:
         """NET accumulation rate [m i.e./yr]; constant for a climatology."""
         return self.accum_m_ie_yr
 
-    def snowfall_m_ie_yr_at(self, t_yr: float) -> float:
+    @property
+    def snowfall_m_ie_yr(self) -> float:
         """GROSS snowfall rate [m i.e./yr]: the loading rate on the firn.
 
         ``accum_m_ie_yr`` is net of melt, so the gross total is that plus the
@@ -162,6 +163,10 @@ class AquiferSite:
         """
         return (self.accum_m_ie_yr
                 + self.melt_m_we_yr * water_density / ice_density)
+
+    def snowfall_m_ie_yr_at(self, t_yr: float) -> float:
+        """GROSS snowfall rate [m i.e./yr]; constant for a climatology."""
+        return self.snowfall_m_ie_yr
 
     def melt_flux_m_s(self, t_yr: float, dt_yr: float | None = None) -> float:
         """Surface meltwater flux [m s^-1], positive into the firn.
@@ -501,14 +506,16 @@ def run_aquifer_column(
     firn_solver = FirnColumnSolver(model, horizontal_divergence=0.0)
 
     if richards_params is None:
-        # Southeast Greenland calibration. Slug tests and aquifer recovery in
-        # the Helheim aquifer give a hydraulic conductivity of 2.7e-4 m/s
-        # (geometric mean; range 2.5e-5 to 1.1e-3; Miller et al. 2017,
-        # Front. Earth Sci.). Calonne's fit at aquifer depths (rho ~ 550)
-        # returns ~3e-3 m/s, about 12x too high, so it is scaled by 0.1 here.
-        # This is a site calibration and lives with the case study, not in
-        # the library default, which stays the published fit.
-        richards_params = FirnRichardsParameters(perm_scale=0.1)
+        # Unscaled Calonne, the library default, so every experiment run by
+        # this driver uses the same conductivity. This was a whole-column
+        # perm_scale=0.1, from slug tests and aquifer recovery in the Helheim
+        # aquifer giving 2.7e-4 m/s (geometric mean; range 2.5e-5 to 1.1e-3;
+        # Miller et al. 2017, Front. Earth Sci.) against Calonne's ~3e-3 m/s.
+        # But that measurement was made *inside* the aquifer, at 550-650
+        # kg/m3, and applying it uniformly extends it far outside the density
+        # range it was measured in. perm_scale_deep applies it only where it
+        # belongs, and the `deep0.1` experiment is the variant that does.
+        richards_params = FirnRichardsParameters()
     rmodel = FirnRichardsModel(richards_params)
     rsolver = FirnRichardsSolver(rmodel)
 
@@ -524,7 +531,9 @@ def run_aquifer_column(
     # kinematics: the melted fraction re-enters as water through the Richards
     # surface flux, so counting it in the matrix influx too is the double
     # count this formulation exists to remove.
-    accum = make_real(R, site.snowfall_m_ie_yr_at(0.0), "accum")
+    # Both seeded from the record mean, not a trailing window: the spinup is a
+    # climatology, so the pair has to be drawn from the same kind of quantity.
+    accum = make_real(R, site.snowfall_m_ie_yr, "accum")
     accum_net = make_real(R, site.accum_m_ie_yr, "accum_net")
     rho_surf = make_real(R, site.rho_surf_kg_m3, "rho_surf")
     dt = make_real(R, spinup_dt_years * YEAR_S, "dt")
