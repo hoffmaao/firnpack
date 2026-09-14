@@ -96,9 +96,21 @@ def test_firnmice_suite_checkpoint(tmp_path: Path) -> None:
         assert np.isfinite(bco_age).any(), f"BCO age never found in {exp.name}"
 
         # Sign sanity: warming reduces DIP; more accumulation increases it.
-        if exp.dT_C != 0.0:
-            assert DIP[-1] <= DIP[0] + 1e-8
-        if exp.da_mieq_yr != 0.0:
-            assert DIP[-1] >= DIP[0] - 1e-8
+        #
+        # Measure the response from the step, not from t=0. DIP[0] is the state
+        # just after spinup, and spinup is not always complete: at the short
+        # tier's 1000 yr, ex1 (-50 C, the slowest-densifying column) is still
+        # drifting by +1.7 m over the pre-step century, which is three times the
+        # -0.6 m the warming itself produces. Comparing endpoints therefore
+        # measured residual spinup drift rather than the step response and
+        # failed on ex1, even though the response is correctly signed at every
+        # spinup length tried (-0.59 m at 1000 yr, -2.00 at 3000, -2.02 at
+        # 6000). Anchoring at the step removes the drift common to both sides.
+        i_step = int(np.searchsorted(time, exp.t_step_yr))
+        if i_step < len(DIP) - 1:
+            if exp.dT_C != 0.0:
+                assert DIP[-1] <= DIP[i_step] + 1e-8
+            if exp.da_mieq_yr != 0.0:
+                assert DIP[-1] >= DIP[i_step] - 1e-8
 
         assert (out_dir / f"firnmice_{exp.name}.h5").exists()
