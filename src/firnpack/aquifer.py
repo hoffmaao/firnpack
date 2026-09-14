@@ -426,7 +426,8 @@ def wet_layer(depth_sorted: np.ndarray, theta_sorted: np.ndarray,
     between them, which is neither layer.
 
     This is the rule for reporting the *extent* of a wet zone. The water table
-    itself is :func:`water_table_depth`, which takes the deepest run instead.
+    itself is :func:`water_table_depth`, which takes the run that reaches the
+    base instead.
     """
     starts, ends = _wet_runs(theta_sorted, theta_threshold)
     if starts is None:
@@ -445,27 +446,41 @@ def _wet_runs(values_sorted: np.ndarray, threshold: float):
 
 def water_table_depth(depth_sorted: np.ndarray, theta_sorted: np.ndarray,
                       theta_threshold: float) -> float:
-    """Depth of the water table: the top of the DEEPEST saturated run, or nan.
+    """Top of the saturated run that reaches the base, or nan if none does.
 
-    Deepest, not thickest, and the difference is deliberate. This column fills
-    from the base upward, so the deepest saturated run is the aquifer whatever
-    its thickness, and a perched lens above it is correctly ignored. Taking the
-    thickest run instead - which is the right rule for :func:`wet_layer`, where
-    the question is which zone to report the extent of - inverts the failure
-    before an aquifer forms: the only saturated run is then the shallow perched
-    layer, so the water table reads a couple of metres and everything below it
-    counts as flooded.
+    The aquifer here is by construction the saturated zone standing on the
+    confining base: the column is confined and fills from the bottom upward,
+    so water that has reached the water table cannot leave except by refreezing
+    or by riding out with the firn. That makes "contains the deepest cell" the
+    definition rather than a heuristic, and it decides both cases a rule has to
+    get right. A perched melt lens with dry firn beneath it does not touch the
+    base, so it is not an aquifer and there is no water table: the function
+    returns nan and :func:`run_aquifer_column` integrates the whole profile as
+    unflooded, which is the right answer when nothing is. A lens above a real
+    aquifer is ignored, whether or not it is the thicker of the two.
 
-    Deliberately duplicated as ``_deepest_wet`` in
+    Selecting the thickest run instead - the right rule for :func:`wet_layer`,
+    where the question is the extent of a zone rather than where its top is -
+    reports the lens as the water table whenever it is the thicker. Selecting
+    merely the deepest run shares that fix but not the first one: with a single
+    perched run, deepest and thickest are the same run, so it still reports a
+    lens as a water table.
+
+    The assumption is the confining base. A column allowed to drain freely at
+    the base can hold a water table that does not reach the bottom of the
+    domain, and would need a different rule.
+
+    Deliberately duplicated as ``_aquifer_zone`` in
     ``tutorials/aquifer/plot_fac_saturation.py``, which applies the same rule
     and also returns the bottom. They cannot share code: that script is
     specified to run without Firedrake, and importing this module pulls in
     ``firnpack.models.firn``, which imports Firedrake unconditionally. Change
     one and change the other.
     """
-    starts, _ = _wet_runs(theta_sorted, theta_threshold)
-    if starts is None:
+    wet = np.asarray(theta_sorted) >= theta_threshold
+    if not wet.size or not wet[-1]:
         return float("nan")
+    starts, _ = _wet_runs(theta_sorted, theta_threshold)
     return float(depth_sorted[starts[-1]])
 
 
@@ -861,8 +876,9 @@ def run_aquifer_column(
             # Pore space above the water table. Masking every unsaturated
             # node instead would also subtract a near-surface melt-season wet
             # layer sitting well above the aquifer, which is the drawdown this
-            # series exists to isolate. With no saturated cell there is no
-            # water table, so the whole profile is above it.
+            # series exists to isolate. Until saturation reaches the confining
+            # base there is no aquifer and no water table, so the whole profile
+            # is above it.
             wt = water_table_depth(depth_sorted, sat, 0.5)
             above = (np.ones_like(por, dtype=bool) if np.isnan(wt)
                      else depth_sorted < wt)

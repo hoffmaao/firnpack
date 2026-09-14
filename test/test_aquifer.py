@@ -179,19 +179,21 @@ def test_a_sealed_base_keeps_every_kilogram_in_the_column(base_run):
     # sits against the cold base and most of it refreezes, so the sealed
     # column ends with slightly *less* standing water than the open one while
     # holding more total mass. Water plus refrozen ice is the quantity the
-    # sealed base actually conserves. The driver closes its budget as
-    # melt - refreeze - drain - (storage - storage0) - elastic = residual, and
-    # both runs share melt and storage0, so summing every term on the held
-    # side leaves exactly the drainage the open base let go - no tolerance
-    # needed. Dropping elastic or the residual makes it an approximation
-    # instead: the sealed column is the one that pressurises.
+    # sealed base actually conserves, and the elastic (specific-storage) term
+    # belongs with them because the sealed column is the one that pressurises.
+    # The tolerance absorbs the two runs' budget residuals; folding
+    # budget_residual_kg_m2 into the sum instead would make this unfalsifiable,
+    # since the driver defines it as melt - refreeze - drain - (storage -
+    # storage0) - elastic, and substituting it back leaves melt + storage0 -
+    # drain, which the two runs share by construction whatever the water did.
     assert base_run["drained_kg_m2"] > 0.0
+
     def held(r):
         return (r["storage_kg_m2"][-1] + r["refreeze_cum_kg_m2"][-1]
-                + r["elastic_storage_kg_m2"] + r["budget_residual_kg_m2"])
+                + r["elastic_storage_kg_m2"])
 
     assert held(res) - held(base_run) == pytest.approx(
-        base_run["drained_kg_m2"], rel=1e-9)
+        base_run["drained_kg_m2"], rel=0.02)
 
 
 def test_wet_layer_reports_the_thickest_contiguous_zone():

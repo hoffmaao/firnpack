@@ -47,25 +47,24 @@ WATER = LinearSegmentedColormap.from_list(
 OBS_TABLE, OBS_BASE = (10.0, 20.0), 27.7
 
 
-def _deepest_wet(depth, sat, threshold=0.5):
-    """Top and bottom of the DEEPEST contiguous saturated zone.
+def _aquifer_zone(depth, sat, threshold=0.5):
+    """Top and bottom of the saturated zone standing on the base, or nans.
 
-    Deepest, not thickest: this column fills from the base upward, so the
-    deepest saturated run is the aquifer whatever its thickness, and a
-    near-surface melt lens above it is correctly ignored. Taking the thickest
-    run instead reports that lens as the water table whenever it is the larger
-    of the two, or the only one.
+    The column is confined, so the aquifer is by construction the saturated
+    run that reaches the bottom of the domain. A perched melt lens with dry
+    firn beneath it is not an aquifer and reports no water table, and a lens
+    above a real aquifer is ignored.
 
     Deliberate duplicate of ``firnpack.aquifer.water_table_depth``, which
-    applies the same deepest-run rule; this copy also returns the bottom, so
-    the thickness printed beside the water table describes the same zone. They
-    cannot share code: this script is a pure reader of ``output/`` and runs
-    without Firedrake, while importing ``firnpack.aquifer`` pulls in
+    applies the same rule; this copy also returns the bottom, so the thickness
+    printed beside the water table describes the same zone. They cannot share
+    code: this script is a pure reader of ``output/`` and runs without
+    Firedrake, while importing ``firnpack.aquifer`` pulls in
     ``firnpack.models.firn``, which imports Firedrake unconditionally. Change
     one and change the other.
     """
     wet = np.asarray(sat) >= threshold
-    if not wet.any():
+    if not wet.size or not wet[-1]:
         return float("nan"), float("nan")
     edges = np.flatnonzero(np.diff(np.concatenate([[0], wet.view(np.int8), [0]])))
     starts, ends = edges[::2], edges[1::2]
@@ -164,7 +163,7 @@ def table(runs):
         S = np.asarray(r["S_profiles"])
         fac = np.asarray(r["fac_m"])
         last = S[-1]
-        tbl, base = _deepest_wet(d, last)
+        tbl, base = _aquifer_zone(d, last)
         thick = (base - tbl) if np.isfinite(tbl) else 0.0
         melt = max(float(r["melt_cum_kg_m2"][-1]), 1e-9)
         refr = 100.0 * float(r["refreeze_cum_kg_m2"][-1]) / melt
