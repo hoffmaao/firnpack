@@ -74,13 +74,15 @@ at 550-650 kg m^-3, where Calonne's snow-based fit runs about 10x high).
 DG1 in the head, so the water table is an interior free surface that the
 solution finds. Symmetric interior penalty for the diffusive flux, donor-cell
 upwinding for the gravity flux and for matrix advection: the wetting front is
-monotone by construction. Three numerical devices, each earned by a failure:
+monotone by construction. Four numerical devices, each earned by a failure:
 
-* an absolute floor `K_min = 1e-10 m/s` on the conductivity (film and vapour
+* an absolute floor `K_min = 1e-7 m/s` on the conductivity (film and vapour
   transport), so cells ahead of a drying front stay coupled instead of going
   singular. Absolute, because firn's `K_s` is 1e-2 to 1e-1 m/s and the usual
   relative floor of 1e-6 would be 0.3 to 5 m/yr of gravity drainage from
-  every dry cell (section 5, item 3).
+  every dry cell (section 5, item 3). 1e-7 is what that relative floor
+  amounted to in near-surface firn; smaller values (1e-8 to 1e-10) leave the
+  cells ahead of a refreezing front decoupled and Newton fails.
   The same `K` multiplies the diffusive and the gravity flux: floor only one
   of them and hydrostatic equilibrium stops being a solution;
 * a linear continuation of the retention curve below `h_min` (C1 join), so
@@ -135,7 +137,7 @@ degree-day rule whose factor spanned the answer (0.26 to 0.53 m w.e./yr over
 the same forcing for 3 vs 6 mm/C/day). The aged-firn albedo floor is the
 largest remaining free parameter and is swept, not calibrated.
 
-## 5. Three ways the aquifer failed to appear, and what each was
+## 5. Four ways the aquifer failed to appear, and what each was
 
 These are recorded because each looked like physics before it was found.
 
@@ -169,24 +171,39 @@ These are recorded because each looked like physics before it was found.
    nonlinearity in otherwise benign states; flooring the diffusive flux
    only removed the leak but broke hydrostatic equilibrium (the test caught
    it). Regression test: `test_dry_cells_keep_a_bounded_head`.
-4. **Percolation speed was not the control.** Scaling the permeability
-   uniformly by the aquifer-depth measurement (0.1x) looked like the reason
-   melt refroze before reaching depth. It was not: unscaled Calonne, deep-only
-   scaling and uniform scaling all refreeze 409-416 kg m^-2 yr^-1 of a
-   465 kg m^-2 yr^-1 melt. What refreezes is the water the retention curve
-   holds in the top ~10 m at the end of the melt season, and the winter cold
-   wave gets that regardless of how fast the rest drained.
+4. **The interior gravity flux was downwinded.** `0.5 (K e_z . n + |K e_z . n|)`
+   takes the positive part along `+e_z`, but the gravity flux vector is
+   `-K e_z`, so the numerical flux picked the receiving cell, not the donor
+   cell. Every existing test ran with `K` continuous across facets, where the
+   two choices coincide, so nothing caught it. A wetting front descending into
+   dry firn then moved at the dry cell's conductivity - the stall the absolute
+   `K_min` floor was masking - which biases the split between refreezing in
+   the cold-wave zone and recharge reaching depth. Regression test:
+   `test_the_gravity_facet_flux_takes_the_donor_cells_conductivity`.
+
+   The permeability ablation that was reported here (deep-only versus uniform
+   scaling of Calonne changing the refrozen fraction not at all) was run under
+   the downwinded flux and is withdrawn pending a re-run: with the flux
+   throttled by the dry receiving cell, that insensitivity may be an artefact
+   of this bug rather than a property of the column.
 
 ## 6. What the ERA5-forced column says
 
-Full tables in `tutorials/aquifer/README.md`. In brief, with the four fixes of
+> **Numbers below are stale and are being regenerated.** They were produced
+> with an interior gravity flux that took its conductivity from the receiving
+> cell rather than the donor cell, which throttles a wetting front descending
+> into dry firn and therefore biases the split between refreezing in the
+> cold-wave zone and recharge reaching depth. The flux is now donor-cell
+> upwinded. The figures are kept here for comparison until the runs are
+> repeated; treat every rate and depth in this section as provisional.
+
+Full tables in `tutorials/aquifer/README.md`. In brief, with fixes 1-3 of
 section 5 in place: a perennial aquifer forms under every aged-firn albedo
 floor from 0.76 to 0.70 (melt 0.43 to 0.71 m w.e./yr over 2006-2019), and
 under the 1940-1959 climate, where it is marginal. The refrozen fraction is
 74-78% throughout, so net recharge (19 to 70 kg m^-2 yr^-1) scales with melt
-and the water table rises with it (45 to 26 m). Reducing the permeability
-ten-fold where it was measured changes nothing to three digits. The aquifer
-sits deeper than observed (table 10-22.5 m, base 27.7 m) because the column
+and the water table rises with it (45 to 26 m). The aquifer sits deeper than
+observed (table 10-22.5 m, base 27.7 m) because the column
 reaches bubble close-off at 50-52 m rather than ~28 m: the remaining
 discrepancy is in the densification of wet firn, not in the hydrology. Each
 80-year experiment takes about 45 minutes on one core.

@@ -144,29 +144,22 @@ class FirnRichardsSolver:
             fd.Constant(p.rho_w) * sink_rate * self._fields["dt"],
             self._fields["freeze_sub"], form_compiler_parameters=md)
 
-        # Boundary outflows over one sub-step [m], as forms assembled after
-        # each sub-step solve. Evaluating them once on the end-of-step head
+        # Boundary outflow over one sub-step [m], as a form assembled after
+        # each sub-step solve. Evaluating it once on the end-of-step head
         # was exact only when the step was not sub-stepped; with sub-steps
-        # the runoff the residual actually applied is the sum over them.
+        # the outflow the residual actually applied is the sum over them.
         mesh = V.mesh()
-        runoff_form = None
         outflow_form = None
         xs = fd.SpatialCoordinate(mesh)
         e_z = fd.grad(xs[mesh.topological_dimension - 1])
         nrm = fd.FacetNormal(mesh)
         for bc_id, spec in bcs.items():
-            if "seep" in spec:
-                term = (fd.Constant(spec["seep"]) * fd.max_value(head, 0.0)
-                        * self._fields["dt"] * fd.ds(bc_id, domain=mesh, metadata=md))
-                runoff_form = term if runoff_form is None else runoff_form + term
             if "advect" in spec and firn_velocity is not None:
                 term = (curves.moisture_content(head) * firn_velocity
                         * fd.dot(e_z, nrm) * self._fields["dt"]
                         * fd.ds(bc_id, domain=mesh, metadata=md))
                 outflow_form = term if outflow_form is None else outflow_form + term
-        self._fields["runoff_form"] = runoff_form
         self._fields["outflow_form"] = outflow_form
-        self.last_runoff_m = 0.0
         self.last_outflow_m = 0.0
 
         self._fields["theta_old"].interpolate(curves.moisture_content(head))
@@ -211,12 +204,10 @@ class FirnRichardsSolver:
             # discarded sub-steps as well and inflate the elastic storage the
             # water budget is closed against.
             elastic_attempt = 0.0
-            runoff_attempt = 0.0
             outflow_attempt = 0.0
             freeze_attempt = self._fields["freeze_attempt"]
             freeze_attempt.assign(0.0)
             h_prev = self._fields["head_prev"]
-            runoff_form = self._fields["runoff_form"]
             outflow_form = self._fields["outflow_form"]
             try:
                 for _k in range(n_sub):
@@ -226,8 +217,6 @@ class FirnRichardsSolver:
                     # what the solve actually applied in this sub-step
                     self._fields["freeze_projector"].project()
                     freeze_attempt.assign(freeze_attempt + self._fields["freeze_sub"])
-                    if runoff_form is not None:
-                        runoff_attempt += float(fd.assemble(runoff_form))
                     if outflow_form is not None:
                         outflow_attempt += float(fd.assemble(outflow_form))
                     h_old.assign(h)
@@ -237,7 +226,6 @@ class FirnRichardsSolver:
                 dt_c.assign(dt_total)
                 self._fields["elastic_storage_m"] += elastic_attempt
                 self._fields["freeze"].assign(freeze_attempt)
-                self.last_runoff_m = runoff_attempt
                 self.last_outflow_m = outflow_attempt
                 return n_sub
             except ConvergenceError:
@@ -346,8 +334,8 @@ class FirnRichardsSolver:
 
         self._n_sub_last = self._advance_head(float(dt))   # sets "freeze"
 
-        # last_runoff_m / last_outflow_m were accumulated over the sub-steps
-        # by _advance_head, on the heads each solve produced.
+        # last_outflow_m was accumulated over the sub-steps by _advance_head,
+        # on the heads each solve produced.
 
         m = None
         if phase_change:

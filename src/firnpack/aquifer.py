@@ -52,11 +52,13 @@ reported in the run output rather than assumed small.
 
 Surface forcing
 ---------------
-Air temperature is a seasonal cosine. Melt is a positive-degree-day share of a
-prescribed annual total, so the melt season has a sensible length and shape
-without a full surface energy balance. The enthalpy boundary condition uses the
-air temperature *clamped at the melting point*: energy above 0 C becomes melt,
-not superheated firn.
+Air temperature is a seasonal cosine. Melt for the climatological sites is a
+raised cosine over a fixed melt season, normalised to a prescribed annual
+total and deliberately independent of that temperature, so the cold contrast
+case changes cold content alone; :class:`ReanalysisSite` replaces it with melt
+from the surface energy balance. The enthalpy boundary condition uses the air
+temperature *clamped at the melting point*: energy above 0 C becomes melt, not
+superheated firn.
 """
 from __future__ import annotations
 
@@ -97,9 +99,10 @@ SURFACE_ID, BASE_ID = 2, 1
 class AquiferSite:
     """One column forcing configuration.
 
-    ``melt_m_we_yr`` is the annual melt total; its seasonal distribution comes
-    from the positive-degree-day share of the temperature cycle, so lowering
-    ``T_mean_C`` shortens the melt season as well as deepening the cold content.
+    ``melt_m_we_yr`` is the annual melt total; its seasonal distribution is a
+    raised cosine of fixed length, independent of the temperature cycle, so
+    lowering ``T_mean_C`` deepens the cold content and changes nothing else
+    (see :meth:`melt_flux_m_s`).
     """
 
     name: str
@@ -270,10 +273,28 @@ class ReanalysisSite:
         return float(np.interp(self._wrap(t_yr), self.t, self.T_air_C))
 
     def _interval(self, cum, t_yr, dt_yr):
+        """Record total over the ``dt_yr`` window ending at ``t_yr``.
+
+        The window wraps backwards through the record rather than being
+        truncated at its start. Truncating returns the right total over the
+        wrong window, and the callers divide by the window they asked for: a
+        trailing-year accumulation sampled a month past the wrap point would
+        report a twelfth of the true burial rate, every lap of the record.
+        """
+        dt = max(float(dt_yr or 0.0), 0.0)
+        if dt <= 0.0:
+            return 0.0
+        span, total = self.span_years, float(cum[-1])
+        laps, rem = divmod(dt, span)
+        out = laps * total
         hi = self._wrap(t_yr)
-        lo = max(hi - (dt_yr or 0.0), 0.0)
-        return float(np.interp(hi, self._edges, cum)
-                     - np.interp(lo, self._edges, cum))
+        lo = hi - rem
+        out += float(np.interp(hi, self._edges, cum))
+        if lo >= 0.0:
+            out -= float(np.interp(lo, self._edges, cum))
+        else:
+            out += total - float(np.interp(span + lo, self._edges, cum))
+        return out
 
     def melt_flux_m_s(self, t_yr, dt_yr=None):
         if not dt_yr:
@@ -292,11 +313,20 @@ class ReanalysisSite:
 # ----------------------------------------------------------------------
 def wet_layer(depth_sorted: np.ndarray, theta_sorted: np.ndarray,
               theta_threshold: float) -> tuple[float, float]:
-    """Top and bottom depth of the contiguous wet zone, or (nan, nan)."""
-    hit = np.nonzero(theta_sorted >= theta_threshold)[0]
-    if hit.size == 0:
+    """Top and bottom depth of the thickest contiguous wet zone, or (nan, nan).
+
+    Contiguity matters: during a melt season a column with a deep aquifer
+    carries two disjoint wet zones, a near-surface wet layer and the aquifer
+    itself. Reporting the first and last wet node spans both and the dry firn
+    between them, which is neither layer.
+    """
+    wet = np.asarray(theta_sorted) >= theta_threshold
+    if not wet.any():
         return float("nan"), float("nan")
-    return float(depth_sorted[hit[0]]), float(depth_sorted[hit[-1]])
+    edges = np.flatnonzero(np.diff(np.concatenate([[0], wet.view(np.int8), [0]])))
+    starts, ends = edges[::2], edges[1::2]
+    k = int(np.argmax(ends - starts))
+    return float(depth_sorted[starts[k]]), float(depth_sorted[ends[k] - 1])
 
 
 def persists(res: Dict[str, Any], last_years: float = 3.0,
@@ -346,20 +376,6 @@ def run_aquifer_column(
     theta_threshold: float = 0.02,
     richards_params: "FirnRichardsParameters | None" = None,
     basal_drainage: bool = True,
-    # Surface seepage conductance [1/s], or None for no seepage face. Runoff is
-    # lateral transport - water leaving the column across its surface - and
-    # this is a one-dimensional column that resolves no lateral exchange, so
-    # the default is None: everything that melts either infiltrates or sits on
-    # the surface as a pond. The seepage face exists in the Richards model as
-    # a 'seep' boundary kind; it is deliberately not used here.
-    #
-    # It is also not needed for convergence. It was added on a misdiagnosis:
-    # the melt-onset failure at the calibrated permeability had the surface at
-    # -2.2 m of head with no saturated cell, and was fixed by holding the
-    # conductivity floor absolute (see FirnRichardsModel.curves). With that
-    # fix and no seepage face the driver converges and runoff is identically
-    # zero.
-    seep_conductance: float | None = None,
     verbose: bool = True,
 ) -> Dict[str, Any]:
     """Spin a dry column to steady state, then force it with melt.
@@ -499,10 +515,15 @@ def run_aquifer_column(
     # advective outflow: water in the pore space leaves with the compacting
     # firn at the velocity the continuity integration already imposes, theta*w,
     # with no separate drainage law. See the 'advect' kind in firn_richards.
+    # The aquifer experiments all run with the advective outlet; the sealed
+    # base is an alternative outlet, retained and tested, that none of them
+    # select.
     base_bc = {"advect": None} if basal_drainage else {"flux": fd.Constant(0.0)}
+    # There is no runoff term: water leaving the column across its surface is
+    # lateral transport, and a one-dimensional column resolves no lateral
+    # exchange. Everything that melts either infiltrates or stays at the
+    # surface.
     surf_bc = {"flux": q_surf}
-    if seep_conductance is not None:
-        surf_bc["seep"] = seep_conductance
     water_bcs = {BASE_ID: base_bc, SURFACE_ID: surf_bc}
 
     md = {"quadrature_degree": 3}
@@ -517,7 +538,6 @@ def run_aquifer_column(
         # This is the pore volume available to store meltwater, and the
         # quantity an aquifer draws down as it fills.
         "fac_m": [], "fac_above_wt_m": [], "drain_cum_kg_m2": [],
-        "runoff_cum_kg_m2": [],
     }
     # Depth-time snapshots. The whole point of a perennial aquifer is that the
     # wet layer survives the winter, and that is a statement about theta(z, t)
@@ -534,9 +554,7 @@ def run_aquifer_column(
     refreeze_cum = 0.0
     melt_cum = 0.0
     drain_cum = 0.0
-    runoff_cum = 0.0
     energy_slip = 0.0
-    ds_base = fd.ds(BASE_ID, domain=mesh, metadata=md)
     # The column starts with the trace water the retention curve cannot dry
     # below (theta at h_min); the budget has to start from it, not from zero.
     theta_fn.interpolate(curves.moisture_content(head))
@@ -633,7 +651,6 @@ def run_aquifer_column(
         if basal_drainage:
             # the outflow the solve actually applied this step [kg/m^2]
             drain_cum += rsolver.last_outflow_m * water_density
-        runoff_cum += rsolver.last_runoff_m * water_density
 
         if (i + 1) % save_every == 0 or i == n_steps - 1:
             theta_fn.interpolate(curves.moisture_content(head))
@@ -648,7 +665,6 @@ def run_aquifer_column(
             out["wet_bottom_m"].append(bot)
             out["refreeze_cum_kg_m2"].append(refreeze_cum)
             out["drain_cum_kg_m2"].append(drain_cum)
-            out["runoff_cum_kg_m2"].append(runoff_cum)
             out["melt_cum_kg_m2"].append(melt_cum)
             out["max_theta"].append(float(theta_nodes.max()))
             theta_profiles.append(theta_nodes.copy())
@@ -686,11 +702,10 @@ def run_aquifer_column(
     # or the budget reports a leak that is not there.
     elastic = rsolver.elastic_storage_m * water_density
     result["elastic_storage_kg_m2"] = elastic
-    # in = frozen + drained + runoff + (stored now - at the start) + elastic
+    # in = frozen + drained + (stored now - at the start) + elastic
     result["drained_kg_m2"] = drain_cum
-    result["runoff_kg_m2"] = runoff_cum
     result["budget_residual_kg_m2"] = (
-        melt_cum - refreeze_cum - drain_cum - runoff_cum
+        melt_cum - refreeze_cum - drain_cum
         - (float(fd.assemble(theta_fn * dxq)) * water_density - storage0)
         - elastic)
     result["persists"] = persists(result)

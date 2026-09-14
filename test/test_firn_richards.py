@@ -88,6 +88,85 @@ def test_hydrostatic_equilibrium_is_exact():
     assert np.abs(st["head"].dat.data_ro - before).max() < 1e-9
 
 
+def test_the_gravity_facet_flux_takes_the_donor_cells_conductivity():
+    """Gravity flows down, so the facet flux must carry the upper cell's K.
+
+    Regression. The gravity flux vector is ``-K e_z``, and the numerical flux
+    was built from the positive part of ``+K e_z . n``, which picks the cell
+    the water arrives in rather than the one it leaves. Every other test here
+    runs with ``K`` continuous across facets - uniform density, continuous
+    head - where donor and receiver coincide and the error is invisible, so
+    this one puts a hundred-fold jump in ``K_s`` on the interior facet.
+
+    Probe: a saturated column at uniform head. The storage terms and every
+    diffusive term vanish (``grad h = 0``, ``jump(h) = 0``), the boundaries
+    carry zero flux, and summing the residual over a cell's own basis
+    functions tests it against the cell indicator, so the gravity volume term
+    integrates away too. What is left in each cell is the net gravity flux
+    across the interior facet, and its magnitude is whichever conductivity the
+    numerical flux chose. Downwinded, it reads 1; donor-cell upwinded, 100.
+    """
+    K_lower, K_upper = 1.0, 100.0
+    mesh = fd.IntervalMesh(2, 0.0, 2.0)
+    V = fd.FunctionSpace(mesh, "DG", 1)
+    model = FirnRichardsModel(FirnRichardsParameters(K_min=0.0))
+    rho = fd.Function(V).interpolate(fd.Constant(400.0))
+    curves = model.curves(V, rho)
+    x = fd.SpatialCoordinate(mesh)[0]
+    # via DG0, so each cell gets one constant: interpolating the jump straight
+    # into DG1 would evaluate it at the shared vertex and tilt the lower cell
+    step = fd.Function(fd.FunctionSpace(mesh, "DG", 0)).interpolate(
+        fd.conditional(x < 1.0, K_lower, K_upper))
+    curves.K_s.interpolate(step)
+
+    head = fd.Function(V).interpolate(fd.Constant(0.0))     # saturated, k_r = 1
+    theta_old = fd.Function(V).interpolate(curves.moisture_content(head))
+    F = model.residual(
+        head=head, head_old=head, curves=curves, dt=fd.Constant(1.0),
+        bcs={1: {"flux": fd.Constant(0.0)}, 2: {"flux": fd.Constant(0.0)}},
+        theta_old=theta_old)
+    r = fd.assemble(F).dat.data_ro
+    xs = fd.Function(V).interpolate(x).dat.data_ro
+    cells = sorted(V.cell_node_map().values, key=lambda c: xs[c].mean())
+    lower, upper = (float(r[c].sum()) for c in cells)
+
+    # the lower cell gains water at the upper (donor) cell's conductivity
+    assert lower == pytest.approx(-K_upper, rel=1e-10)
+    assert upper == pytest.approx(K_upper, rel=1e-10)
+
+
+def test_a_saturated_head_boundary_wets_the_column_at_its_own_conductivity():
+    """The 'h' boundary is upwinded too: inflow carries the *exterior* K.
+
+    Same sign convention as the interior gravity flux, and the same failure if
+    it is inverted. A saturated boundary (``h = 0``) against dry firn drives
+    water in; the donor there is the boundary, not the dry interior cell, so
+    the gravity part of the influx is the boundary's conductivity. Inverted,
+    the dry cell throttles it and the column barely wets. The bound below is
+    the interior conductivity's own flux over the same time, which the
+    inverted form cannot exceed by much.
+    """
+    st = _column(h_val=-5.0)
+    st["bcs"] = {1: {"h": fd.Constant(0.0)}, 2: {"flux": fd.Constant(0.0)}}
+    st["solver"] = FirnRichardsSolver(st["model"])
+    curves, dxq = st["curves"], _dxq(st["mesh"])
+    theta0 = fd.assemble(curves.moisture_content(st["head"]) * dxq)
+
+    dt, n = 1.0, 20
+    for _ in range(n):
+        st["head"], _ = st["solver"].step(
+            head=st["head"], enthalpy=st["H"], density=st["rho"],
+            curves=curves, dt=dt, bcs=st["bcs"], phase_change=False)
+
+    gained = fd.assemble(curves.moisture_content(st["head"]) * dxq) - theta0
+    K_dry = fd.Function(st["V"]).interpolate(
+        curves.relative_conductivity(fd.Constant(-5.0))).dat.data_ro.max()
+    K_wet = fd.Function(st["V"]).interpolate(
+        curves.relative_conductivity(fd.Constant(0.0))).dat.data_ro.max()
+    assert gained > 100.0 * K_dry * dt * n
+    assert gained < K_wet * dt * n            # and not more than the boundary can pass
+
+
 def test_mass_is_conserved_under_infiltration():
     """Stored water equals what was let in, to round-off.
 
@@ -395,51 +474,6 @@ def test_advective_outflow_at_the_base_is_theta_times_w_and_closes_the_budget():
     # and it is bounded by porosity * |w| * time, the physical ceiling
     por = 1.0 - 400.0 / 917.0
     assert drained <= por * 1.0e-7 * dt * nsteps * (1.0 + 1e-9)
-
-
-def test_seepage_face_turns_excess_melt_into_runoff_and_closes_the_budget():
-    """Melt arriving faster than the firn can infiltrate must run off.
-
-    This is the seepage face's actual job. At a realistic (calibrated)
-    permeability the unsaturated conductivity of dry firn can fall below the
-    melt rate, and a pure flux condition then has to drive the surface head to
-    infinity to force the water in. With a seepage face the surplus leaves as
-    runoff and the head stays pinned near zero.
-
-    Permeability is deliberately cut hard here so that the imposed flux exceeds
-    even the saturated conductivity - otherwise a uniform 400 kg/m^3 column
-    infiltrates anything and no runoff ever occurs. (A first version started
-    from a uniformly pressurised column instead and saw zero runoff, because
-    that excess is absorbed elastically inside the column rather than shed -
-    a valid solution, and a bad test.)
-    """
-    st = _column(T_C=0.0, h_val=-1.0, perm_scale=1.0e-4)
-    C, q = 1.0e-3, 1.0e-5                          # q >> K_s at this permeability
-    st["bcs"] = {1: {"flux": fd.Constant(0.0)}, 2: {"flux": fd.Constant(q), "seep": C}}
-    st["solver"] = FirnRichardsSolver(st["model"])
-    dxq = _dxq(st["mesh"])
-    theta0 = fd.assemble(st["curves"].moisture_content(st["head"]) * dxq)
-
-    dt, n, runoff = 3600.0, 30, 0.0
-    for _ in range(n):
-        st["head"], _ = st["solver"].step(
-            head=st["head"], enthalpy=st["H"], density=st["rho"],
-            curves=st["curves"], dt=dt, bcs=st["bcs"], phase_change=False)
-        runoff += st["solver"].last_runoff_m
-
-    theta1 = fd.assemble(st["curves"].moisture_content(st["head"]) * dxq)
-    influx = q * dt * n
-    stored = (theta1 - theta0) + st["solver"].elastic_storage_m
-    assert 0.0 < runoff < influx                   # some, not all, runs off
-    assert influx == pytest.approx(runoff + stored, rel=1e-5)
-    # The seep holds the surface at h = (q - infiltration)/C, which is q/C =
-    # 0.010 m when almost nothing infiltrates - so that, not "near zero", is
-    # the bound. (A first version asserted < 0.01 and failed by 2.7% for
-    # exactly this reason.) Pinned at that level, not driven positive.
-    Vc = fd.FunctionSpace(st["mesh"], "CG", 1)
-    hc = fd.Function(Vc).project(st["head"]).dat.data_ro
-    z = fd.Function(Vc).interpolate(fd.SpatialCoordinate(st["mesh"])[0]).dat.data_ro
-    assert 0.0 < hc[np.argmax(z)] <= 1.25 * q / C
 
 
 def test_deep_permeability_correction_applies_only_where_it_was_measured():

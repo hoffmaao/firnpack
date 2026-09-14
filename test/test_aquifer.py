@@ -11,7 +11,9 @@ except Exception:  # pragma: no cover
 
 pytestmark = pytest.mark.skipif(fd is None, reason="firedrake not available")
 
-from firnpack.aquifer import AQUIFER_SITES, AquiferSite, run_aquifer_column
+from firnpack.aquifer import (
+    AQUIFER_SITES, AquiferSite, ReanalysisSite, run_aquifer_column, wet_layer,
+)
 
 
 SHORT = dict(H0=40.0, NZ=60, spinup_years=10.0, run_years=1.0,
@@ -156,3 +158,84 @@ def test_refreezing_fills_pores_instead_of_thickening_the_column():
     assert stretch > 0.1 * np.max(np.abs(wd))          # the bug was not subtle
     assert np.max(np.abs(ww - wd)) < 0.05 * stretch
     assert np.max(np.abs(ww - wd)) < 1e-2 * np.max(np.abs(wd))
+
+
+def test_a_sealed_base_keeps_every_kilogram_in_the_column(base_run):
+    """The alternative outlet: with no base condition, nothing may leave.
+
+    ``basal_drainage=False`` replaces the advective outlet with a no-flow
+    base. It is not what the aquifer experiments use - they let water ride out
+    with the compacting firn - but it is the closed-column contrast, and its
+    budget has to close without a drainage term at all.
+    """
+    res = run_aquifer_column(site=AQUIFER_SITES[0], basal_drainage=False,
+                             **SHORT)
+    melt = res["melt_cum_kg_m2"][-1]
+    assert melt > 0.0
+    assert res["drained_kg_m2"] == 0.0
+    assert abs(res["budget_residual_kg_m2"]) < 1e-4 * melt
+    # and the water the open base let go is still here
+    assert base_run["drained_kg_m2"] > 0.0
+    assert res["storage_kg_m2"][-1] > base_run["storage_kg_m2"][-1]
+
+
+def test_wet_layer_reports_the_thickest_contiguous_zone():
+    """Two disjoint wet zones are not one layer spanning both.
+
+    During a melt season a column with a deep aquifer carries a near-surface
+    wet layer and the aquifer itself, with dry firn between them. Reporting
+    the first and last wet node spans the dry gap as well, and the recorded
+    ``wet_top_m``/``wet_bottom_m`` then describe a layer that is not there.
+    """
+    depth = np.arange(10.0)
+    theta = np.array([0.1, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2, 0.2, 0.0, 0.0])
+    assert wet_layer(depth, theta, 0.05) == (5.0, 7.0)
+    # a single wet node is still a zone, and a dry column has none
+    assert wet_layer(depth, np.eye(10)[3], 0.05) == (3.0, 3.0)
+    assert all(np.isnan(v) for v in wet_layer(depth, np.zeros(10), 0.05))
+
+
+def _constant_forcing_csv(path, days, snow_per_day):
+    """A minimal ERA5-shaped record: steady weather, steady snowfall."""
+    import pandas as pd
+    n = int(days)
+    hours = 24.0
+    pd.DataFrame({
+        "time": pd.date_range("2000-01-01", periods=n, freq="D"),
+        "sample_hours": np.full(n, hours),
+        "t2m": np.full(n, 263.0),
+        "ssrd": np.full(n, 100.0 * hours * 3600.0),
+        "strd": np.full(n, 250.0 * hours * 3600.0),
+        "sp": np.full(n, 8.2e4),
+        "d2m": np.full(n, 260.0),
+        "u10": np.full(n, 3.0),
+        "v10": np.full(n, 0.0),
+        "sf": np.full(n, snow_per_day),
+    }).to_csv(path, index=False)
+    return path
+
+
+def test_the_trailing_accumulation_window_wraps_instead_of_truncating(tmp_path):
+    """Burial must not collapse every time the forcing record repeats.
+
+    Runs longer than the record cycle it, and the trailing-year accumulation
+    window straddles the wrap point once per lap. Clamping that window at the
+    start of the record returns a partial total over a full-year denominator:
+    a month past the wrap it reported a twelfth of the true burial rate, which
+    the driver feeds straight into the surface velocity and the densification
+    forcing. Snowfall is constant here, so the trailing-year rate is the same
+    everywhere and any dip is the truncation.
+    """
+    csv = _constant_forcing_csv(tmp_path / "forcing.csv", days=3 * 365,
+                                snow_per_day=0.004)
+    site = ReanalysisSite(csv, 2000, 2002)
+    assert site.span_years == pytest.approx(3.0, rel=0.01)
+
+    mid = site.accum_m_ie_yr_at(1.5)
+    assert mid == pytest.approx(site.accum_m_ie_yr, rel=1e-6)
+    for t in (0.02, 0.5, site.span_years + 0.02, 2.0 * site.span_years + 0.4):
+        assert site.accum_m_ie_yr_at(t) == pytest.approx(mid, rel=1e-6)
+
+    # and a window longer than the record still averages the whole of it
+    assert site.accum_m_ie_yr_at(0.3, window_yr=2.0 * site.span_years) \
+        == pytest.approx(mid, rel=1e-6)

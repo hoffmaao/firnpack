@@ -402,7 +402,11 @@ class FirnRichardsModel:
         curves.K_s.interpolate(self.conductivity(rho, grain_radius2))
 
     # ------------------------------------------------------------------
-    # Retention inversion (phase change needs it)
+    # Retention inversion (a public inverse of the retention curve, used for
+    # diagnostics and tests). The phase change used to need it, to convert an
+    # edited water content back into a head; that was replaced by carrying the
+    # freezing sink inside the Richards residual, which conserves mass exactly
+    # (see firnpack.solvers.firn_richards_solver).
     # ------------------------------------------------------------------
     def head_from_moisture(self, curves, theta):
         r"""Invert van Genuchten for the head holding a given water content.
@@ -537,8 +541,13 @@ class FirnRichardsModel:
         F += -fd.inner(fd.avg(K * fd.grad(phi)), fd.jump(h, n)) * dS
         F += -fd.inner(fd.jump(phi, n), fd.avg(K * fd.grad(h))) * dS
 
-        qn = 0.5 * (fd.dot(K * e_z, n) + abs(fd.dot(K * e_z, n)))
-        F += -fd.jump(phi) * (qn("+") - qn("-")) * dS
+        # The gravity flux vector is -K e_z (gravity drives water down), so the
+        # donor cell is the one that flux leaves, i.e. the one whose outward
+        # normal it points along. Taking the positive part of dot(K*e_z, n)
+        # instead picks the receiving cell, and a wetting front then advances
+        # at the dry cell's conductivity rather than its own.
+        qn = 0.5 * (fd.dot(-K * e_z, n) + abs(fd.dot(-K * e_z, n)))
+        F += fd.jump(phi) * (qn("+") - qn("-")) * dS
 
         if firn_velocity is not None:
             theta = curves.moisture_content(h)
@@ -549,8 +558,7 @@ class FirnRichardsModel:
         # --- boundaries ---
         sigma_ext = self._penalty(V) * fd.FacetArea(mesh) / fd.CellVolume(mesh)
         for bc_id, spec in bcs.items():
-          # A boundary may carry more than one condition: the surface takes a
-          # melt flux AND a seepage face, and they are additive.
+          # A boundary may carry more than one condition, and they are additive.
           for kind, value in spec.items():
             if kind == "flux":
                 # Volumetric flux positive INTO the domain [m/s]. Pass an
@@ -559,9 +567,12 @@ class FirnRichardsModel:
                 F += -value * phi * ds(bc_id)
             elif kind == "free":
                 # Free drainage: zero pressure-head gradient, water leaves
-                # under gravity at the local conductivity, q.n = K(h). Kept as
-                # an option; superseded for the aquifer runs by "advect".
-                F += K * phi * ds(bc_id)
+                # under gravity at the local conductivity, q.n = K(h). An
+                # alternative outlet, retained and tested; the aquifer
+                # experiments use "advect" instead. Written against the
+                # gravity flux -K e_z so it carries the boundary's own
+                # orientation rather than assuming an outlet at the base.
+                F += fd.dot(-K * e_z, n) * phi * ds(bc_id)
             elif kind == "advect":
                 # Natural advective outflow, Darcy flux zero. The firn below
                 # the aquifer keeps compacting and moving down at the velocity
@@ -581,28 +592,21 @@ class FirnRichardsModel:
                         f"boundary {bc_id}: 'advect' needs firn_velocity")
                 theta_b = curves.moisture_content(h)
                 F += theta_b * firn_velocity * fd.dot(e_z, n) * phi * ds(bc_id)
-            elif kind == "seep":
-                # Seepage face: the surface cannot hold a pond, so any head
-                # above zero drains as runoff through a penalty conductance
-                # ``value`` [1/s]. With it, melt that arrives faster than dry
-                # firn can infiltrate leaves as runoff instead of forcing the
-                # head to run away - which is what a pure flux condition does
-                # once the calibrated permeability drops the unsaturated
-                # conductivity below the melt rate. max(h,0) keeps it inactive
-                # whenever the surface is unsaturated.
-                F += fd.Constant(value) * fd.max_value(h, 0.0) * phi * ds(bc_id)
             elif kind == "h":
                 diff = h - value
                 Fb = 2.0 * sigma_ext * phi * K * diff
                 Fb -= fd.inner(K * fd.grad(phi), n) * diff
                 Fb -= fd.inner(phi * n, K * fd.grad(h))
-                fn_i = fd.dot(K * e_z, n)
-                fn_g = fd.dot(curves.relative_conductivity(value) * e_z, n)
-                Fb -= phi * (0.5 * (fn_i + abs(fn_i))
+                # Upwinded like the interior gravity flux, and against the
+                # same vector -K e_z: the interior conductivity where the
+                # flux leaves, the exterior (Dirichlet) one where it enters.
+                fn_i = fd.dot(-K * e_z, n)
+                fn_g = fd.dot(-curves.relative_conductivity(value) * e_z, n)
+                Fb += phi * (0.5 * (fn_i + abs(fn_i))
                              + 0.5 * (fn_g - abs(fn_g)))
                 F += Fb * ds(bc_id)
             else:
                 raise ValueError(
                     f"boundary {bc_id}: unknown type {kind!r} "
-                    "(use 'h', 'flux', 'free', 'advect' or 'seep')")
+                    "(use 'h', 'flux', 'free' or 'advect')")
         return F

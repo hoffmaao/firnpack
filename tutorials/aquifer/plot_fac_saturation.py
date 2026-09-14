@@ -132,8 +132,7 @@ def figure(runs):
 
 def table(runs):
     print(f"{'run':<26} {'FAC0':>7} {'FACend':>7} {'drawn':>7} "
-          f"{'S max':>6} {'table':>7} {'thick':>7} {'refroze':>8} {'drained':>8} "
-          f"{'runoff':>7}")
+          f"{'S max':>6} {'table':>7} {'thick':>7} {'refroze':>8} {'drained':>8}")
     for name, r in runs.items():
         d = np.asarray(r["depth_m"])
         S = np.asarray(r["S_profiles"])
@@ -145,13 +144,8 @@ def table(runs):
         melt = max(float(r["melt_cum_kg_m2"][-1]), 1e-9)
         refr = 100.0 * float(r["refreeze_cum_kg_m2"][-1]) / melt
         drn = 100.0 * float(r.get("drained_kg_m2", 0.0)) / melt
-        # runoff must read exactly 0 in a 1D run: any other value means a
-        # seepage face was active, which is lateral transport the column does
-        # not resolve, and the run should be redone without it
-        run = 100.0 * float(r.get("runoff_kg_m2", 0.0)) / melt
         print(f"{name:<26} {fac[0]:7.2f} {fac[-1]:7.2f} {fac[0]-fac[-1]:7.2f} "
-              f"{last.max():6.2f} {tbl:7.1f} {thick:7.1f} {refr:7.0f}% {drn:7.0f}% "
-              f"{run:6.2f}%")
+              f"{last.max():6.2f} {tbl:7.1f} {thick:7.1f} {refr:7.0f}% {drn:7.0f}%")
     print(f"\nobserved: water table {OBS_TABLE[0]:.0f}-{OBS_TABLE[1]:.0f} m, "
           f"base {OBS_BASE:.1f} m, thickness ~11.5 m")
 

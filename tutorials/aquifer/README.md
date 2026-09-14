@@ -32,7 +32,7 @@ round-off and no cell can be overdrawn; its latent heat goes to the matrix
 enthalpy and its mass to the density equation (Meyer & Hewitt's ice equation),
 where it fills pores in place. Melt comes from `firnpack.surface_energy`, a
 skin-temperature energy balance. The derivations, the discretisation and the
-three failure modes found on the way are in `doc/firn_hydrology.md`.
+four failure modes found on the way are in `doc/firn_hydrology.md`.
 
 ## Layout
 
@@ -104,6 +104,14 @@ core; the experiments are independent and can run in parallel.
 
 ## What the runs show
 
+> **The numbers in this section are stale and are being regenerated.** They
+> were produced before the interior gravity flux was corrected: it took its
+> conductivity from the receiving cell instead of the donor cell, which
+> throttles a wetting front descending into dry firn and so biases the split
+> between refreezing in the cold-wave zone and recharge reaching depth. Both
+> tables are kept for comparison until the runs are repeated; treat every
+> rate, depth and refrozen fraction below as provisional.
+
 **Synthetic contrasts** (12 years after a 50-year dry spinup):
 
 | case | refrozen | perennial | note |
@@ -137,10 +145,12 @@ the retention curve as much as about climate (see Caveats).
   forcing cycle. The refrozen fraction is nearly constant, 74-78%, so net
   recharge scales with melt, and the water table rises with it: from 45 m at
   0.43 m w.e./yr of melt to 26 m at 0.71.
-* **Permeability is not the control.** Reducing the conductivity ten-fold in
-  the density range where it was measured changes nothing to three digits;
-  what refreezes is the water the retention curve holds in the top ~10 m at
-  the end of summer, and the winter cold wave gets that at any conductivity.
+* `recent_a72_deep` repeats `recent_a72` with the conductivity reduced
+  ten-fold in the density range where it was measured. Under the downwinded
+  gravity flux the two agreed to three digits, but that conclusion is
+  withdrawn pending the re-run: a flux throttled by the dry receiving cell is
+  insensitive to the donor cell's conductivity by construction, so the
+  apparent insensitivity may be the bug rather than the column.
 * **The modelled aquifer sits too deep, and that is the densification.**
   Observed: table 10-22.5 m, base 27.7 m. Modelled: table 24-47 m, base at
   the bottom of the domain, because bubble close-off is reached at 50-52 m

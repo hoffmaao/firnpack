@@ -521,6 +521,14 @@ class FirnColumnSolver:
         # rho dw/dz = m - D(rho)/Dt then reduces to -compaction, as it must.
         # Before this the compaction rate was passed as the total and the
         # column was stretched by every kilogram it refroze.
+        #
+        # So the two refreezing terms this solver hands velocity_delta -
+        # `drhodt=drhodt_total`, which contains m, and `refreezing=m` itself,
+        # which velocity_delta subtracts - cancel exactly, and that is the
+        # point. velocity_delta states Meyer & Hewitt's ice equation
+        # rho dw/dz = m - D(rho)/Dt in full, so it stays correct for a caller
+        # that passes a total tendency without refrozen mass in it; here the
+        # cancellation *is* the physics, not a redundant argument to drop.
         drhodt_total = drhodt if refreezing is None else drhodt + refreezing
 
         if self._fields.get("eps") is None or self._fields["eps"].function_space() != V:

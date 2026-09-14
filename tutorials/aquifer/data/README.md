@@ -22,7 +22,7 @@ sides, so the forcing is an area mean rather than a point value. Cells are
 kept when their ERA5 orography is inside 1200-1800 m **and** their August-
 September `forecast_albedo` is at least 0.845: any cell containing bare rock
 has a lower late-summer albedo and a spuriously strong melt trend (+102%
-1940-2019 with those cells, +13% without). 18 of the 22 band cells survive.
+1940-2019 with those cells, +23% without). 18 of the 22 band cells survive.
 `diagnostics/map_aoi_optical.py` draws them on MODIS imagery.
 
 ## Sites
