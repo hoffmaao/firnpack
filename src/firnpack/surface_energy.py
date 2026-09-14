@@ -75,7 +75,6 @@ class SurfaceEnergyParameters:
     # --- radiation ---------------------------------------------------------
     albedo_fresh: float = 0.85     # fresh dry snow
     albedo_firn: float = 0.60      # aged/wet firn
-    albedo_ice: float = 0.45
     albedo_decay_days: float = 15.0   # e-folding of the ageing after snowfall
     fresh_snow_m_we: float = 0.005    # snowfall that resets the albedo
     emissivity: float = 0.98
@@ -113,14 +112,10 @@ class SurfaceEnergyBalance:
     # ------------------------------------------------------------------
     # Radiation
     # ------------------------------------------------------------------
-    def albedo(self, days_since_snowfall, wet=False):
-        """Exponential ageing from fresh snow toward firn.
-
-        Wet firn is darker, which is a positive feedback on an aquifer: melt
-        lowers the albedo, which raises the melt.
-        """
+    def albedo(self, days_since_snowfall):
+        """Exponential ageing from fresh snow toward firn."""
         p = self.params
-        floor = p.albedo_firn if not wet else 0.5 * (p.albedo_firn + p.albedo_ice)
+        floor = p.albedo_firn
         decay = np.exp(-np.maximum(days_since_snowfall, 0.0) / p.albedo_decay_days)
         return floor + (p.albedo_fresh - floor) * decay
 

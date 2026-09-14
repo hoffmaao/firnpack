@@ -187,7 +187,7 @@ def compute_DIP_m(model: FirnModel, rho: "fd.Function") -> float:
     return float(fd.assemble(model.porosity(rho) * dx))
 
 
-def _closeoff_depth(depth_m: np.ndarray, rho_kg_m3: np.ndarray, rho_target: float) -> float:
+def closeoff_depth(depth_m: np.ndarray, rho_kg_m3: np.ndarray, rho_target: float) -> float:
     """Shallowest depth below which density stays at or above `rho_target`.
 
     `depth_m` must be sorted shallow-to-deep. Bubble close-off is where pores
@@ -228,9 +228,9 @@ def compute_BCO_depth_age(
 
     Where density reversals occur, this is the top of the permanently-closed
     region, not the shallowest excursion above the threshold - see
-    `_closeoff_depth`.
+    `closeoff_depth`.
     """
-    z_bco = _closeoff_depth(depth_m_sorted, rho_sorted, rho_bco)
+    z_bco = closeoff_depth(depth_m_sorted, rho_sorted, rho_bco)
     if not np.isfinite(z_bco):
         return float("nan"), float("nan")
     age_bco_s = float(np.interp(z_bco, depth_m_sorted, age_sorted_s))

@@ -31,7 +31,7 @@ annual table is built at). 18 of the 22 band cells survive.
 | Site | Lat | Lon | Elev | Observed | Source |
 |------|-----|-----|------|----------|--------|
 | PFA-13 core | 66.18 N | 39.04 W | 1563 m | liquid water 12-37 m | Koenig et al. 2014; Miege et al. 2016 |
-| Helheim survey | 66.36 N | 39.33 W | ~1518 m | water table 10-20 m, base 27.7 m, thickness ~11.5 m; K = 2.7e-4 m/s (2.5e-5 to 1.1e-3); recharge 9-30 cm/yr | Montgomery et al. 2017; Miller et al. 2017 |
+| Helheim survey | 66.36 N | 39.33 W | ~1518 m | water table 10-20 m, base 27.7 m, thickness ~11.5 m (Montgomery et al. 2017); water-table depths 10.0-22.5 m across the boreholes, K = 2.7e-4 m/s (2.5e-5 to 1.1e-3), recharge 9-30 cm/yr (Miller et al. 2017) | Montgomery et al. 2017; Miller et al. 2017 |
 
 ## Caveats
 

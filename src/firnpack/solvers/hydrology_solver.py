@@ -3,8 +3,7 @@
 One step is operator-split into transport followed by local phase change, the
 order Meyer & Hewitt's local-equilibrium closure implies:
 
-1. Advance ``W`` with percolation, the surface melt influx, basal outflow and
-   lateral drainage.
+1. Advance ``W`` with percolation, the surface melt influx and basal outflow.
 2. Advance ``H`` with advection and conduction.
 3. Exchange mass and latent heat between the two **pointwise**.
 
@@ -16,9 +15,15 @@ Applied pointwise, the same increment conserves mass and energy to round-off
 and cannot drive ``W < 0`` or push ``H`` past zero from either side. See
 :meth:`firnpack.models.hydrology.HydrologyModel.phase_change_increment`.
 
-The freezing rate is returned as a field so the caller can pass it straight to
-``FirnModel.velocity_delta`` as the ice-mass source, keeping the firn and
-hydrology halves consistent.
+The freezing rate is returned as a field so the caller can hand it to
+:meth:`firnpack.solvers.firn_solver.FirnColumnSolver.prognostic_solve` as
+``refreezing=``. That routes it into the **density** equation, where refrozen
+water fills pores in place; the base-to-surface velocity integration then sees
+it only through the total density tendency. Do not pass it to
+``FirnModel.velocity_delta`` as a standalone ice-mass source alongside an
+unmodified compaction rate: that solves ``rho dw/dz = m - compaction``, so
+every refrozen kilogram thickens the column instead of densifying it. See
+``doc/firn_hydrology.md`` section 5.
 """
 
 import firedrake as fd

@@ -48,7 +48,7 @@ Their ice and water mass balances, with a phase-change exchange term ``m``,
 become, in the variables above,
 
     D(rho)/Dt + rho dw/dx = m                               (see FirnModel)
-    dW/dt + d/dx[W w + q] = -m - R_drain                    (:meth:`water_form`)
+    dW/dt + d/dx[W w + q] = -m                              (:meth:`water_form`)
 
 where ``q`` is the Darcy mass flux **relative to the moving ice matrix** and
 ``w`` is the ice velocity recovered by integrating compaction from the base to
@@ -56,18 +56,12 @@ the surface. Keeping ``q`` relative to the matrix is what lets the existing
 base-to-surface velocity integration stand unchanged apart from the ``m``
 source: see :meth:`firnpack.models.firn.FirnModel.velocity_delta`.
 
-``R_drain`` has no counterpart in Meyer & Hewitt, who model a closed column. It
-is the lateral loss from a saturated zone (Sect. "Lateral drainage" below) and
-is the term that governs whether a perennial firn aquifer persists.
-
 Where this departs from Meyer & Hewitt
 --------------------------------------
 1. **Permeability** is tied to the model's own prognostic grain size via
    Calonne et al. (2012) rather than to porosity alone; see
    :meth:`permeability`.
-2. **Lateral drainage** is added, because column-closed models cannot express
-   the recharge/discharge balance that sets aquifer persistence.
-3. Phase change uses the same local equilibrium closure, but written as a
+2. Phase change uses the same local equilibrium closure, but written as a
    rate limited by both the available water and the available cold content so
    that a single backward-Euler step can never overshoot ``H = 0`` or drive
    ``W < 0``; see :meth:`phase_change_rate`.
@@ -92,7 +86,7 @@ from firnpack.constants import (
 
 @dataclass
 class HydrologyParameters:
-    """Parameters for percolation, storage, refreezing and drainage."""
+    """Parameters for percolation, storage and refreezing."""
 
     # --- physical constants -------------------------------------------------
     rho_i: float = ice_density

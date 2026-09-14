@@ -814,15 +814,22 @@ def run_aquifer_column(
             rho_nodes = state.rho.dat.data_ro[order].copy()
             rho_profiles.append(rho_nodes)
             por = np.maximum(1.0 - rho_nodes / params.rho_i, 1e-6)
-            S_profiles.append(np.clip(theta_nodes / por, 0.0, 1.5))
+            sat = np.clip(theta_nodes / por, 0.0, 1.5)
+            S_profiles.append(sat)
             out["fac_m"].append(float(fd.assemble(
                 model.porosity(state.rho) * dxq)))
-            # pore space still above the water table, i.e. not yet flooded
-            wet = theta_nodes / por >= 0.5
+            # Pore space above the water table. The water table is the top of
+            # the thickest contiguous saturated zone, the same rule wet_layer
+            # applies: masking every unsaturated node instead would also
+            # subtract a near-surface melt-season wet layer sitting well above
+            # the aquifer, which is the drawdown this series exists to isolate.
+            wt_top, _ = wet_layer(depth_sorted, sat, 0.5)
+            above = (np.ones_like(por, dtype=bool) if np.isnan(wt_top)
+                     else depth_sorted < wt_top)
             # depth_sorted ascends, so integrate in that order: reversing
             # both arrays integrates from the base up and flips the sign
             out["fac_above_wt_m"].append(float(np.trapezoid(
-                np.where(wet, 0.0, por), depth_sorted)))
+                np.where(above, por, 0.0), depth_sorted)))
 
     theta_fn.interpolate(curves.moisture_content(head))
     result: Dict[str, Any] = {k: np.asarray(v) for k, v in out.items()}

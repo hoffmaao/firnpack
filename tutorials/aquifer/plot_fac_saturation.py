@@ -14,7 +14,7 @@ Two views of the same column:
                  S -> 1: its top edge is the water table and its thickness is
                  the aquifer thickness, both directly comparable with the
                  radar and core observations (water table 10-20 m, base near
-                 28 m).
+                 28 m; Montgomery et al. 2017).
 
 Saturation is used rather than water content because theta alone confounds two
 things - a cell can hold little water because it is dry or because it has
@@ -143,8 +143,9 @@ def figure(runs):
     cb.ax.tick_params(colors=MUTED, labelsize=8)
     cb.outline.set_visible(False)
     fig.suptitle("Pore space and how much of it holds water\n"
-                 "orange band: observed water table 10-20 m; dotted: observed "
-                 "aquifer base 27.7 m; orange line: modelled S = 0.5",
+                 "orange band: observed water table 10-20 m (Montgomery "
+                 "et al. 2017); dotted: observed aquifer base 27.7 m; "
+                 "orange line: modelled S = 0.5",
                  fontsize=11.5, color=INK, y=0.99)
     out = FIGURES / "aquifer_fac_saturation.png"
     fig.savefig(out, dpi=150, bbox_inches="tight", facecolor="white")

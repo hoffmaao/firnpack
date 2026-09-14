@@ -224,28 +224,22 @@ These are recorded because each looked like physics before it was found.
 
 ## 6. What the ERA5-forced column says
 
-> **Numbers below are stale and are being regenerated.** They were produced
-> before three physics fixes: the interior gravity flux took its conductivity
-> from the receiving cell rather than the donor cell, throttling a wetting
-> front descending into dry firn and biasing the split between refreezing in
-> the cold-wave zone and recharge reaching depth; the surface mass balance
-> double-counted melt, putting 30-50% more mass into the ERA5-forced column
-> than the climate delivers (the larger effect on the ERA5 table); and the
-> densification loading moved from the net surface mass balance to the gross
-> snowfall, which moves close-off depth. The flux is now donor-cell upwinded,
-> the matrix influx is snowfall minus melt, and the loading is the gross
-> snowfall. All ten experiments - the four synthetic contrasts as well as the
-> six ERA5 runs - are pending regeneration; the figures are kept here for
-> comparison only, and every rate and depth in this section is provisional.
+> **Every number in this section predates the corrections made on this branch
+> and is being regenerated.** All ten runs - the four synthetic contrasts and
+> the six ERA5 experiments - are pending re-run against the current physics
+> and configuration, so the figures here are kept for comparison only and
+> every rate and depth in this section is provisional. The conclusion that
+> recharge is insensitive to permeability is withdrawn.
 
-Full tables in `tutorials/aquifer/README.md`. In brief, produced before the
-three fixes above: a perennial aquifer forms under
+Full tables in `tutorials/aquifer/README.md`. In brief, and subject to the
+notice above: a perennial aquifer forms under
 every aged-firn albedo
 floor from 0.76 to 0.70 (melt 0.46 to 0.71 m w.e./yr over 2006-2019), and
 under the 1940-1959 climate, where it is marginal. The refrozen fraction is
 74-78% throughout, so net recharge (19 to 70 kg m^-2 yr^-1) scales with melt
 and the water table rises with it (45 to 26 m). The aquifer sits deeper than
-observed (table 10-22.5 m, base 27.7 m) because the column
+observed (table 10-20 m and base 27.7 m, Montgomery et al. 2017; the Miller
+et al. 2017 boreholes span 10.0-22.5 m) because the column
 reaches bubble close-off at 50-52 m rather than ~28 m: the remaining
 discrepancy is in the densification of wet firn, not in the hydrology. Each
 80-year experiment takes roughly 45 minutes on one core (measured:

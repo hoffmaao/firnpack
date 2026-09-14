@@ -86,8 +86,6 @@ def test_albedo_ages_from_fresh_snow_toward_firn():
     assert float(seb.albedo(0.0)) == pytest.approx(p.albedo_fresh)
     assert float(seb.albedo(1e6)) == pytest.approx(p.albedo_firn)
     assert float(seb.albedo(30.0)) < float(seb.albedo(5.0))
-    # wet firn is darker, which feeds back onto melt
-    assert float(seb.albedo(1e6, wet=True)) < float(seb.albedo(1e6))
 
 
 def test_stable_stratification_suppresses_turbulent_exchange():

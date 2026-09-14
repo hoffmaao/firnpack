@@ -87,12 +87,16 @@ equilibrates to that climate (a column started from a dry spinup carries a
 cold reservoir that decades of melt must first overcome). The aged-firn albedo
 floor is the largest free knob in the balance and is swept, not calibrated.
 
-Both experiment families run the unscaled Calonne et al. (2012) permeability,
-so the synthetic contrasts and the ERA5 runs are comparable on conductivity;
-`recent_a72_deep` is the one variant, reducing it ten-fold only in the density
-range where the Helheim conductivity was actually measured.
-Observations to compare against: water table 10-22.5 m, aquifer base 27.7 m,
-recharge 9-30 cm/yr (Montgomery et al. 2017; Miller et al. 2017).
+Both experiment families now run the unscaled Calonne et al. (2012)
+permeability, so the synthetic contrasts and the ERA5 runs are comparable on
+conductivity; `recent_a72_deep` is the one variant, reducing it ten-fold only
+in the density range where the Helheim conductivity was actually measured.
+(That describes the current configuration; the tables below predate it, see
+the notice there.)
+
+Observations to compare against: water table 10-20 m with the aquifer base at
+27.7 m (Montgomery et al. 2017), water-table depths of 10.0-22.5 m across the
+boreholes of Miller et al. (2017), and recharge 9-30 cm/yr.
 
 ## Two things this column does not yet do
 
@@ -125,26 +129,12 @@ are independent and can run in parallel.
 
 ## What the runs show
 
-> **The numbers in this section are stale and are being regenerated.** All
-> ten experiments - the four synthetic contrasts and the six ERA5 runs - are
-> pending regeneration; both tables below are kept only for comparison, and
-> every rate, depth and refrozen fraction in them is provisional. They were
-> produced before three physics fixes:
->
-> 1. **The interior gravity flux** took its conductivity from the receiving
->    cell instead of the donor cell, which throttles a wetting front
->    descending into dry firn and so biases the split between refreezing in
->    the cold-wave zone and recharge reaching depth.
-> 2. **The surface mass balance double-counted melt**: the surface velocity BC
->    was driven with gross snowfall while the melt derived from it was also
->    injected as water, putting 30-50% more mass into the ERA5-forced column
->    than the climate delivers. This is the larger effect on the ERA5 table.
-> 3. **The densification loading moved from net to gross snowfall.** `bdot` in
->    the overburden stress is a loading rate and this column has no runoff, so
->    everything that falls weighs on the firn below. This one moves the
->    synthetic table most: `se_greenland` is now loaded at 2.37 rather than
->    1.50 m i.e./yr and `low_accum` at 1.12 rather than 0.25, and the loading
->    is what sets close-off depth.
+> **Every number in the tables below predates the corrections made on this
+> branch and is being regenerated.** All ten runs - the four synthetic
+> contrasts and the six ERA5 experiments - are pending re-run against the
+> current physics and configuration, so the tables are kept for comparison
+> only and every rate, depth and refrozen fraction in them is provisional.
+> The conclusion that recharge is insensitive to permeability is withdrawn.
 
 **Synthetic contrasts** (12 years after a 50-year dry spinup):
 
@@ -186,8 +176,9 @@ the retention curve as much as about climate (see Caveats).
   insensitive to the donor cell's conductivity by construction, so the
   apparent insensitivity may be the bug rather than the column.
 * **The modelled aquifer sits too deep, and that is the densification.**
-  Observed: table 10-22.5 m, base 27.7 m. Modelled: table 24-47 m, base at
-  the bottom of the domain, because bubble close-off is reached at 50-52 m
+  Observed: table 10-20 m and base 27.7 m (Montgomery et al. 2017), with the
+  Miller et al. (2017) boreholes spanning 10.0-22.5 m. Modelled: table
+  24-47 m, base at the bottom of the domain, because close-off is at 50-52 m
   rather than ~28 m. Wet firn compacts faster than the dry densification law
   used here allows (and the refreezing that is now in the density equation
   is not enough on its own), so there is no impermeable floor at the observed
