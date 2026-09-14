@@ -65,6 +65,10 @@ for site in AQUIFER_SITES:
           f"retention trace ({base:.0f} kg/m2): "
           f"winter minimum {(s[sel] - base).min():8.1f}, "
           f"summer maximum {(s[sel] - base).max():8.1f} kg/m2")
+    if res.get("ablation_steps", 0):
+        print(f"    ABLATION STEPS: {res['ablation_steps']} step(s) with a "
+              f"negative trailing surface mass balance, which this fixed-mesh "
+              f"column cannot represent")
     print(f"    PERENNIAL WATER: {'YES' if res['persists'] else 'NO'}")
 
     payload = {k: (v.tolist() if isinstance(v, np.ndarray) else v)

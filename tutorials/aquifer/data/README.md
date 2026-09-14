@@ -38,6 +38,8 @@ has a lower late-summer albedo and a spuriously strong melt trend (+102%
   1-2.5 m w.e./yr reported for these sites; no correction is applied.
 * The surface energy balance's ageing albedo decays to a floor that is the
   dominant control on melt. It is swept in `config.ERA5_EXPERIMENTS`, not
-  calibrated: 0.76 gives 0.43 and 0.70 gives 0.67 m w.e./yr over 2006-2019.
+  calibrated: 0.76 gives 0.46 and 0.70 gives 0.71 m w.e./yr. The full mapping
+  and the period it is computed over are in
+  `ReanalysisSite.ALBEDO_FIRN_SE_GREENLAND` (`firnpack.aquifer`).
 * The record has gaps where the CDS download has not completed; the plots draw
   them as gaps rather than bridging them.

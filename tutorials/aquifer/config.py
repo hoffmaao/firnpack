@@ -60,7 +60,9 @@ ERA5_COLUMN = dict(
 # albedo floor   the aged-firn albedo the ageing model decays to. It is the
 #                largest free knob in the energy balance and the melt is
 #                nearly linear in it, so it is swept rather than fixed:
-#                0.76 -> 0.43, 0.72 -> 0.58, 0.70 -> 0.67 m w.e./yr (2006-2019).
+#                0.76 -> 0.46, 0.74 -> 0.54, 0.72 -> 0.62, 0.70 -> 0.71
+#                m w.e./yr. Mapping and its provenance:
+#                ReanalysisSite.ALBEDO_FIRN_SE_GREENLAND in firnpack.aquifer.
 # permeability   "calonne"  Calonne et al. (2012) from density and grain size
 #                "deep0.1"  the same, reduced 10x only in firn denser than
 #                           ~600 kg/m3, where the Helheim aquifer conductivity

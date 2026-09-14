@@ -148,8 +148,8 @@ def test_a_saturated_head_boundary_admits_water_through_the_surface():
     Nitsche diffusive influx about twelve times the gravity influx, so
     inverting the gravity upwinding would barely move the total and the test
     could not tell. The donor-cell convention is pinned instead by
-    test_the_gravity_facet_flux_uses_the_donor_cell, which assembles the term
-    directly.
+    test_the_gravity_facet_flux_takes_the_donor_cells_conductivity, which
+    assembles the term directly.
 
     What remains here is still worth keeping: the boundary admits water at
     all, it is not throttled to the dry interior conductivity, and it cannot

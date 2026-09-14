@@ -34,7 +34,7 @@ here:
 - `firn_hydrology.md` - percolation, refreezing and the aquifer column: the
   mixed-form Richards model on a compacting medium, the implicit phase-change
   sink, the ice-mass source in the density equation, the surface energy
-  balance, and the three failure modes found on the way to a SE Greenland
+  balance, and the four failure modes found on the way to a SE Greenland
   aquifer (each with its regression test).
 
 - `southpole_inversion_handoff.md` - the South Pole inversion history and the

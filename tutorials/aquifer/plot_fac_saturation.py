@@ -50,9 +50,15 @@ OBS_TABLE, OBS_BASE = (10.0, 20.0), 27.7
 def _thickest_wet(depth, sat, threshold=0.5):
     """Top and bottom of the thickest contiguous saturated zone.
 
-    Mirrors firnpack.aquifer.wet_layer. Taking the first and last saturated
-    node instead spans both the near-surface wet layer and the aquifer during
-    a melt season, reporting the dry firn between them as part of the aquifer.
+    Taking the first and last saturated node instead spans both the
+    near-surface wet layer and the aquifer during a melt season, reporting the
+    dry firn between them as part of the aquifer.
+
+    Deliberate duplicate of ``firnpack.aquifer.wet_layer``, which implements
+    the same contiguous-run rule. They cannot share code: this script is a
+    pure reader of ``output/`` and runs without Firedrake, while importing
+    ``firnpack.aquifer`` pulls in ``firnpack.models.firn``, which imports
+    Firedrake unconditionally. Change one and change the other.
     """
     wet = np.asarray(sat) >= threshold
     if not wet.any():

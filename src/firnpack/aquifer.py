@@ -214,8 +214,10 @@ class ReanalysisSite:
     # The measured recharge into the Helheim aquifer is 9-30 cm/yr (J. Glaciol.
     # hydrologic-modelling study, field data), which at the 56-70% refreezing
     # the column shows implies gross melt of 0.3-0.7 m w.e./yr, centre ~0.45.
-    # Mapping the floor through the energy balance on 2006-2019 forcing:
-    #   0.60 -> 1.21   0.70 -> 0.72   0.74 -> 0.54   0.76 -> 0.46   0.80 -> 0.32
+    # Mapping the floor through the energy balance, in m w.e./yr over the
+    # 14 complete years 2006-2019 of the 83-year record - the authoritative
+    # copy of this mapping, which the tutorial config and data notes cite:
+    #   0.60 -> 1.20   0.70 -> 0.71   0.72 -> 0.62   0.74 -> 0.54   0.76 -> 0.46
     # so 0.76 reproduces the observed recharge. A site calibration, kept here
     # with the application rather than in SurfaceEnergyParameters.
     ALBEDO_FIRN_SE_GREENLAND = 0.76
@@ -233,9 +235,13 @@ class ReanalysisSite:
 
         df = pd.read_csv(csv_path, parse_dates=["time"])
         df = df[(df["time"].dt.year >= year0) & (df["time"].dt.year <= year1)]
-        df = df.dropna(subset=["t2m", "ssrd", "strd", "sp", "d2m", "u10", "v10"])
+        df = df.dropna(
+            subset=["t2m", "ssrd", "strd", "sp", "d2m", "u10", "v10", "sf"])
         if df.empty:
-            raise SystemExit(f"no ERA5 rows for {year0}-{year1} in {csv_path}")
+            raise SystemExit(
+                f"no complete ERA5 rows for {year0}-{year1} in {csv_path}: "
+                f"every row in the window is missing at least one of "
+                f"t2m, ssrd, strd, sp, d2m, u10, v10, sf")
         df = df.sort_values("time").reset_index(drop=True)
 
         block_s = float(df["sample_hours"].iloc[0]) * 3600.0
@@ -366,6 +372,12 @@ def wet_layer(depth_sorted: np.ndarray, theta_sorted: np.ndarray,
     carries two disjoint wet zones, a near-surface wet layer and the aquifer
     itself. Reporting the first and last wet node spans both and the dry firn
     between them, which is neither layer.
+
+    Deliberately duplicated as ``_thickest_wet`` in
+    ``tutorials/aquifer/plot_fac_saturation.py``, which implements the same
+    rule. They cannot share code: that script is specified to run without
+    Firedrake, and importing this module pulls in ``firnpack.models.firn``,
+    which imports Firedrake unconditionally. Change one and change the other.
     """
     wet = np.asarray(theta_sorted) >= theta_threshold
     if not wet.any():

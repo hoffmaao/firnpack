@@ -118,12 +118,17 @@ core; the experiments are independent and can run in parallel.
 ## What the runs show
 
 > **The numbers in this section are stale and are being regenerated.** They
-> were produced before the interior gravity flux was corrected: it took its
-> conductivity from the receiving cell instead of the donor cell, which
+> were produced before two physics fixes. First, the surface mass balance
+> double-counted melt: the surface velocity BC was driven with gross snowfall
+> while the melt derived from it was also injected as water, putting 30-50%
+> more mass into the ERA5-forced column than the climate delivers. This is
+> the larger effect on the ERA5 table. Second, the interior gravity flux took
+> its conductivity from the receiving cell instead of the donor cell, which
 > throttles a wetting front descending into dry firn and so biases the split
-> between refreezing in the cold-wave zone and recharge reaching depth. Both
-> tables are kept for comparison until the runs are repeated; treat every
-> rate, depth and refrozen fraction below as provisional.
+> between refreezing in the cold-wave zone and recharge reaching depth. The
+> synthetic table is affected only by the flux fix, since `AquiferSite` was
+> unchanged. Both tables are kept for comparison until the runs are repeated;
+> treat every rate, depth and refrozen fraction below as provisional.
 
 **Synthetic contrasts** (12 years after a 50-year dry spinup):
 
