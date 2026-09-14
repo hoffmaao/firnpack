@@ -264,9 +264,15 @@ class ReanalysisSite:
 
         block_s = float(df["sample_hours"].iloc[0]) * 3600.0
         seb = SurfaceEnergyBalance(seb_params)
-        if albedo == "era5" and "fal" in df:
+        if albedo not in ("model", "era5"):
+            raise ValueError(
+                f"albedo must be 'model' or 'era5', not {albedo!r}; the floor "
+                f"is swept through seb_params.albedo_firn")
+        if albedo == "era5":
+            if "fal" not in df:
+                raise ValueError(f"albedo='era5' needs a 'fal' column in {csv_path}")
             alb = df["fal"].values
-        elif albedo == "model":
+        else:
             # Our own ageing albedo, reset by snowfall. Kept as an option
             # because ERA5's is bright (0.845 mean) for firn that melts every
             # summer, and albedo is the largest single lever on the melt.
@@ -282,8 +288,6 @@ class ReanalysisSite:
                          else since + step_days)
                 days[i] = since
             alb = np.asarray(seb.albedo(days), dtype=float)
-        else:
-            alb = np.full(len(df), float(albedo))
         _, melt, _, _ = seb.solve(
             sw_in=df["ssrd"].values / block_s, lw_in=df["strd"].values / block_s,
             T_air=df["t2m"].values, wind=np.hypot(df["u10"].values, df["v10"].values),
@@ -301,8 +305,10 @@ class ReanalysisSite:
             [[0.0], np.cumsum(df["sf"].values)])          # m w.e.
         self._edges = np.concatenate([self.t, [self.t[-1] + block_s / YEAR_S]])
         self.span_years = float(self._edges[-1])
-        # The record has download gaps - whole years are absent from the CSV,
-        # not present as NaN rows - so the retained blocks can cover less than
+        # The record has download gaps of two shapes: a missing year has no
+        # rows at all, and a present year can carry a few blank cells where
+        # one stream was short. The dropna above turns the second shape into
+        # the first, so either way the retained blocks can cover less than
         # the wall-clock span. Rates are per unit time actually observed:
         # dividing a partial total by the full span reports every rate low by
         # the missing fraction, silently. `span_years` stays the wall-clock

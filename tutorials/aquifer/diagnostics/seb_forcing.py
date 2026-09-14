@@ -99,12 +99,14 @@ def model_albedo(seb, forcing):
 def run(forcing, seb=None, T_firn=270.0, k_eff=0.5, albedo="era5"):
     seb = seb or SurfaceEnergyBalance()
     n = forcing["T_air"].size
-    if albedo == "era5" and forcing["era5_albedo"] is not None:
+    if albedo == "era5":
+        if forcing["era5_albedo"] is None:
+            raise ValueError("albedo='era5' needs a 'fal' column in the forcing")
         alb = forcing["era5_albedo"]
     elif albedo == "model":
         alb = model_albedo(seb, forcing)
     else:
-        alb = np.full(n, float(albedo))
+        raise ValueError(f"albedo must be 'model' or 'era5', not {albedo!r}")
 
     T_s, melt, Q_C, fx = seb.solve(
         sw_in=forcing["sw_in"], lw_in=forcing["lw_in"], T_air=forcing["T_air"],
@@ -119,8 +121,9 @@ def run(forcing, seb=None, T_firn=270.0, k_eff=0.5, albedo="era5"):
 def report(forcing, res, label=""):
     """Annual means over the years that are actually in the record.
 
-    The CSV carries blank rows for years not yet downloaded, so plain sums
-    and means over the whole array would be NaN or diluted by the gaps.
+    A missing year has no rows at all and a present year can carry a few
+    blank cells, so the year count comes from rows with data and plain means
+    would otherwise be NaN or diluted.
     """
     block_s = forcing["block_s"]
     have = np.isfinite(forcing["T_air"]) & np.isfinite(forcing["sw_in"])

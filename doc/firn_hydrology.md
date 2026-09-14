@@ -141,6 +141,17 @@ degree-day rule whose factor spanned the answer (0.26 to 0.53 m w.e./yr over
 the same forcing for 3 vs 6 mm/C/day). The aged-firn albedo floor is the
 largest remaining free parameter and is swept, not calibrated.
 
+The coupling is only half closed, deliberately and for now. The balance
+computes a skin temperature `T_s` and a conductive flux `Q_C` as well as the
+melt rate, but only the melt rate is consumed: `T_s` and `Q_C` are discarded,
+and the column's enthalpy boundary condition still prescribes the 2 m air
+temperature clamped at the melting point. So "conduction into the firn" above
+is a term inside the balance that sets the melt, not the column's surface
+thermal condition. Closing the loop with a Neumann `Q_C` condition is the next
+step, and it is deferred because it changes the thermal structure of the
+column, which is what sets how much of the melt refreezes; it needs its own
+validation rather than riding along with the hydrology.
+
 ### Surface mass balance
 
 Snowfall is the surface mass balance. Melt adds no mass and removes none: it
