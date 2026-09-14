@@ -89,8 +89,9 @@ floor is the largest free knob in the balance and is swept, not calibrated.
 
 Both experiment families now run the unscaled Calonne et al. (2012)
 permeability, so the synthetic contrasts and the ERA5 runs are comparable on
-conductivity; `recent_a72_deep` is the one variant, reducing it ten-fold only
-in the density range where the Helheim conductivity was actually measured.
+conductivity; `recent_a72_deep` is the one variant, ramping it down ten-fold
+across 550-650 kg/m3 - the band the Helheim conductivity was actually measured
+in - and holding it ten-fold lower in anything denser.
 (That describes the current configuration; the tables below predate it, see
 the notice there.)
 
@@ -169,8 +170,9 @@ the retention curve as much as about climate (see Caveats).
   forcing cycle. The refrozen fraction is nearly constant, 74-78%, so net
   recharge scales with melt, and the water table rises with it: from 45 m at
   0.46 m w.e./yr of melt to 26 m at 0.71.
-* `recent_a72_deep` repeats `recent_a72` with the conductivity reduced
-  ten-fold in the density range where it was measured. Under the downwinded
+* `recent_a72_deep` repeats `recent_a72` with the conductivity ramped down
+  ten-fold across 550-650 kg/m3, the band it was measured in, and held there
+  in anything denser. Under the downwinded
   gravity flux the two agreed to three digits, but that conclusion is
   withdrawn pending the re-run: a flux throttled by the dry receiving cell is
   insensitive to the donor cell's conductivity by construction, so the

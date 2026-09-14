@@ -425,11 +425,8 @@ def wet_layer(depth_sorted: np.ndarray, theta_sorted: np.ndarray,
     itself. Reporting the first and last wet node spans both and the dry firn
     between them, which is neither layer.
 
-    Deliberately duplicated as ``_thickest_wet`` in
-    ``tutorials/aquifer/plot_fac_saturation.py``, which implements the same
-    rule. They cannot share code: that script is specified to run without
-    Firedrake, and importing this module pulls in ``firnpack.models.firn``,
-    which imports Firedrake unconditionally. Change one and change the other.
+    This is the rule for reporting the *extent* of a wet zone. The water table
+    itself is :func:`water_table_depth`, which takes the deepest run instead.
     """
     starts, ends = _wet_runs(theta_sorted, theta_threshold)
     if starts is None:
@@ -458,6 +455,13 @@ def water_table_depth(depth_sorted: np.ndarray, theta_sorted: np.ndarray,
     before an aquifer forms: the only saturated run is then the shallow perched
     layer, so the water table reads a couple of metres and everything below it
     counts as flooded.
+
+    Deliberately duplicated as ``_deepest_wet`` in
+    ``tutorials/aquifer/plot_fac_saturation.py``, which applies the same rule
+    and also returns the bottom. They cannot share code: that script is
+    specified to run without Firedrake, and importing this module pulls in
+    ``firnpack.models.firn``, which imports Firedrake unconditionally. Change
+    one and change the other.
     """
     starts, _ = _wet_runs(theta_sorted, theta_threshold)
     if starts is None:

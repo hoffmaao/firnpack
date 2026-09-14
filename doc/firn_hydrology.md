@@ -176,6 +176,14 @@ densification and pushes bubble close-off deeper, and close-off depth is
 already this model's largest disagreement with the observed aquifer base
 (section 6).
 
+The split applies to the wet transient only. The dry spinup that precedes it
+drives the velocity boundary condition with the **gross** snowfall as well: no
+melt occurs there and no melt water arrives, so the mass the column carries is
+the whole snowfall. Loading at gross while feeding at net would build the
+spinup an overburden it never receives, and hand the transient an initial
+density profile that is the steady state of neither configuration. The driver
+switches the boundary condition to net when the transient begins.
+
 ## 5. Four ways the aquifer failed to appear, and what each was
 
 These are recorded because each looked like physics before it was found.

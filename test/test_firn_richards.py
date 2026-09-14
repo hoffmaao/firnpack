@@ -495,26 +495,27 @@ def test_deep_permeability_correction_applies_only_where_it_was_measured():
     cold-wave zone so much that the column refroze 89-97% of its melt and no
     aquifer could form. The correction is therefore a smooth ramp in density:
     exactly 1 below perm_rho_lo, exactly perm_scale_deep above perm_rho_hi.
+    Run against the shipped defaults, which are the band every ``deep0.1``
+    experiment uses.
     """
     mesh = fd.IntervalMesh(4, 0.0, 1.0)
     V = fd.FunctionSpace(mesh, "CG", 1)
     base = FirnRichardsParameters()
-    deep = FirnRichardsParameters(perm_scale_deep=0.1, perm_rho_lo=450.0,
-                                  perm_rho_hi=600.0)
+    deep = FirnRichardsParameters(perm_scale_deep=0.1)
 
     def k(rho, p):
         r = fd.Function(V).interpolate(fd.Constant(rho))
         f = fd.Function(V).interpolate(FirnRichardsModel(p).permeability(r))
         return float(f.dat.data_ro[0])
 
-    for rho in (350.0, 450.0):
+    for rho in (350.0, 550.0):
         assert k(rho, deep) == pytest.approx(k(rho, base), rel=1e-12)
-    for rho in (600.0, 700.0, 800.0):
+    for rho in (650.0, 700.0, 800.0):
         assert k(rho, deep) == pytest.approx(0.1 * k(rho, base), rel=1e-12)
-    mid = k(525.0, deep) / k(525.0, base)          # ramp midpoint
+    mid = k(600.0, deep) / k(600.0, base)          # ramp midpoint
     assert mid == pytest.approx(0.55, rel=1e-12)
     # monotone through the ramp
-    ratios = [k(r, deep) / k(r, base) for r in np.linspace(440.0, 610.0, 18)]
+    ratios = [k(r, deep) / k(r, base) for r in np.linspace(540.0, 660.0, 18)]
     assert np.all(np.diff(ratios) <= 1e-12)
 
 

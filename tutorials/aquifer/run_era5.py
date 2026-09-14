@@ -62,10 +62,10 @@ def summarise(r: dict) -> str:
     d = np.asarray(r["depth_m"])
     rho = np.asarray(r["rho_profiles"])[-1]
     S = np.asarray(r["S_profiles"])
-    from firnpack.aquifer import wet_layer
+    from firnpack.aquifer import water_table_depth
     from firnpack.firnmice import closeoff_depth
     co = closeoff_depth(d, rho, 830.0)
-    wt_top, _ = wet_layer(d, S[-1], 0.5)
+    wt_top = water_table_depth(d, S[-1], 0.5)
     ablation = r.get("ablation_steps", 0)
     return (f"melt {melt / yrs:5.0f}  refroze {refr / yrs:5.0f} ({100 * refr / melt:.0f}%)  "
             f"drained {drain / yrs:4.0f}  net recharge {(melt - refr - drain) / yrs:5.0f} kg/m2/yr | "
