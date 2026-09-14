@@ -1,0 +1,3 @@
+site,lat,lon,site_elev_m,era5_elev_m,era5_T_C,era5_accum_m_we_yr,era5_melt_m_we_yr,obs_water_table_top_m,obs_water_table_base_m
+PFA-13 core (Koenig 2014),66.18,-39.04,1563,1432.9,-10.31,1.391,0.08,12.0,37.0
+Helheim survey (Montgomery 2017),66.36,-39.33,1518,1631.6,-11.67,1.473,0.029,10.0,27.7

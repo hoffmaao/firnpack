@@ -92,8 +92,11 @@ if base_yr is not None:
     # older = initialization / deep-ice domain (not firn-reconstructed)
     ax.axvspan(ry.min() - 20, base_yr, color=fp.GRID, alpha=0.18, lw=0)
     ax.axvline(base_yr, color=fp.GRID, ls=":", lw=1.2)
+    # white bbox: this sits in the lower-left corner, where the truth curve runs
+    # through it and left the grey text unreadable.
     ax.annotate(f"initialization /\ndeep-ice domain\n(older than the\nsnowpack, ~{base_yr:.0f} CE)",
-                xy=(0.02, 0.05), xycoords="axes fraction", fontsize=7.5, color="#6B7280")
+                xy=(0.02, 0.05), xycoords="axes fraction", fontsize=7.5, color="#6B7280",
+                bbox=dict(boxstyle="round,pad=0.3", fc="w", ec="none", alpha=0.85))
 else:
     ax.plot(ry, rv, "s--", color=C_R, lw=1.8, ms=5, label="reconstructed")
 if "dT_exp" in tr:
@@ -221,11 +224,14 @@ if _RA.exists():
     ax.plot(y, np.asarray(tru["dfac_m"])[show] * 100, "--", color=C_T, lw=2, label="truth")
     ax.axhline(0, color="k", lw=0.7)
     ax.set_ylabel("ΔFAC (cm)")
-    ax.set_title("(c) firn AIR response - RECOVERED", fontsize=10.5)
+    ax.set_title("(c) firn AIR response (ΔFAC)", fontsize=10.5)
     ax.legend(fontsize=8); ax.grid(alpha=0.3)
-    ax.annotate(f"2015: rec {rec['dfac_m'][-1]*100:+.0f}, truth {tru['dfac_m'][-1]*100:+.0f} cm\n"
-                f"(sign + ~{abs(rec['dfac_m'][-1]/tru['dfac_m'][-1])*100:.0f}% recovered)",
-                xy=(0.03, 0.06), xycoords="axes fraction", fontsize=8,
+    # absolute values and absolute error only. A ratio here divides by a truth
+    # ΔFAC that can sit near zero, which printed "~25138% recovered" when the
+    # baseline made truth -1 cm.
+    ax.annotate(f"2015: rec {rec['dfac_m'][-1]*100:+.0f}, truth {tru['dfac_m'][-1]*100:+.0f} cm"
+                f"  (err {(rec['dfac_m'][-1]-tru['dfac_m'][-1])*100:+.0f} cm)",
+                xy=(0.40, 0.28), xycoords="axes fraction", fontsize=8,
                 bbox=dict(boxstyle="round", fc="w", alpha=0.85))
 
     ax = figR.add_subplot(gs[1, 0])
@@ -242,7 +248,7 @@ if _RA.exists():
     ax.plot(y, np.asarray(tru["mass_m"])[show] * 100, ":", color=C_T, lw=1.4, label="truth mass")
     ax.axhline(0, color="k", lw=0.7)
     ax.set_ylabel("total h' (cm)")
-    ax.set_title("(e) TOTAL height change - mass term FLIPS SIGN", fontsize=10.5)
+    ax.set_title("(e) TOTAL height change h' and mass term", fontsize=10.5)
     ax.legend(fontsize=7.5); ax.grid(alpha=0.3)
 
     ax = figR.add_subplot(gs[1, 2])
@@ -258,9 +264,17 @@ if _RA.exists():
     ax.set_title("(f) 2015 attribution: recovered vs truth", fontsize=10.5)
     ax.legend(fontsize=8); ax.grid(alpha=0.3, axis="y")
 
-    figR.suptitle("Synthetic OSSE reanalysis - the firn AIR response (ΔFAC) is recovered in "
-                  "sign & ~magnitude;\nthe ice-eq MASS term (hence total h') is NOT - it hinges "
-                  "on the unconstrained absolute-accumulation baseline", fontsize=12.5)
+    # Title states what THIS run measured. It used to assert a fixed narrative
+    # ("air recovered, mass not"), which silently inverted when the underlying
+    # MAP changed - the plotted numbers then contradicted the title.
+    _by = ra.get("base_year")
+    _blab = "oldest knot" if _by is None else f"year {_by:.0f}"
+    _ff_r = float(np.asarray(rec["fac_full"])[-1]); _ff_t = float(np.asarray(tru["fac_full"])[-1])
+    figR.suptitle(
+        f"Synthetic OSSE reanalysis - recovered vs truth attribution   (CTRL baseline: {_blab})\n"
+        f"FAC_full recovered to {_ff_r-_ff_t:+.3f} m of truth and is baseline-independent; "
+        f"every CTRL-differenced term below moves with that baseline choice",
+        fontsize=12.5)
     print(f"  osse_reanalysis: {fp.save(figR, FIGS / 'osse_reanalysis.png')}")
     plt.close(figR)
 else:

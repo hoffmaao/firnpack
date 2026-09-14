@@ -277,10 +277,19 @@ if _TSIG_DEEP != 0.6:
 cfg = make_cfg(inv_scalars, inv_T, inv_b, obs, os.environ.get("FIRN_TAG", "synthetic_osse_trend"),
                maxit=int(os.environ.get("FIRN_MAX_ITER", "100")))
 
+# FIRN_WARM=<results.json> continues from a previous MAP instead of the neutral
+# prior: scalars come from its "m_map", knots are interpolated onto THIS run's
+# knot years, so the layout may differ. Use it to push a run that stopped at the
+# iteration cap further down, without paying for the descent already done.
+_warm_path = os.environ.get("FIRN_WARM")
+_warm = json.load(open(_warm_path)) if _warm_path else None
+if _warm is not None:
+    print(f"warm start from {_warm_path} (J={_warm.get('J')})")
+
 if MODE == "verify":
     assimilate(cfg, mode="verify", fd_names=["hl_k0","hl_Ea2","s2_shape","k_snow_scale","b1600","Tk8"])
 else:
-    r = assimilate(cfg, mode="optimize")
+    r = assimilate(cfg, mode="optimize", warm=_warm)
     print("\n=== TRUTH RECOVERY ===")
     for k in TRUTH:
         if k in r["m_map"]:

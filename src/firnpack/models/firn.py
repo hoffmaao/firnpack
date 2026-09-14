@@ -465,7 +465,6 @@ class FirnModel:
         # Upwind flux using Lax-Friedrichs-style splitting (linear in trial):
         #   flux = avg(w * r_mid) + 0.5 * |w_n| * jump(r_mid)
         # which is equivalent to selecting the upwind value.
-        from ufl import algebra
         abs_w_n = fd.max_value(w_n, -w_n)
 
         # Temporal + source
@@ -508,7 +507,6 @@ class FirnModel:
 
         n = fd.FacetNormal(mesh)
         w_n = w * n[0]
-        a_up = fd.conditional(fd.gt(w_n('+'), 0), a_mid('+'), a_mid('-'))
 
         a_inflow = fd.Constant(0.0) if inflow_value is None else inflow_value
 
@@ -520,7 +518,6 @@ class FirnModel:
         # DG advection: integration by parts + LF upwind flux
         # The IBP gives the conservative form ∂(wa)/∂z.  Subtract w_z·a
         # to recover the advective form w·∂a/∂z (the correct age equation).
-        from ufl import algebra
         abs_w_n = fd.max_value(w_n, -w_n)
         F -= a_mid * w * xi.dx(0) * dx                                       # volume (IBP)
         F -= w.dx(0) * a_old * xi * dx                                       # conservative → advective (explicit)
@@ -899,6 +896,7 @@ class FirnModel:
         test,
         regularization=0.0,
         horizontal_divergence=0.0,
+        refreezing=None,
     ):
         """
         Build the residual 'delta' for the velocity equation, matching
@@ -921,6 +919,19 @@ class FirnModel:
         Optionally add a tiny "mass" regularization term:
             + epsilon * w_trial * eta
         to stabilize the linear solve.
+
+        **Refreezing**
+        --------------
+        When meltwater refreezes it adds ice mass to the matrix at a rate
+        ``m`` [kg m^-3 s^-1], so the ice mass balance gains a source
+        (cf. Meyer & Hewitt 2017, ice equation):
+
+            drho/dt + rho dw/dz = m   =>   rho dw/dz = m - drho/dt
+
+        This enters as one extra term in the same integration of continuity
+        from the base to the surface that the dry model already performs - the
+        solve, its boundary condition and its structure are untouched. With
+        ``refreezing=None`` (the default) the residual is identical to before.
         """
         dx = fd.dx
         p = self.params
@@ -932,6 +943,13 @@ class FirnModel:
         w_mid = theta * w_trial + (1.0 - theta) * w_old
 
         delta = rho * w_mid.dx(0) * eta * dx + drhodt * eta * dx
+
+        # Refreezing mass source (see docstring). Subtracted so that
+        # rho dw/dz = m - drho/dt.
+        if refreezing is not None:
+            if isinstance(refreezing, (int, float)):
+                refreezing = fd.Constant(float(refreezing))
+            delta += -refreezing * eta * dx
 
         # Optional horizontal-divergence (basal strain) contribution.
         # Keep this as a simple additive term so the default behaviour
@@ -961,6 +979,7 @@ class FirnModel:
         test,
         horizontal_divergence=0.0,
         regularization=0.0,
+        refreezing=None,
     ):
         """
         Residual for mass flux q = ρw from Eulerian continuity:
@@ -984,6 +1003,13 @@ class FirnModel:
         eta = test
 
         delta = q_trial.dx(0) * eta * dx + (rho - rho_old) / dt * eta * dx
+
+        # Refreezing adds ice mass, so the continuity source is reduced by m
+        # (see velocity_delta). None leaves the dry residual unchanged.
+        if refreezing is not None:
+            if isinstance(refreezing, (int, float)):
+                refreezing = fd.Constant(float(refreezing))
+            delta += -refreezing * eta * dx
 
         if horizontal_divergence not in (0, 0.0, None):
             try:
@@ -1039,7 +1065,6 @@ class FirnModel:
         float
             dh/dt in m s^-1.
         """
-        p = self.params
         mesh = rho.function_space().mesh()
         dx = fd.dx(domain=mesh)
 

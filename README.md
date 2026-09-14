@@ -6,7 +6,7 @@ pyadjoint) for assimilating ice-core and geophysical observations to recover
 firn physics and climate history.
 
 > **Status: research code.** The canonical model is stable; the inverse
-> framework and the three case studies below are being consolidated into a
+> framework and the case studies below are being consolidated into a
 > clean, reproducible layout.
 
 ## What it does
@@ -78,15 +78,28 @@ src/firnpack/      the package - everything importable
   solvers/         FirnColumnSolver: time-stepping, BCs, mesh motion
   data/            climate histories, observation containers
   inverse/         shared config-driven assimilation engine
-                   (SiteConfig + assimilate); the through-line for all
-                   three tutorials
+                   (SiteConfig + assimilate); the through-line for the
+                   assimilation tutorials
+  firnmice.py      FirnMICE experiment table + column driver, shared by
+                   tutorials/firnmice/run.py and the integration test
 
-tutorials/         the three case studies, each a thin config over the engine
+tutorials/         the case studies
+  firnmice/        FirnMICE step-change suite: forward-model verification
+                     against the intercomparison (no inversion)
   synthetic/       OSSE: truth -> synthetic obs -> recover (validates adjoint)
   southpole/       South Pole assimilation + reanalysis (flagship)
   summit/          Summit, Greenland assimilation (transferability)
+  aquifer/         SE Greenland firn aquifer persistence: a 1D confined
+                     column coupling densification to mixed-form Richards
+                     percolation with refreezing (forward, no inversion).
+                     run.py, four synthetic contrast cases each changing
+                     one control; run_era5.py, the real belt forced by
+                     3-hourly ERA5 through the firnpack surface energy
+                     balance; fetch_era5_aoi.py stages that forcing into
+                     data/. Methods: doc/firn_hydrology.md
 
-  Each tutorial has the same shape:
+  The three assimilation tutorials have the same shape (firnmice/ is
+forward-only: just run.py + plot.py, no config.py and no inversion):
     run.py         the inversion itself
     config.py      build_cfg() -> the SiteConfig, incl. the error model and
                    its legacy-reproduction env guards; run.py and every
@@ -103,10 +116,11 @@ tutorials/         the three case studies, each a thin config over the engine
   provenance but inputs by use - run.py warm-starts from r8 and the plot
   scripts compare against it - so they are version-controlled deliberately.
 
-test/              the pytest suites (adjoint FD/Taylor, conservation, MMS),
-                   each self-contained, plus three parked scripts that assert
-                   nothing and are not collected - each one's module docstring
-                   says why it is parked and what unblocking it needs
+test/              the pytest suites (adjoint FD/Taylor, conservation, MMS,
+                   percolation/refreezing), each self-contained, plus two
+                   parked scripts that assert nothing and are not collected -
+                   each one's module docstring says why it is parked and what
+                   unblocking it needs
 
 doc/               methods notes, derivations, and paper-facing documentation
 
