@@ -48,6 +48,7 @@ SITES = {
 
 INK, MUTED = "#12120f", "#f5f5f2"
 AOI_COLOR, CELL_COLOR, ROCK_COLOR = "#ff4d2e", "#ffd23f", "#7b2d8e"
+ISO_COLOR = "#2a9d8f"
 
 GIBS = ("https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?"
         "SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap"
@@ -137,8 +138,16 @@ def main():
     dlat = abs(float(lat[1] - lat[0])) if lat.size > 1 else 0.25
     band = ((z >= ELEV_BAND[0]) & (z <= ELEV_BAND[1])).values
     ice = _ice_fraction_mask(z)
-    mask = band & ice            # kept in the average
-    rock = band & ~ice           # in the elevation band but rock-contaminated
+    # Same two rules as the fetcher, in the same order, so the figure shows
+    # the cells actually averaged: elevation band, late-summer albedo, then
+    # connectivity to the belt (an isolated cell that clears the albedo test
+    # is still an outlier - see fetch_era5_aoi._largest_contiguous).
+    sys.path.insert(0, str(HERE))
+    import fetch_era5_aoi as F
+    connected = F._largest_contiguous(band & ice)
+    mask = band & ice & connected          # kept in the average
+    rock = band & ~ice                     # rock-contaminated by albedo
+    isolated = (band & ice) & ~connected   # cleared albedo but off the belt
 
     fig, axes = plt.subplots(1, 2, figsize=(14.5, 6.6))
 
@@ -163,7 +172,7 @@ def main():
     zoom = dict(west=AOI["west"] - pad, east=AOI["east"] + pad,
                 south=AOI["south"] - pad, north=AOI["north"] + pad)
     _frame(ax, zoom, imagery(zoom, w=1200, h=1000))
-    n = n_rock = 0
+    n = n_rock = n_iso = 0
     for i, la in enumerate(lat):
         for j, lo in enumerate(lon):
             if mask[i, j]:
@@ -172,20 +181,28 @@ def main():
             elif rock[i, j]:
                 n_rock += 1
                 fc, ec, al = ROCK_COLOR, ROCK_COLOR, 0.42
+            elif isolated[i, j]:
+                n_iso += 1
+                fc, ec, al = ISO_COLOR, ISO_COLOR, 0.42
             else:
                 continue
             ax.add_patch(Rectangle((lo - dlon / 2, la - dlat / 2), dlon, dlat,
                                    fc=fc, ec=ec, alpha=al, lw=0.5, zorder=5))
     from matplotlib.patches import Patch
-    ax.legend(handles=[Patch(fc=CELL_COLOR, alpha=0.45, label=f"averaged ({n})"),
-                       Patch(fc=ROCK_COLOR, alpha=0.5,
-                             label=f"excluded, bare rock ({n_rock})")],
+    handles = [Patch(fc=CELL_COLOR, alpha=0.45, label=f"averaged ({n})"),
+               Patch(fc=ROCK_COLOR, alpha=0.5,
+                     label=f"excluded, bare rock ({n_rock})")]
+    if n_iso:
+        handles.append(Patch(fc=ISO_COLOR, alpha=0.5,
+                             label=f"excluded, off the belt ({n_iso})"))
+    ax.legend(handles=handles,
               loc="lower left", fontsize=8.5, framealpha=0.9)
     ax.add_patch(Rectangle((AOI["west"], AOI["south"]),
                            AOI["east"] - AOI["west"], AOI["north"] - AOI["south"],
                            fill=False, ec=AOI_COLOR, lw=2.2, zorder=6))
     _sites(ax)
-    ax.set_title(f"{n} ice cells averaged, {n_rock} excluded for bare rock "
+    ax.set_title(f"{n} ice cells averaged, {n_rock} excluded for bare rock, "
+                 f"{n_iso} off the belt "
                  f"({ELEV_BAND[0]:.0f}-{ELEV_BAND[1]:.0f} m band)",
                  fontsize=11, color=INK, loc="left")
     ax.set_xlabel("longitude", fontsize=9, color=INK)
@@ -196,7 +213,7 @@ def main():
     out = FIGURES / "aquifer_aoi_optical.png"
     fig.savefig(out, dpi=150, facecolor="white")
     plt.close(fig)
-    print(f"averaged: {n} cells   excluded as rock: {n_rock}")
+    print(f"averaged: {n} cells   excluded as rock: {n_rock}   off the belt: {n_iso}")
     print(f"Saved {out}")
 
 

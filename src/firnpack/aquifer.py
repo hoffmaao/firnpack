@@ -572,18 +572,33 @@ def run_aquifer_column(
     # --- forcing scalars ---
     Ts = make_real(R, site.T_mean_C + 273.15, "Ts")
     # Two surface mass fluxes, not one, because their consumers want
-    # different quantities. `accum` is the GROSS snowfall and drives the
-    # densification: with no runoff every kilogram that falls stays in the
-    # column - as matrix ice, as refrozen melt, or as pore water - and all of
-    # it loads the firn below, so bdot in the overburden stress is the gross
-    # rate. `accum_net` is the snowfall that stays *matrix*, gross minus melt,
-    # and drives only the surface velocity boundary condition, which is
-    # kinematics: the melted fraction re-enters as water through the Richards
-    # surface flux, so counting it in the matrix influx too is the double
-    # count this formulation exists to remove.
+    # different quantities, and they are NOT independent. `accum_net` is the
+    # snowfall that stays matrix, gross minus melt; it drives the surface
+    # velocity boundary condition, and it is also what `bdot` in the
+    # overburden stress must be.
+    #
+    # Gross was tried for the loading, on the argument that with no runoff
+    # every kilogram that falls stays in the column and loads the firn below.
+    # That argument is right about the mass and wrong about this stress model.
+    # Mode B integrates dsigma/dt + w dsigma/dz = bdot g with sigma = 0 at the
+    # surface, so along a particle path sigma = bdot g age, which equals the
+    # true overburden integral(rho g dz) only when bdot is the matrix influx
+    # that produced that age. Using gross asserts that all the melt has
+    # already refrozen ABOVE every parcel - true only below the whole
+    # refreezing zone, and badly wrong near the surface, which is exactly
+    # where densification is fastest. Measured: the low-accumulation case
+    # reached bubble close-off at 1.7 m and 77% of the column saturated
+    # before failing at year 10.5, and the ERA5 columns pressurised the same
+    # way. Net is exact above the refreezing zone and understates below it by
+    # the refrozen mass there, which is the error this keeps.
+    #
+    # The exact overburden is the density integral, and rho already carries
+    # the refrozen mass (the refreezing source puts it there). Switching Mode
+    # B's stress from the bdot proxy to `FirnModel.overburden_stress`, which
+    # Mode A already uses, would remove the approximation entirely; it is left
+    # alone here because it changes every densification case in the repo.
     # Both seeded from the record mean, not a trailing window: the spinup is a
     # climatology, so the pair has to be drawn from the same kind of quantity.
-    accum = make_real(R, site.snowfall_m_ie_yr, "accum")
     accum_net = make_real(R, site.accum_m_ie_yr, "accum_net")
     rho_surf = make_real(R, site.rho_surf_kg_m3, "rho_surf")
     dt = make_real(R, spinup_dt_years * YEAR_S, "dt")
@@ -605,7 +620,8 @@ def run_aquifer_column(
         site.rho_surf_kg_m3
         + (params.rho_i - site.rho_surf_kg_m3) * (1.0 - fd.exp(-depth_expr / 20.0))
     )
-    w.assign(-site.snowfall_m_ie_yr * params.rho_i / site.rho_surf_kg_m3
+    # seeded from the same net matrix influx the boundary condition imposes
+    w.assign(-site.accum_m_ie_yr * params.rho_i / site.rho_surf_kg_m3
              / YEAR_S)
     sigma.assign(0.0)
     r2.assign(float(getattr(params, "r2_surf", 2.5e-7)))
@@ -613,12 +629,12 @@ def run_aquifer_column(
     state = FirnState(H=H, rho=rho, w=w, sigma=sigma, r2=r2, age=age)
 
     # --- BCs for the firn half ---
-    # gross for the spinup, which is dry: no melt occurs there, so the mass
-    # the column carries is the whole snowfall, and loading it at gross while
-    # feeding it at net would build an overburden the column never receives.
-    # Switched to net once the wet transient starts, where melt water does
-    # arrive through the Richards surface flux - see the switch below.
-    sbc = make_surface_bcs(V, params, accum=accum, rho_surf=rho_surf,
+    # One accumulation throughout, the net matrix influx, for the velocity
+    # boundary condition and for the loading alike. The dry spinup is then
+    # the dry analogue of the wet column's matrix dynamics and the two are
+    # continuous at the switch, rather than the column changing what it is
+    # being fed halfway through.
+    sbc = make_surface_bcs(V, params, accum=accum_net, rho_surf=rho_surf,
                            Hs_bc=Hs, surface_id=SURFACE_ID)
     bc_sigma = fd.DirichletBC(V, make_real(R, 0.0, "sig_s"), SURFACE_ID)
     bc_r2 = fd.DirichletBC(
@@ -639,8 +655,10 @@ def run_aquifer_column(
         update_rhoCoef()
         firn_solver.prognostic_solve(
             enthalpy=state.H, density=state.rho, firn_velocity=state.w, dt=dt,
-            # gross: `accumulation` forms bdot, the overburden loading rate
-            accumulation=accum, surface_density=rho_surf,
+            # net: `accumulation` forms bdot, which must match the matrix
+            # influx driving the velocity (see the note where accum_net is
+            # built); gross overstates the load near the surface
+            accumulation=accum_net, surface_density=rho_surf,
             boundary_conditions=bcs_list,
             surface_temperature=Ts, enthalpy_bc_constant=Hs,
             stress=state.sigma, grain_radius2=state.r2,
@@ -762,7 +780,6 @@ def run_aquifer_column(
         # be refreshed - otherwise the column is buried at a constant rate no
         # matter what the record says.
         a_now = site.accum_m_ie_yr_at(t_yr)
-        g_now = site.snowfall_m_ie_yr_at(t_yr)
         if a_now < 0.0:
             # Net surface mass balance negative: the melt outruns the snowfall
             # over the trailing window, which is surface lowering. A fixed-mesh
@@ -772,8 +789,6 @@ def run_aquifer_column(
             # the mass back, which is the double count this formulation exists
             # to remove.
             ablation_steps += 1
-        if abs(g_now - float(accum.dat.data_ro[0])) > 1e-12:
-            accum.dat.data[:] = g_now
         if abs(a_now - float(accum_net.dat.data_ro[0])) > 1e-12:
             accum_net.dat.data[:] = a_now
             update_surface_velocity_bc(sbc, params, accum_net, rho_surf)
@@ -899,6 +914,11 @@ def run_aquifer_column(
     result["label"] = site.label
     result["depth_m"] = depth_sorted
     result["rho_final"] = state.rho.dat.data_ro[order].copy()
+    # The prognostic overburden. Reported because it is the quantity that
+    # silently stopped matching the density profile when the loading rate and
+    # the velocity field were fed different accumulations: sigma = bdot g age
+    # is only the true integral(rho g dz) when the two agree.
+    result["sigma_final_Pa"] = state.sigma.dat.data_ro[order].copy()
     result["T_final_C"] = (state.H.dat.data_ro[order] / params.c_i).copy()
     result["theta_final"] = fd.Function(V).project(theta_fn).dat.data_ro[order].copy()
     result["head_final"] = fd.Function(V).project(head).dat.data_ro[order].copy()

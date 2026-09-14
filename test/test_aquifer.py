@@ -331,3 +331,59 @@ def test_melt_does_not_add_mass_to_the_column(tmp_path):
     snowfall_mass = cold.snowfall_m_ie_yr * rho_i
     assert mass_in(cold) == pytest.approx(snowfall_mass, rel=1e-9)
     assert mass_in(warm) == pytest.approx(snowfall_mass, rel=1e-9)
+
+
+def test_overburden_never_exceeds_the_weight_of_the_firn_above_it():
+    """sigma(z) cannot be larger than integral(rho g dz) above z.
+
+    Mode B carries the overburden prognostically, integrating
+    ``dsigma/dt + w dsigma/dz = bdot g`` from sigma = 0 at the surface, so
+    along a particle path sigma = bdot g age. That equals the true overburden
+    only when ``bdot`` is the same matrix influx that drives the velocity
+    field, and hence the age, that it multiplies. Whatever bdot is, though,
+    sigma may never exceed the weight actually present above the parcel, and
+    that one-sided bound is what this pins.
+
+    The regression: the driver was changed to load the densification with
+    GROSS snowfall while the surface velocity used the net matrix influx.
+    Every kilogram of melt does stay in the column, so the mass argument was
+    right, but sigma = bdot g age then asserts all of it has already refrozen
+    ABOVE every parcel - true only below the whole refreezing zone and badly
+    wrong near the surface, where densification is fastest. The
+    low-accumulation case reached bubble close-off at 1.7 m with 77% of the
+    column saturated before the Richards solve failed at year 10.5, and the
+    ERA5 columns pressurised the same way. Nothing caught it: the water
+    budget still closed exactly, and no test compared the density profile
+    with the load that produced it.
+
+    The site must melt, or the test is vacuous - with no melt gross and net
+    are the same number and the bug is invisible. Refreezing then puts mass
+    at depth that the proxy cannot represent, so the correct (net) loading
+    UNDERSTATES sigma and satisfies the bound, while the gross loading
+    overshoots it by the ratio of the two rates.
+    """
+    site = AquiferSite(name="loading_check", T_mean_C=-12.0, T_amp_C=10.0,
+                       accum_m_ie_yr=1.0, melt_m_we_yr=0.5,
+                       label="melting: overburden must not exceed the weight above")
+    r = run_aquifer_column(site=site, H0=40.0, NZ=60, spinup_years=20.0,
+                           run_years=1.0, dt_days=6.0, save_every_days=30.0,
+                           verbose=False)
+
+    d = np.asarray(r["depth_m"])                  # ascending from the surface
+    rho = np.asarray(r["rho_final"])
+    sigma = np.asarray(r["sigma_final_Pa"])
+    g = 9.81
+
+    weight = np.concatenate([[0.0], np.cumsum(0.5 * (rho[1:] + rho[:-1])
+                                              * np.diff(d))]) * g
+
+    deep = d >= 5.0                               # skip the surface layer
+    assert weight[deep].max() > 1e4                # there is a real load to compare
+    over = sigma[deep] / weight[deep]
+    assert over.max() < 1.05, (
+        f"overburden exceeds the weight above it by up to "
+        f"{100 * (over.max() - 1):.0f}%")
+
+    # and the column must not seal within the first few metres
+    sealed = d[rho >= 830.0]
+    assert not sealed.size or sealed.min() > 10.0
