@@ -243,7 +243,7 @@ class FirnColumnSolver:
         solver_H = fd.NonlinearVariationalSolver(problem_H, solver_parameters=self.solver_parameters)
         try:
             solver_H.solve()
-        except Exception as _exc:
+        except Exception:
             _diag = {
                 "H":     (H.dat.data_ro.min(),     H.dat.data_ro.max()),
                 "H_old": (H_old.dat.data_ro.min(), H_old.dat.data_ro.max()),

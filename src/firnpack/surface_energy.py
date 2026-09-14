@@ -162,7 +162,6 @@ class SurfaceEnergyBalance:
     def latent_heat_flux(self, wind, T_air, T_s, pressure, q_air):
         """Sublimation/condensation. Uses the sublimation latent heat, since a
         snow or firn surface is ice even when it is at the melting point."""
-        p = self.params
         q_s = specific_humidity_saturation(T_s, pressure)
         L = LATENT_SUBLIMATION
         return self._exchange(wind, T_air, T_s, pressure) * L * (q_air - q_s)

@@ -44,7 +44,6 @@ Run:
 from __future__ import annotations
 
 import argparse
-import json
 from pathlib import Path
 
 HERE = Path(__file__).parent
@@ -125,7 +124,6 @@ def _open(nc_path):
 
 def process(nc_path, lat, lon, scale_accum=None):
     import numpy as np
-    import xarray as xr
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     ds = _open(nc_path)

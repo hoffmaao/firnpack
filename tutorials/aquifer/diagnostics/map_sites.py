@@ -74,7 +74,6 @@ def main():
     DATA.mkdir(parents=True, exist_ok=True)
     ds = open_regional()
     tname = "valid_time" if "valid_time" in ds.coords else "time"
-    n_years = len(np.unique(ds[tname].dt.year.values))
 
     days = ds[tname].dt.days_in_month
     # ERA5 monthly means of accumulated fields are mean daily rates

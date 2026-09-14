@@ -98,5 +98,5 @@ for exp0 in _todo:
     print(f"  {exp.name}: DIP {dip[0]:.2f} -> {dip[-1]:.2f} m "
           f"({len(res['time_years'])} samples)")
 
-print(f"\nDone. Rebuild the figure with: "
-      f"PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/firnmice/plot.py")
+print("\nDone. Rebuild the figure with: "
+      "PYTHONPATH=src OMP_NUM_THREADS=1 <venv> tutorials/firnmice/plot.py")

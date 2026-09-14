@@ -465,7 +465,6 @@ class FirnModel:
         # Upwind flux using Lax-Friedrichs-style splitting (linear in trial):
         #   flux = avg(w * r_mid) + 0.5 * |w_n| * jump(r_mid)
         # which is equivalent to selecting the upwind value.
-        from ufl import algebra
         abs_w_n = fd.max_value(w_n, -w_n)
 
         # Temporal + source
@@ -508,7 +507,6 @@ class FirnModel:
 
         n = fd.FacetNormal(mesh)
         w_n = w * n[0]
-        a_up = fd.conditional(fd.gt(w_n('+'), 0), a_mid('+'), a_mid('-'))
 
         a_inflow = fd.Constant(0.0) if inflow_value is None else inflow_value
 
@@ -520,7 +518,6 @@ class FirnModel:
         # DG advection: integration by parts + LF upwind flux
         # The IBP gives the conservative form ∂(wa)/∂z.  Subtract w_z·a
         # to recover the advective form w·∂a/∂z (the correct age equation).
-        from ufl import algebra
         abs_w_n = fd.max_value(w_n, -w_n)
         F -= a_mid * w * xi.dx(0) * dx                                       # volume (IBP)
         F -= w.dx(0) * a_old * xi * dx                                       # conservative → advective (explicit)
@@ -1068,7 +1065,6 @@ class FirnModel:
         float
             dh/dt in m s^-1.
         """
-        p = self.params
         mesh = rho.function_space().mesh()
         dx = fd.dx(domain=mesh)
 

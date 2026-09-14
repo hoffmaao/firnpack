@@ -294,7 +294,6 @@ def reduce_all():
     df.to_csv(out, index=False)
 
     n_yr = max(len(np.unique(pd.DatetimeIndex(df["time"]).year)), 1)
-    step_h = 3.0
     print(f"\n{df['time'].iloc[0]} .. {df['time'].iloc[-1]}  ({n_yr} years, "
           f"{len(df)} hours)")
     have = [c for c in df.columns if c != "time"]

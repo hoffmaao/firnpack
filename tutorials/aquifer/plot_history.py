@@ -18,7 +18,6 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent))

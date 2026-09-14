@@ -7,7 +7,6 @@ import pytest
 from firnpack.surface_energy import (
     STEFAN_BOLTZMANN,
     SurfaceEnergyBalance,
-    SurfaceEnergyParameters,
     saturation_vapour_pressure,
     specific_humidity_from_dewpoint,
     specific_humidity_saturation,
