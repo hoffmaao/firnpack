@@ -1,308 +1,418 @@
-"""Coupled firn + hydrology column driver.
+"""Percolation, refreezing, drainage and aquifer formation.
 
-PARKED, not yet a test. This is still the original script: it runs a 7-year
-seasonal column and prints diagnostics, and it asserts nothing.
+This file used to be parked: it was the original script, it asserted nothing,
+and its physics was unresolved - ``W_surf`` was pinned at 0 so no water was ever
+injected, and the melt-flux routine that would have driven it was defined but
+never called (and referenced ``FirnParameters`` fields that do not exist). Any
+assertion written against that behaviour would have passed on a completely
+broken solver.
 
-It is not converted because its intended physics is unresolved. ``W_surf`` is
-pinned at 0.0, so no water is ever injected and the hydrology solve runs on an
-all-zero field -- while ``surface_energy_step`` below, which computes the melt
-flux that would drive it, is defined and never called. Any assertion written
-against the current behaviour (``W >= 0``, ``S in [0, 1]``) would pass on a
-completely broken hydrology solver, so writing one now would be worse than
-writing none.
-
-What it needed immediately was the guard: every line below used to run at
-import, which under pytest meant collection alone executed the whole
-simulation. Resolve the melt path, then convert.
-
-Run directly:
-    PYTHONPATH=src OMP_NUM_THREADS=1 python test/test_hydrology.py
+The melt path is now resolved, so the file is a test. The assertions below are
+budget and bound statements rather than numeric targets, so they pin the
+physics without freezing a particular discretisation.
 """
+from __future__ import annotations
 
-import firedrake as fd
 import numpy as np
-from math import sin, pi
+import pytest
 
-from firnpack.constants import year
+try:
+    import firedrake as fd
+except Exception:  # pragma: no cover
+    fd = None
+
+pytestmark = pytest.mark.skipif(fd is None, reason="firedrake not available")
+
+from firnpack.mesh import column_mesh
 from firnpack.models.firn import FirnModel, FirnParameters
-from firnpack.solvers.firn_solver import FirnColumnSolver
 from firnpack.models.hydrology import HydrologyModel, HydrologyParameters
 from firnpack.solvers.hydrology_solver import HydrologySolver
 
 
-def main():
+H0 = 20.0
+NZ = 60
 
-    # --------------------------------------------------------
-    #  Setup mesh and function spaces
-    # --------------------------------------------------------
 
-    H0 = 40.0          # firn column thickness [m]
-    nz = 80
-
-    mesh = fd.IntervalMesh(nz, 0.0, 1)
-    p = 3.0  # >1 -> stronger clustering near the surface
-    xi = fd.SpatialCoordinate(mesh)[0]
-    z_expr = H0 * (1.0 - (1.0 - xi)**p)
-
-    # # Example B (alternative): exponential grading
-    # a = 4.0
-    # f_xi = (fd.exp(a * xi) - 1.0) / (fd.exp(a) - 1.0)
-    # z_expr = H0 * f_xi
-
-    # 3) update mesh.coordinates so all integrals use the new spacing
-    coord_fs = mesh.coordinates.function_space()
-    new_coords = fd.Function(coord_fs)
-    new_coords.interpolate(fd.as_vector([z_expr]))   # 1D -> length-1 vector
-    mesh.coordinates.assign(new_coords)
-
+def _column(rho_val=400.0, T_C=-5.0, W_val=0.0, **hyd_kw):
+    """A uniform column plus the model objects that act on it."""
+    mesh = column_mesh(H0, NZ, stretch=1.0)
     V = fd.FunctionSpace(mesh, "CG", 1)
-    H = fd.Function(V, name="enthalpy")
-    rho = fd.Function(V, name="density")
-    w = fd.Function(V, name="firn_velocity")
-    W = fd.Function(V, name="water")
 
-    firn_params = FirnParameters()
-    firn_model = FirnModel(firn_params)
-    firn_solver = FirnColumnSolver(firn_model)
+    fp = FirnParameters()
+    firn = FirnModel(fp)
+    hp = HydrologyParameters(theta_W=1.0, theta_H=1.0, **hyd_kw)
+    hyd = HydrologyModel(hp)
+    solver = HydrologySolver(hyd, firn)
 
-    hydrology_params = HydrologyParameters()
-    hydrology_model = HydrologyModel(hydrology_params)
-    hydrology_solver = HydrologySolver(hydrology_model,firn_model)
-    # --------------------------------------------------------
-    #  Surface temperature forcing: seasonal cycle
-    # --------------------------------------------------------
+    def const(v):
+        return fd.Function(V).interpolate(fd.Constant(v))
 
-    # Mean annual surface temperature and amplitude [K]
-    T_mean = 268.0      # average ~ -5 °C
-    T_amp  = 7.0        # gives range ~ 261–275 K, so summer exceeds Tm
-
-    def surface_T(t_seconds):
-        """
-        Simple sinusoidal annual cycle:
-           T(t) = T_mean + T_amp * sin(2π t / year)
-        """
-        phase = 2.0 * pi * (t_seconds / year)
-        return T_mean + T_amp * sin(phase)
-
-    def surface_energy_step(Ts_old, t_years, dt, params):
-        """
-        Advance surface temperature by one time-step using a simple
-        energy-balance, and compute the associated meltwater flux.
-
-        Parameters
-        ----------
-        Ts_old : float
-            Previous surface temperature [K].
-        t_years : float
-            Current time in years.
-        dt : float
-            Time-step [s].
-        params : FirnParameters
-            Parameter object (from constants.py).
-
-        Returns
-        -------
-        Ts_new : float
-            Updated surface temperature [K].
-        R_melt : float
-            Surface meltwater mass flux [kg m^-2 s^-1].
-        Q_t : float
-            Net surface energy flux used this step [W m^-2].
-        """
-        import numpy as np
-
-        p = params
-
-        # --- seasonal net surface flux Q(t), Meyer & Hewitt-style ---
-        t_dim = t_years * p.sec_per_year
-        Q_t = p.Q_mean - p.Q_amp * np.cos(2.0 * np.pi * t_dim / p.sec_per_year)
-
-        # Heat capacity of the "skin" layer
-        rho_eff = p.rho_i
-        c_eff = p.c_i
-        H_skin = p.H_skin
-        Tm = p.T_m
-
-        # Energy per unit area required (over this dt) to heat the skin from Ts_old to Tm
-        if Ts_old < Tm:
-            Q_heat = rho_eff * c_eff * H_skin * (Tm - Ts_old) / dt  # [W m^-2]
-        else:
-            Q_heat = 0.0
-
-        if Q_t <= Q_heat or Ts_old < Tm:
-            # Not enough energy to start/continue melting.
-            # Use all of Q_t to change Ts.
-            Ts_new = Ts_old + dt * Q_t / (rho_eff * c_eff * H_skin)
-            Ts_new = min(Ts_new, Tm)
-            R_melt = 0.0
-        else:
-            # Heat surface to melting, then use remaining energy for melt.
-            Ts_new = Tm
-            Q_excess = Q_t - Q_heat
-
-            # Meltwater mass flux [kg m^-2 s^-1]:
-            #   Q_excess [J s^-1 m^-2] / L [J kg^-1]
-            R_melt = max(Q_excess / p.L, 0.0)
-
-        return Ts_new, R_melt, Q_t
-
-    # Initial surface temperature = value at t=0
-    Ts = fd.Constant(surface_T(0.0))
-
-    # Initial enthalpy & density
-    H_init = firn_params.c_i * (float(Ts) - firn_params.T_ref)
-    rho_init = fd.Constant(300.0)
-
-    H.project(fd.Constant(H_init))
-    rho.project(fd.Constant(rho_init))
-    w.project(fd.Constant(0.0))
-    W.project(fd.Constant(0.0))
-    # Accumulation (m ice eq / yr) and surface density
-    accum = fd.Constant(0.3)
-    rho_s = fd.Constant(300.0)
-
-    Hs_bc = fd.Constant(H_init)
-
-    # Surface vertical velocity from kinematic boundary condition
-    w_surf = -accum * firn_params.rho_i / rho_s / year
-
-    # On IntervalMesh(0.0, H0): 1 = left (x=0, base), 2 = right (x=H0, surface)
-    surface_id = 2
-
-    bc_H   = fd.DirichletBC(V, Hs_bc, surface_id)
-    bc_rho = fd.DirichletBC(V, rho_s, surface_id)
-    bc_w   = fd.DirichletBC(V, w_surf, surface_id)
+    state = dict(
+        mesh=mesh, V=V, fp=fp, hp=hp, firn=firn, hyd=hyd, solver=solver,
+        rho=const(rho_val),
+        W=const(W_val),
+        w=const(0.0),
+        # H = c_i (T - T_m) is the cold content
+        H=const(fp.c_i * T_C),
+    )
+    return state
 
 
-    # maybe a Dirichlet BC giving melt at the surface:
-    W_surf = fd.Constant(0.0)  # or a time-dependent melt/rain rate
-    bc_W = fd.DirichletBC(V, W_surf, surface_id)
-
-    bcs = [bc_H, bc_rho, bc_w]
-
-
-
-
-
-
-    # --------------------------------------------------------
-    #  Time stepping setup
-    # --------------------------------------------------------
-
-    dt = fd.Constant(5.0 * 86400.0)   # 5 days
-    t = 0.0
-    t_end = 7.0 * float(year)        # 50 years – adjust as you like
-
-    outfile = fd.VTKFile("firn_column_seasonal_output.pvd")
-    outfile.write(H, rho, w, time=t)
-
-
-    # --------------------------------------------------------
-    #  Diagnostics arrays for plotting after the run
-    # --------------------------------------------------------
-
-    # Depth coordinates as distance below surface: depth = H0 - x
-    x = fd.SpatialCoordinate(mesh)[0]
-    z_fun = fd.Function(V, name="depth")
-    z_fun.interpolate(H0 - x)           # 0 at surface, H0 at base
-    z = z_fun.dat.data_ro.copy()
-
-    density_history = []
-    time_history = []
-    Ts_history = []
-
-    # store initial state
-    density_history.append(rho.dat.data_ro.copy())
-    time_history.append(t / year)
-    Ts_history.append(float(Ts))
-
-
-    # --------------------------------------------------------
-    #  Time integration loop with seasonal Ts(t)
-    # --------------------------------------------------------
-
-    step = 0
-
-    while t < t_end:
-        step += 1
-        print(f"Step {step}, t = {t/float(year):.3f} years")
-
-
-        # --- basic water diagnostics BEFORE any updates this step ---
-        W_arr = W.dat.data_ro
-        print("  [water pre-step]")
-        print(f"    W: min={W_arr.min():.3e}, max={W_arr.max():.3e}, total={W_arr.sum():.3e}")
-
-
-
-        # Update surface temperature for this time
-        Ts.assign(surface_T(t))
-
-        # 1. dry thermo-mechanics: H, rho, w
-        H, rho, w = firn_solver.prognostic_solve(
-            enthalpy=H,
-            density=rho,
-            firn_velocity=w,
-            dt=dt,
-            accumulation=accum,
-            surface_density=rho_s,
-            boundary_conditions=bcs,
-            surface_temperature=Ts,
-            enthalpy_bc_constant=Hs_bc,
+def _run(st, *, dt=600.0, nsteps=100, melt=None, basal=None, drainage=True):
+    tot_frozen = 0.0
+    for _ in range(nsteps):
+        st["H"], st["W"], m = st["solver"].prognostic_solve(
+            enthalpy=st["H"], water=st["W"], density=st["rho"],
+            firn_velocity=st["w"], dt=dt,
+            surface_melt_flux=melt, basal_flux=basal,
+            include_drainage=drainage,
         )
-
-        # temperature diagnostics
-        T_fun = fd.assemble(firn_model.temperature_from_enthalpy(H))
-        T_arr = T_fun.dat.data_ro
-        print("  [firn state]")
-        print(f"    T:    min={T_arr.min():.2f} K, max={T_arr.max():.2f} K")
-        rho_arr = rho.dat.data_ro
-        print(f"    rho:  min={rho_arr.min():.3e}, max={rho_arr.max():.3e}")
-        w_arr = w.dat.data_ro
-        print(f"    w:    min={w_arr.min():.3e}, max={w_arr.max():.3e}")
-
-        # --- 2. hydrology diagnostics BEFORE solving water equation ---
-        # saturation & Darcy flux at current W, rho
-        S_expr = hydrology_model.saturation(W, rho)
-        q_expr = hydrology_model.darcy_flux(W, rho)
-
-        S_fun = fd.project(S_expr, V)
-        q_fun = fd.project(q_expr, V)
-
-        S_arr = S_fun.dat.data_ro
-        q_arr = q_fun.dat.data_ro
-
-        print("  [hydrology pre-solve]")
-        print(f"    S (sat): min={S_arr.min():.3e}, max={S_arr.max():.3e}")
-        print(f"    q (flux): min={q_arr.min():.3e}, max={q_arr.max():.3e}")
+        tot_frozen += fd.assemble(m * fd.dx) * dt
+    return tot_frozen
 
 
-        # 2. hydrology step: update H and W with Darcy + latent
-        H, W = hydrology_solver.prognostic_solve(
-            enthalpy=H,
-            water=W,
-            density=rho,
-            firn_velocity=w,
-            dt=dt,
-            water_bcs=[bc_W],
-            update_enthalpy=True,   # or False if you want dry enthalpy only
+# ----------------------------------------------------------------------
+# The melt path
+# ----------------------------------------------------------------------
+def test_surface_melt_enters_the_column():
+    """The original defect: with no boundary term, no water could ever enter.
+
+    Integrating the flux divergence by parts and dropping the surface integral
+    imposes zero water flux at *both* ends, so the column was sealed. This is
+    the end-to-end statement that it no longer is.
+    """
+    st = _column()
+    assert fd.assemble(st["W"] * fd.dx) == 0.0
+
+    _run(st, melt=2.0e-4, nsteps=50)
+
+    assert fd.assemble(st["W"] * fd.dx) > 0.0
+    # water must appear near the surface first, not uniformly
+    z = st["V"].mesh().coordinates.dat.data_ro.ravel()
+    Wd = st["W"].dat.data_ro
+    assert Wd[z > 0.75 * H0].max() > Wd[z < 0.25 * H0].max()
+
+
+def test_no_melt_flux_leaves_the_column_sealed():
+    """Passing no surface flux must still mean no water: the default is closed."""
+    st = _column()
+    _run(st, melt=None, nsteps=25)
+    assert fd.assemble(st["W"] * fd.dx) == 0.0
+
+
+# ----------------------------------------------------------------------
+# Conservation
+# ----------------------------------------------------------------------
+def test_mass_budget_closes():
+    """Injected = frozen + stored, to round-off.
+
+    This is the assertion that catches the failure mode the finite-element
+    phase-change sink had: the increment is capped by the water at a node, but
+    the mass matrix spreads that cap onto its neighbours, so nodes went
+    negative and clipping them re-created water.
+    """
+    st = _column()
+    dt, nsteps, melt = 600.0, 100, 2.0e-4
+    frozen = _run(st, dt=dt, nsteps=nsteps, melt=melt)
+
+    injected = melt * dt * nsteps
+    stored = fd.assemble(st["W"] * fd.dx)
+    assert abs(injected - frozen - stored) < 1e-9 * injected
+
+
+def test_energy_budget_closes():
+    """Matrix enthalpy gain equals the latent heat of the mass frozen."""
+    st = _column()
+    E0 = fd.assemble(st["rho"] * st["H"] * fd.dx)
+    frozen = _run(st, melt=2.0e-4, nsteps=100)
+    E1 = fd.assemble(st["rho"] * st["H"] * fd.dx)
+
+    assert abs((E1 - E0) - st["hp"].L * frozen) < 1e-9 * abs(E1 - E0)
+
+
+def test_closed_temperate_column_conserves_water():
+    """With no source, no drainage and no phase change, water is conserved."""
+    st = _column(T_C=0.0, W_val=20.0)   # temperate: no cold content to freeze into
+    W0 = fd.assemble(st["W"] * fd.dx)
+    _run(st, nsteps=100, melt=None, drainage=False)
+    assert fd.assemble(st["W"] * fd.dx) == pytest.approx(W0, rel=1e-10)
+
+
+# ----------------------------------------------------------------------
+# Bounds
+# ----------------------------------------------------------------------
+def test_phase_change_respects_bounds_under_extreme_forcing():
+    """W must stay >= 0 and H must never overshoot the melting point."""
+    st = _column(T_C=-20.0)
+    _run(st, dt=3600.0, nsteps=100, melt=5.0e-3)   # far more melt than can refreeze
+
+    assert st["W"].dat.data_ro.min() >= -1e-12
+    assert st["H"].dat.data_ro.max() <= 1e-9      # H = c_i (T - T_m) <= 0
+
+
+def test_dry_cold_firn_is_an_exact_fixed_point():
+    """No water and cold firn => zero phase change, bit-for-bit.
+
+    This is what lets the dry inversions (South Pole, Summit) stay unchanged.
+    """
+    st = _column(W_val=0.0, T_C=-30.0)
+    H_before = st["H"].dat.data_ro.copy()
+
+    frozen = _run(st, nsteps=10, melt=None)
+
+    assert frozen == 0.0
+    assert st["W"].dat.data_ro.max() == 0.0
+    assert np.array_equal(st["H"].dat.data_ro, H_before)
+
+
+# ----------------------------------------------------------------------
+# Constitutive relations
+# ----------------------------------------------------------------------
+def test_gravity_drives_water_downward():
+    """With x measured upward, the gravitational Darcy flux must be negative."""
+    st = _column(W_val=50.0, T_C=0.0)
+    q = fd.Function(st["V"]).interpolate(
+        st["hyd"].darcy_flux(st["W"], st["rho"])
+    )
+    assert q.dat.data_ro.max() < 0.0
+
+
+def test_capillary_flux_is_diffusive():
+    """Water must move from wet toward dry firn, not the reverse.
+
+    ``Psi = -psi0 (1 - S)`` makes the matric potential most negative where the
+    firn is driest. The previous ``+psi0 (1 - S)`` had the opposite sign, which
+    made the capillary term anti-diffusive.
+    """
+    st = _column(T_C=0.0)
+    x = fd.SpatialCoordinate(st["mesh"])[0]
+    # saturation increasing upward
+    # S must stay above S_res, or k_rel is legitimately zero and the flux
+    # vanishes for a reason that has nothing to do with the capillary sign.
+    st["W"].interpolate(fd.Constant(100.0) * x / H0 + fd.Constant(50.0))
+
+    hyd, hp = st["hyd"], st["hp"]
+    S = hyd.saturation(st["W"], st["rho"])
+    K = hyd.hydraulic_conductivity(st["rho"])
+    cap = fd.Function(st["V"]).interpolate(
+        -hp.rho_w * K * hyd.k_rel(S) * hyd.capillary_potential_prime(S) * S.dx(0)
+    )
+    # dS/dx > 0, so the capillary flux must be downward (away from the wet top)
+    assert cap.dat.data_ro.max() < 0.0
+
+
+def test_calonne_permeability_matches_the_published_form():
+    """k = 3 r^2 exp(-0.013 rho), and it must fall as firn densifies."""
+    st = _column()
+    hyd = st["hyd"]
+    dx = fd.dx(domain=st["mesh"])
+    for rho_val, r2 in ((400.0, 2.5e-7), (700.0, 1.0e-6)):
+        rho_c, r2_c = fd.Constant(rho_val), fd.Constant(r2)
+        got = float(fd.assemble(hyd.permeability(rho_c, r2_c) * dx)) / H0
+        want = 3.0 * r2 * np.exp(-0.013 * rho_val)
+        assert got == pytest.approx(want, rel=1e-10)
+
+    k_loose = float(fd.assemble(hyd.permeability(fd.Constant(400.0)) * dx))
+    k_dense = float(fd.assemble(hyd.permeability(fd.Constant(830.0)) * dx))
+    assert k_dense < k_loose
+
+
+def test_permeability_follows_prognostic_grain_size():
+    """Coarser grains must percolate faster - the Mode B coupling."""
+    st = _column()
+    dx = fd.dx(domain=st["mesh"])
+    fine = float(fd.assemble(
+        st["hyd"].permeability(fd.Constant(450.0), fd.Constant(1e-7)) * dx))
+    coarse = float(fd.assemble(
+        st["hyd"].permeability(fd.Constant(450.0), fd.Constant(4e-7)) * dx))
+    assert coarse == pytest.approx(4.0 * fine, rel=1e-10)
+
+
+# ----------------------------------------------------------------------
+# Drainage and the water table
+# ----------------------------------------------------------------------
+def test_lateral_drainage_removes_saturated_excess():
+    """Above S_drain, water is lost on the drainage timescale.
+
+    Started from an already-wet temperate column so the drainage term is tested
+    directly, rather than waiting on a wetting front to arrive and happening to
+    cross the threshold.
+    """
+    # phi = 1 - 400/917 = 0.564, so S = 0.3 is W = 169 kg/m^3
+    st = _column(T_C=0.0, W_val=300.0, S_drain=0.3, tau_drain=5.0e5)
+    st2 = _column(T_C=0.0, W_val=300.0)        # tau_drain None -> closed column
+
+    W0 = fd.assemble(st["W"] * fd.dx)
+    _run(st, dt=3600.0, nsteps=50, melt=None)
+    _run(st2, dt=3600.0, nsteps=50, melt=None)
+
+    W_drained = fd.assemble(st["W"] * fd.dx)
+    W_closed = fd.assemble(st2["W"] * fd.dx)
+    assert W_closed == pytest.approx(W0, rel=1e-10)   # closed column loses nothing
+    assert W_drained < 0.99 * W_closed
+
+
+def test_drainage_is_off_by_default():
+    st = _column(T_C=0.0)
+    assert st["hyd"].drainage_rate(st["W"], st["rho"]) is None
+
+
+@pytest.mark.xfail(
+    reason="the moisture form cannot hold a perched saturated zone; this is "
+           "what test_firn_richards.py exists for",
+    strict=False,
+)
+def test_aquifer_perches_on_a_low_permeability_layer():
+    """Perching, which this formulation gets only partly right.
+
+    Water does reach and slow at the lens, but it does not pond into a
+    saturated zone above it the way it should. The reason is structural rather
+    than a tuning failure: with ``W`` as the unknown, ``S = W/(rho_w phi)``
+    saturates and the flux stops responding, so there is no variable left to
+    carry a water table, and the pore-pressure penalty that stands in for one
+    is a stiffness rather than a free surface.
+
+    Left here, and xfailed rather than deleted, because it is the concrete
+    evidence for moving to the mixed head form in
+    :mod:`firnpack.models.firn_richards`, where the same configuration does
+    perch.
+    """
+    def run(with_lens):
+        st = _column(T_C=0.0)
+        x = fd.SpatialCoordinate(st["mesh"])[0]
+        if with_lens:
+            st["rho"].interpolate(
+                fd.conditional(
+                    fd.And(fd.ge(x, 0.30 * H0), fd.le(x, 0.40 * H0)),
+                    fd.Constant(900.0), fd.Constant(400.0),
+                )
+            )
+        _run(st, dt=7200.0, nsteps=250, melt=1.0e-3, drainage=False)
+        z = st["mesh"].coordinates.dat.data_ro.ravel()
+        S = fd.Function(st["V"]).interpolate(
+            st["hyd"].saturation(st["W"], st["rho"])
+        ).dat.data_ro
+        return S[(z > 0.40 * H0) & (z < 0.60 * H0)].max()
+
+    assert run(True) > 3.0 * run(False)
+
+
+def test_close_off_cutoff_makes_dense_firn_impermeable():
+    """Permeability must vanish at close-off, and be untouched below it."""
+    st = _column()
+    hyd = st["hyd"]
+    dx = fd.dx(domain=st["mesh"])
+
+    def k(rho_val):
+        return float(fd.assemble(hyd.permeability(fd.Constant(rho_val)) * dx))
+
+    # below close-off the Calonne fit is unmodified (connectivity == 1)
+    from firnpack.models.hydrology import HydrologyParameters, HydrologyModel
+    raw = HydrologyModel(HydrologyParameters(closeoff_cutoff=False))
+    for rho_val in (350.0, 550.0, 800.0):
+        assert k(rho_val) == pytest.approx(
+            float(fd.assemble(raw.permeability(fd.Constant(rho_val)) * dx)), rel=1e-10
         )
+    # at and above solid ice it is exactly zero, and falls steeply in between
+    assert k(917.0) == 0.0
+    assert k(900.0) < 0.01 * k(830.0)
 
 
-        # --- water diagnostics AFTER hydrology solve ---
-        W_arr = W.dat.data_ro
-        print("  [water post-solve]")
-        print(f"    W: min={W_arr.min():.3e}, max={W_arr.max():.3e}, total={W_arr.sum():.3e}")
+def test_refreezing_enters_the_base_to_surface_velocity_integration():
+    """Refreezing adds ice mass, so it must appear in the continuity solve.
 
-        t += float(dt)
-        density_history.append(rho.dat.data_ro.copy())
-        time_history.append(t / year)
-        Ts_history.append(float(Ts))
+    The column velocity is obtained by integrating
 
-        if step % 50 == 0:
-            outfile.write(H, rho, w, time=t)
+        rho dw/dz = m - drho/dt
+
+    from the base to the surface. That integration is unchanged by the
+    hydrology except for the source ``m`` (Meyer & Hewitt's ice equation), so
+    this checks two things at once: that ``m`` shifts the residual by exactly
+    ``-m`` per unit test function, and that the dry path is untouched when no
+    source is passed.
+    """
+    st = _column()
+    V, firn = st["V"], st["firn"]
+    psi = fd.TestFunction(V)
+    w_trial = fd.TrialFunction(V)
+    w_old = fd.Function(V).interpolate(fd.Constant(0.0))
+    drhodt = fd.Function(V).interpolate(fd.Constant(1.0e-6))
+    m = fd.Function(V).interpolate(fd.Constant(3.0e-7))
+
+    def rhs(refreezing):
+        delta = firn.velocity_delta(
+            w_trial=w_trial, w_old=w_old, rho=st["rho"], drhodt=drhodt,
+            test=psi, refreezing=refreezing,
+        )
+        return fd.assemble(fd.rhs(delta)).dat.data_ro.copy()
+
+    dry = rhs(None)
+    # passing an explicit zero must be identical to passing nothing
+    assert np.allclose(rhs(fd.Function(V).interpolate(fd.Constant(0.0))), dry,
+                       rtol=0, atol=0)
+
+    wet = rhs(m)
+    # rhs = -(residual without w); adding +m to the balance shifts it by int(m psi)
+    shift = fd.assemble(m * psi * fd.dx).dat.data_ro
+    assert np.allclose(wet - dry, shift, rtol=1e-12, atol=1e-18)
 
 
+def test_velocity_integration_treats_drhodt_as_the_total_tendency():
+    """velocity_delta solves rho dw/dz = m - drho/dt for the *total* drho/dt.
 
-if __name__ == "__main__":
-    main()
+    Held at a fixed total tendency, a source m must reduce the downward
+    velocity - that is what the residual says. It is not a statement that
+    refreezing thickens a column: in the solver the same m also enters the
+    density equation, so the total tendency rises by m and the two cancel,
+    leaving dw/dz = -compaction/rho. That cancellation is checked at the
+    solver level in test_aquifer.py; this pins the sign convention of the
+    piece it relies on.
+    """
+    st = _column()
+    V, firn = st["V"], st["firn"]
+    psi = fd.TestFunction(V)
+    w_trial = fd.TrialFunction(V)
+    w_old = fd.Function(V).interpolate(fd.Constant(0.0))
+    drhodt = fd.Function(V).interpolate(fd.Constant(1.0e-6))
+
+    def solve_w(refreezing):
+        delta = firn.velocity_delta(
+            w_trial=w_trial, w_old=w_old, rho=st["rho"], drhodt=drhodt,
+            test=psi, refreezing=refreezing,
+        )
+        w = fd.Function(V)
+        bc = fd.DirichletBC(V, fd.Constant(0.0), 1)   # base
+        fd.solve(fd.lhs(delta) == fd.rhs(delta), w, bcs=[bc])
+        return w
+
+    w_dry = solve_w(None)
+    w_wet = solve_w(fd.Function(V).interpolate(fd.Constant(3.0e-7)))
+    # both are downward (negative) above the base; refreezing makes it less so
+    assert w_wet.dat.data_ro[-1] > w_dry.dat.data_ro[-1]
+
+
+def test_water_stays_non_negative_at_a_sharp_front():
+    """Positivity, which the scheme guarantees rather than repairs.
+
+    Gravity drainage is a nonlinear advection, so the wetting front is close to
+    a shock. Unstabilised CG1 rang across it and drove W to -22% of peak; the
+    tail decayed by a factor -0.27 per node, the signature of the consistent
+    mass matrix rather than of the flux. Lumping the mass and upwinding the
+    flux makes the operator an M-matrix, so W simply cannot go negative -
+    which matters because the aquifer question is a water budget, and the
+    phase-change closure deliberately refuses to launder a negative W.
+    """
+    st = _column(T_C=0.0)
+    _run(st, dt=3600.0, nsteps=120, melt=2.0e-3, drainage=False)
+    # Ahead of the front the scheme leaves an exponentially small positive
+    # residue, not a negative one: the bound is >= 0, not == 0.
+    assert st["W"].dat.data_ro.min() >= 0.0
+
+
+def test_stabilisation_does_not_leak_mass():
+    """Upwinding and lumping change accuracy, never the budget."""
+    st = _column(T_C=0.0)
+    dt, nsteps, melt = 3600.0, 60, 1.0e-3
+    _run(st, dt=dt, nsteps=nsteps, melt=melt, drainage=False)
+    injected = melt * dt * nsteps
+    assert fd.assemble(st["W"] * fd.dx) == pytest.approx(injected, rel=1e-12)
