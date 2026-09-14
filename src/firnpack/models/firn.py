@@ -899,6 +899,7 @@ class FirnModel:
         test,
         regularization=0.0,
         horizontal_divergence=0.0,
+        refreezing=None,
     ):
         """
         Build the residual 'delta' for the velocity equation, matching
@@ -921,6 +922,19 @@ class FirnModel:
         Optionally add a tiny "mass" regularization term:
             + epsilon * w_trial * eta
         to stabilize the linear solve.
+
+        **Refreezing**
+        --------------
+        When meltwater refreezes it adds ice mass to the matrix at a rate
+        ``m`` [kg m^-3 s^-1], so the ice mass balance gains a source
+        (cf. Meyer & Hewitt 2017, ice equation):
+
+            drho/dt + rho dw/dz = m   =>   rho dw/dz = m - drho/dt
+
+        This enters as one extra term in the same integration of continuity
+        from the base to the surface that the dry model already performs - the
+        solve, its boundary condition and its structure are untouched. With
+        ``refreezing=None`` (the default) the residual is identical to before.
         """
         dx = fd.dx
         p = self.params
@@ -932,6 +946,13 @@ class FirnModel:
         w_mid = theta * w_trial + (1.0 - theta) * w_old
 
         delta = rho * w_mid.dx(0) * eta * dx + drhodt * eta * dx
+
+        # Refreezing mass source (see docstring). Subtracted so that
+        # rho dw/dz = m - drho/dt.
+        if refreezing is not None:
+            if isinstance(refreezing, (int, float)):
+                refreezing = fd.Constant(float(refreezing))
+            delta += -refreezing * eta * dx
 
         # Optional horizontal-divergence (basal strain) contribution.
         # Keep this as a simple additive term so the default behaviour
@@ -961,6 +982,7 @@ class FirnModel:
         test,
         horizontal_divergence=0.0,
         regularization=0.0,
+        refreezing=None,
     ):
         """
         Residual for mass flux q = ρw from Eulerian continuity:
@@ -984,6 +1006,13 @@ class FirnModel:
         eta = test
 
         delta = q_trial.dx(0) * eta * dx + (rho - rho_old) / dt * eta * dx
+
+        # Refreezing adds ice mass, so the continuity source is reduced by m
+        # (see velocity_delta). None leaves the dry residual unchanged.
+        if refreezing is not None:
+            if isinstance(refreezing, (int, float)):
+                refreezing = fd.Constant(float(refreezing))
+            delta += -refreezing * eta * dx
 
         if horizontal_divergence not in (0, 0.0, None):
             try:

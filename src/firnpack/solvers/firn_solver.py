@@ -104,6 +104,21 @@ class FirnColumnSolver:
         self._fields["surface_density"] = surface_density
         self._fields["bcs"] = boundary_conditions
 
+    @staticmethod
+    def _add_refreezing_source(F_rho, refreezing, rho_test):
+        """Refrozen meltwater is matrix ice: D(rho)/Dt = compaction + m.
+
+        Meyer & Hewitt (2017) ice equation. Refreezing fills pore space in
+        place, so it belongs in the density equation and nowhere else; the
+        velocity integration then sees it only through the total tendency.
+        """
+        if refreezing is None:
+            return F_rho
+        if isinstance(refreezing, (int, float)):
+            refreezing = fd.Constant(float(refreezing))
+        mesh = rho_test.function_space().mesh()
+        return F_rho - refreezing * rho_test * fd.dx(domain=mesh)
+
     def prognostic_solve(
         self,
         *,
@@ -126,6 +141,10 @@ class FirnColumnSolver:
         stress_boundary_condition=None,
         grain_radius2_boundary_condition=None,
         rhoCoef=None,
+        # Refreezing mass source [kg m^-3 s^-1] from the hydrology solver.
+        # Enters the continuity integration as an ice-mass source; None (the
+        # default) leaves the dry residual untouched.
+        refreezing=None,
         # Penalty BCs: adjoint-safe alternative to Dirichlet for control-
         # dependent surface values.  Dict mapping field name to
         # (target_expr, penalty_strength) where target_expr is a UFL expression
@@ -384,6 +403,7 @@ class FirnColumnSolver:
                     test=rho_test,
                     dt=dt_val,
                 )
+            F_rho = self._add_refreezing_source(F_rho, refreezing, rho_test)
             # Penalty BC for rho: add penalty term to weak form instead of Dirichlet
             _rho_penalty = penalty_bcs.get("rho") if penalty_bcs else None
             if _rho_penalty is not None:
@@ -453,6 +473,7 @@ class FirnColumnSolver:
                     dt=dt_val,
                     sigma=_sigma,
                 )
+            F_rho = self._add_refreezing_source(F_rho, refreezing, rho_test)
 
             # Penalty BC for rho: add penalty term to weak form instead of Dirichlet
             _rho_penalty = penalty_bcs.get("rho") if penalty_bcs else None
@@ -492,6 +513,15 @@ class FirnColumnSolver:
             self._fields["drhodt"] = fd.Function(V, name="drhodt")
         drhodt = self._fields["drhodt"]
         drhodt.interpolate(drhodt_expr)
+        # Continuity needs the total density tendency. `drhodt` is the
+        # compaction rate alone (kept that way: the strain-rate diagnostic
+        # below is dw/dz, which refreezing does not change - it fills pores,
+        # it does not thicken the column). With the refreezing source m in the
+        # density equation, D(rho)/Dt = compaction + m, and velocity_delta's
+        # rho dw/dz = m - D(rho)/Dt then reduces to -compaction, as it must.
+        # Before this the compaction rate was passed as the total and the
+        # column was stretched by every kilogram it refroze.
+        drhodt_total = drhodt if refreezing is None else drhodt + refreezing
 
         if self._fields.get("eps") is None or self._fields["eps"].function_space() != V:
             self._fields["eps"] = fd.Function(V, name="eps")
@@ -528,10 +558,11 @@ class FirnColumnSolver:
                 w_trial=w_trial,
                 w_old=w_old,
                 rho=rho,
-                drhodt=drhodt,
+                drhodt=drhodt_total,
                 test=psi,
                 regularization=1.0e-3,
                 horizontal_divergence=self.horizontal_divergence,
+                refreezing=refreezing,
             )
 
             w_problem = fd.LinearVariationalProblem(
@@ -547,10 +578,11 @@ class FirnColumnSolver:
                 w_trial=w_trial,
                 w_old=w_old,
                 rho=rho,
-                drhodt=drhodt,
+                drhodt=drhodt_total,
                 test=psi,
                 regularization=1.0e-3,
                 horizontal_divergence=self.horizontal_divergence,
+                refreezing=refreezing,
             )
 
             # Penalty BC for velocity (adjoint-safe alternative to Dirichlet)
