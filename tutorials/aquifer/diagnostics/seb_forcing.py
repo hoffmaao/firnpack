@@ -43,8 +43,8 @@ SECONDS_PER_YEAR = 365.25 * 86400.0
 # built at, and the default here so the command in data/README.md reproduces
 # that file. The floor is the dominant control on the melt - at the library
 # default of 0.60 every melt value in the table roughly doubles and the melt
-# trend the tutorial quotes moves from +23% to +19% - so it is recorded as a
-# column in the table rather than left implicit in whoever ran the script.
+# trend the tutorial quotes moves from +23% to +19% - so it is pinned here and
+# in data/README.md rather than left implicit in whoever ran the script.
 ANNUAL_TABLE_FLOOR = 0.72
 
 
@@ -145,15 +145,12 @@ def report(forcing, res, label=""):
     return melt_yr
 
 
-def annual_table(forcing, res, albedo_floor):
+def annual_table(forcing, res):
     """Per-year melt (ours and ERA5's), snowfall and mean temperature.
 
     Only years with a complete forcing record are kept: a year with a
     partial download would report a fraction of its melt as if it were the
     whole, and plot_history draws the gaps deliberately.
-
-    ``albedo_floor`` is recorded as a column because the melt scales with
-    it and the table is a tracked artifact read by plot_history.py.
     """
     df = pd.DataFrame({
         "year": forcing["time"].year,
@@ -170,7 +167,6 @@ def annual_table(forcing, res, albedo_floor):
                                  era5_melt_m_we=("era5_melt_m_we", "sum"),
                                  snowfall_m_we=("snowfall_m_we", "sum"),
                                  T_C=("T_C", "mean")).reset_index()
-    out["albedo_floor"] = float(albedo_floor)
     return out
 
 
@@ -196,7 +192,7 @@ def main():
     report(f, run(f, seb, albedo="era5"), "ERA5 albedo")
     res = run(f, seb, albedo="model")
     report(f, res, f"model ageing albedo (floor {seb.params.albedo_firn:.2f})")
-    table = annual_table(f, res, seb.params.albedo_firn)
+    table = annual_table(f, res)
     out = DATA / "aquifer_annual_forcing.csv"
     table.to_csv(out, index=False, float_format="%.6g")
     print(f"\nannual table: {len(table)} complete years -> {out}")

@@ -56,9 +56,11 @@ def _closeoff(depth, rho, threshold=CLOSEOFF):
     one does, every spring - has isolated nodes above 830 kg/m^3 metres above
     any sealed horizon, and the first-crossing rule reports one of those: it
     put close-off at 8.1 m in the strongest-melt experiment, where the sealed
-    horizon is nearer 45 m. Mirrors firnpack.firnmice._closeoff_depth, which
+    horizon is nearer 45 m. Mirrors firnpack.firnmice.closeoff_depth, which
     cannot be imported here because it pulls in Firedrake and these plot
-    scripts are specified to run without it.
+    scripts are specified to run without it. That function interpolates
+    linearly between nodes; this one returns the depth of the shallowest
+    node of the sealed horizon.
     """
     below = np.asarray(rho) >= threshold
     if not below.any() or not below[-1]:

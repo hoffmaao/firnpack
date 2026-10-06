@@ -155,11 +155,12 @@ class AquiferSite:
 
     @property
     def snowfall_m_ie_yr(self) -> float:
-        """GROSS snowfall rate [m i.e./yr]: the loading rate on the firn.
+        """GROSS snowfall rate [m i.e./yr], a diagnostic.
 
         ``accum_m_ie_yr`` is net of melt, so the gross total is that plus the
         melt in ice equivalent. The two are not interchangeable: the net is
-        what buries the matrix, the gross is what weighs on it.
+        the matrix influx that buries and loads the firn, and the column is
+        driven by it alone; the gross is reported for the mass budget.
         """
         return (self.accum_m_ie_yr
                 + self.melt_m_we_yr * water_density / ice_density)
@@ -409,11 +410,12 @@ class ReanalysisSite:
         return total / window_yr * self._ie
 
     def snowfall_m_ie_yr_at(self, t_yr, window_yr=1.0):
-        """Trailing-window GROSS snowfall rate [m i.e./yr]: the loading rate.
+        """Trailing-window GROSS snowfall rate [m i.e./yr], a diagnostic.
 
         The gross counterpart of :meth:`accum_m_ie_yr_at`, on the same
-        trailing window. Not interchangeable with it: the net buries the
-        matrix, the gross weighs on it.
+        trailing window. Not interchangeable with it: the net is the matrix
+        influx that buries and loads the firn; the gross is not used to drive
+        the column.
         """
         total = self._interval(self._snow_cum, t_yr, window_yr)
         return total / window_yr * self._ie
@@ -571,11 +573,9 @@ def run_aquifer_column(
 
     # --- forcing scalars ---
     Ts = make_real(R, site.T_mean_C + 273.15, "Ts")
-    # Two surface mass fluxes, not one, because their consumers want
-    # different quantities, and they are NOT independent. `accum_net` is the
-    # snowfall that stays matrix, gross minus melt; it drives the surface
-    # velocity boundary condition, and it is also what `bdot` in the
-    # overburden stress must be.
+    # One surface mass flux, `accum_net`: the snowfall that stays matrix,
+    # gross minus melt. It drives the surface velocity boundary condition,
+    # and it is also what `bdot` in the overburden stress must be.
     #
     # Gross was tried for the loading, on the argument that with no runoff
     # every kilogram that falls stays in the column and loads the firn below.
@@ -597,8 +597,8 @@ def run_aquifer_column(
     # B's stress from the bdot proxy to `FirnModel.overburden_stress`, which
     # Mode A already uses, would remove the approximation entirely; it is left
     # alone here because it changes every densification case in the repo.
-    # Both seeded from the record mean, not a trailing window: the spinup is a
-    # climatology, so the pair has to be drawn from the same kind of quantity.
+    # Seeded from the record mean, not a trailing window: the spinup is a
+    # climatology, so its forcing has to be one too.
     accum_net = make_real(R, site.accum_m_ie_yr, "accum_net")
     rho_surf = make_real(R, site.rho_surf_kg_m3, "rho_surf")
     dt = make_real(R, spinup_dt_years * YEAR_S, "dt")
