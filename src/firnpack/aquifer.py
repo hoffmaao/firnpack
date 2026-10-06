@@ -631,9 +631,8 @@ def run_aquifer_column(
     # --- BCs for the firn half ---
     # One accumulation throughout, the net matrix influx, for the velocity
     # boundary condition and for the loading alike. The dry spinup is then
-    # the dry analogue of the wet column's matrix dynamics and the two are
-    # continuous at the switch, rather than the column changing what it is
-    # being fed halfway through.
+    # the dry analogue of the wet column's matrix dynamics, and the column is
+    # fed the same thing before and after the transient begins.
     sbc = make_surface_bcs(V, params, accum=accum_net, rho_surf=rho_surf,
                            Hs_bc=Hs, surface_id=SURFACE_ID)
     bc_sigma = fd.DirichletBC(V, make_real(R, 0.0, "sig_s"), SURFACE_ID)
@@ -683,10 +682,9 @@ def run_aquifer_column(
     # ------------------------------------------------------------------
     # Wet transient
     # ------------------------------------------------------------------
-    # Melt water now arrives separately, through the Richards surface flux, so
-    # the matrix influx becomes the net. Done unconditionally rather than left
-    # to the guard in the loop: for a climatological site accum_net never
-    # changes, so the guard would never fire and the BC would stay at gross.
+    # Melt water now arrives separately, through the Richards surface flux;
+    # the matrix influx was already the net through the spinup, so this only
+    # re-applies the velocity BC from accum_net before the transient starts.
     update_surface_velocity_bc(sbc, params, accum_net, rho_surf)
 
     dt_s = dt_days * 86400.0

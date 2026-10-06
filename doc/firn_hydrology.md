@@ -176,24 +176,29 @@ is exact; the sub-annual phasing is approximate, which does not affect annual
 burial. If the trailing year ever goes net negative the site is ablating,
 which this column cannot represent, so runs report `ablation_steps`.
 
-The split is of the *kinematics* only. The densification sees the **gross**
-snowfall, because `bdot` in the overburden stress is a loading rate and this
-column has no runoff: every kilogram that falls stays in it, as matrix ice, as
-refrozen melt or as pore water, and all of it weighs on the firn below. So the
-driver carries two surface rates - net into the surface velocity boundary
-condition, gross into `prognostic_solve(accumulation=...)`. Feeding the net to
-both would understate the loading by the melt fraction, which slows
-densification and pushes bubble close-off deeper, and close-off depth is
-already this model's largest disagreement with the observed aquifer base
-(section 6).
+The densification sees the same **net** rate. The driver carries a single
+surface rate, the net matrix influx, into both the surface velocity boundary
+condition and `prognostic_solve(accumulation=...)`. Gross was tried for the
+loading, on the argument that with no runoff every kilogram that falls stays
+in the column and weighs on the firn below. That is right about the mass and
+wrong about this stress model: Mode B integrates
+`dsigma/dt + w dsigma/dz = bdot g` with `sigma = 0` at the surface, so along a
+particle path `sigma = bdot g age`, which equals the true overburden
+`integral(rho g dz)` only when `bdot` is the matrix influx that produced that
+age. Loading at gross asserts that all the melt has already refrozen above
+every parcel - true only below the whole refreezing zone, and badly wrong near
+the surface, where densification is fastest. In practice it drove the
+low-accumulation case to bubble close-off at 1.7 m with 77% of the column
+saturated before it failed at year 10.5, and pressurised the ERA5 columns the
+same way. Net is exact above the refreezing zone and understates the load
+below it by the refrozen mass there. Replacing the `bdot` proxy with the
+density integral (`FirnModel.overburden_stress`, which Mode A already uses)
+would remove that approximation entirely.
 
-The split applies to the wet transient only. The dry spinup that precedes it
-drives the velocity boundary condition with the **gross** snowfall as well: no
-melt occurs there and no melt water arrives, so the mass the column carries is
-the whole snowfall. Loading at gross while feeding at net would build the
-spinup an overburden it never receives, and hand the transient an initial
-density profile that is the steady state of neither configuration. The driver
-switches the boundary condition to net when the transient begins.
+The dry spinup that precedes the transient is driven by the same net rate,
+for the velocity boundary condition and the loading alike, so it is the dry
+analogue of the wet column's matrix dynamics and the column is fed the same
+thing before and after melt water starts to arrive.
 
 ## 5. Four ways the aquifer failed to appear, and what each was
 
