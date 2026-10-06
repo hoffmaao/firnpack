@@ -49,6 +49,26 @@ WATER = LinearSegmentedColormap.from_list(
 OBS_TABLE, OBS_BASE = (10.0, 20.0), 27.7
 
 
+def _closeoff(depth, rho, threshold=CLOSEOFF):
+    """Shallowest depth below which density stays at or above the threshold.
+
+    Not the shallowest crossing. A column that grows ice lenses - which this
+    one does, every spring - has isolated nodes above 830 kg/m^3 metres above
+    any sealed horizon, and the first-crossing rule reports one of those: it
+    put close-off at 8.1 m in the strongest-melt experiment, where the sealed
+    horizon is nearer 45 m. Mirrors firnpack.firnmice._closeoff_depth, which
+    cannot be imported here because it pulls in Firedrake and these plot
+    scripts are specified to run without it.
+    """
+    below = np.asarray(rho) >= threshold
+    if not below.any() or not below[-1]:
+        return float("nan")
+    k = len(below)
+    while k > 0 and below[k - 1]:
+        k -= 1
+    return float(depth[k])
+
+
 def _tidy(ax):
     for side in ("top", "right"):
         ax.spines[side].set_visible(False)
@@ -88,14 +108,18 @@ def figure(runs):
         ax = axes[0][k]
         im_p = ax.pcolormesh(t, d, phi, cmap=PORE, vmin=0.0, vmax=0.6,
                              shading="auto", rasterized=True)
-        # close-off: the depth below which the pore space is no longer
-        # connected, i.e. the floor a water table should find
+        # The rho = 830 contour. It traces the sealed horizon AND every ice
+        # lens above it, which is why it breaks into diagonal streaks: each
+        # is a lens formed in one melt season and advected down. The sealed
+        # horizon proper is the table's close-off column.
         ax.contour(t, d, rho, levels=[CLOSEOFF], colors="#1a1a19",
-                   linewidths=1.2, linestyles="--")
+                   linewidths=1.0, linestyles="--", alpha=0.8)
         ax.set_title(name.replace("_", " "), fontsize=10.5, color=INK)
         if k == 0:
             ax.set_ylabel("depth (m)", fontsize=9, color=MUTED)
-        ax.invert_yaxis()
+        # set_ylim, not invert_yaxis: the axes are shared, so inverting once
+        # per row inverts twice and puts the surface at the bottom
+        ax.set_ylim(d.max(), 0.0)
         _tidy(ax)
 
         ax = axes[1][k]
@@ -113,7 +137,7 @@ def figure(runs):
         ax.set_xlabel("time (years)", fontsize=9, color=MUTED)
         if k == 0:
             ax.set_ylabel("depth (m)", fontsize=9, color=MUTED)
-        ax.invert_yaxis()
+        ax.set_ylim(d.max(), 0.0)
         _tidy(ax)
 
     for im, axrow, label in ((im_p, axes[0], "porosity  $\\phi = 1 - \\rho/\\rho_i$"),
@@ -124,7 +148,8 @@ def figure(runs):
         cb.outline.set_visible(False)
 
     fig.suptitle("The pore space, and how much of it holds water\n"
-                 "dashed: modelled bubble close-off (830 kg m$^{-3}$);  "
+                 "dashed: $\\rho$ = 830 kg m$^{-3}$, the sealed horizon and the "
+                 "ice lenses above it;  "
                  "orange band: observed water table 10-20 m;  "
                  "dotted: observed aquifer base 27.7 m",
                  fontsize=11.5, color=INK, y=0.99)
@@ -142,7 +167,7 @@ def table(runs):
         rho = np.asarray(r["rho_profiles"])[-1]
         S = np.asarray(r["S_profiles"])[-1]
         phi = 1.0 - rho / RHO_I
-        co = d[rho >= CLOSEOFF]
+        co = _closeoff(d, rho)
         wet = np.flatnonzero(S >= 0.5)
         if wet.size:
             edges = np.flatnonzero(np.diff(np.concatenate(
@@ -153,7 +178,7 @@ def table(runs):
             tbl = base = float("nan")
         j10, j30 = int(np.argmin(abs(d - 10))), int(np.argmin(abs(d - 30)))
         print(f"{name:<20} {phi[j10]:9.3f} {phi[j30]:9.3f} "
-              f"{(co.min() if co.size else float('nan')):10.1f} "
+              f"{co:10.1f} "
               f"{tbl:7.1f} {base - tbl if np.isfinite(tbl) else 0.0:7.1f} "
               f"{S.max():6.2f}")
     print(f"\nobserved: water table {OBS_TABLE[0]:.0f}-{OBS_TABLE[1]:.0f} m, "
