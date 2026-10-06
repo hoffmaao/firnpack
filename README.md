@@ -3,13 +3,13 @@
 A 1D firn column model - densification, heat/enthalpy transport, and
 accumulation - with an **adjoint-based inverse framework** (Firedrake +
 pyadjoint) for assimilating ice-core and geophysical observations to recover
-firn physics and climate history. This code is in development and may change 
+firn physics and climate history. This code is in development and may change
 as use cases mature.
 
 ## Solver
 
 Given depth-resolved observations like density, dated layers, borehole temperature,
-and phase-sensitive radar (ApRES) vertical velocity or borehole compaction rates 
+and phase-sensitive radar (ApRES) vertical velocity or borehole compaction rates
 Firnpack solves equations for firn densification that can be used with time-dependent
 data assimilative schemes to better constrain/parameterize:
 
@@ -19,7 +19,7 @@ data assimilative schemes to better constrain/parameterize:
 - the surface **temperature history**, and
 - the surface **accumulation history**,
 
-these calibrated models can ten be used to initialize **firn reanalysis** 
+these calibrated models can then be used to initialize **firn reanalysis**
 and attribute firn-air-content and surface-height change to climate forcing with Laplace
 uncertainty quantification.
 
@@ -68,5 +68,5 @@ Foundation, either version 3 of the License, or (at your option) any later
 version. The full text is in [LICENSE](LICENSE), or at
 <https://www.gnu.org/licenses/>.
 
-This matches [icepack](https://github.com/icepack/icepack), which FirnGrain
+This matches [icepack](https://github.com/icepack/icepack), which Firnpack
 builds on.

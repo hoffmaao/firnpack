@@ -1,7 +1,7 @@
 # South Pole observation data - provenance
 
 Site: South Pole (SPICEcore / SP19), 89.99°S. Curated observation CSVs for the
-FirnGrain South Pole assimilation. All small; tracked in git for reproducibility.
+Firnpack South Pole assimilation. All small; tracked in git for reproducibility.
 
 | File | Contents | Source |
 |------|----------|--------|

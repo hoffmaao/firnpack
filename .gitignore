@@ -50,6 +50,8 @@ tutorials/**/figures/
 *_checkpoint/
 *_optimisation_checkpoint/
 nohup.out
+*.log
+tutorials/*/logs/
 outputs/
 outputs_*/
 # Ignore the CONTENTS, not the directory itself: git will not descend into an

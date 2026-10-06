@@ -172,4 +172,4 @@ uncertainties or forcing conventions.
 - Inversion scripts: `scripts/herron_langway/southpole_inversion_v{11..20}_*.py`
 - Plotting: `scripts/herron_langway/plot_v{14,20}_results.py`
 - Results: `results/southpole_map_v{11..20}*.json`
-- Firnstokes (standalone): `/media/andrew/wd1/projects/firnstokes/`
+- Firnstokes (standalone): a separate repository, not part of firnpack

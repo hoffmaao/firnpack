@@ -20,7 +20,7 @@ rate additionally hostage to the Buizert↔ERA5 accum datum seam (see 2026-07-03
 ## Environment (essential for resuming)
 ```bash
 # venv + editable firn package on PYTHONPATH; ALWAYS set OMP_NUM_THREADS=1
-PYTHONPATH=src OMP_NUM_THREADS=1 /home/andrew/venv-firedrake-2026/bin/python <script>
+PYTHONPATH=src OMP_NUM_THREADS=1 python <script>
 ```
 Firedrake's PETSc eats `python -c`; run script files. Runs are slow (~1 min/eval
 at 2500-yr spinup); launch with `nohup ... &` and poll the log. Repo is NOT git.

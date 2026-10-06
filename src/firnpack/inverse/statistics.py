@@ -31,13 +31,11 @@ exactly as icepack's tests and notebooks call ``simulation(θ)`` directly.
 from __future__ import annotations
 
 import collections.abc
-import copy
 
 import numpy as np
 from firedrake.adjoint import (
     Control,
-    ReducedFunctional,
-    compute_gradient,
+    compute_derivative,
     continue_annotation,
     pause_annotation,
 )
@@ -261,7 +259,7 @@ class MaximumProbabilityEstimator:
                 c.assign(float(v))
             try:
                 J = self._objective(controls)
-                dJ = compute_gradient(J, [Control(c) for c in controls])
+                dJ = compute_derivative(J, [Control(c) for c in controls], apply_riesz=True)
                 Jv = float(J)
                 g = np.array([float(gi.dat.data_ro[0]) for gi in dJ]) * gscale * scale
             except Exception as exc:  # forward blew up; steer the optimiser back

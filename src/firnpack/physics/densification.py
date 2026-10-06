@@ -32,7 +32,7 @@ def _rho_switch(rho, rho_m, smooth_width, low_expr, high_expr):
 
 
 # ---------------------------------------------------------------------------
-# Arthern / Ligtenberg 2011 (default firngrain law)
+# Arthern / Ligtenberg 2011 (default firnpack law)
 # ---------------------------------------------------------------------------
 def arthern_ligtenberg(rho, T, *, params, bdot, smooth=False, **_kwargs):
     """dρ/dt = c * (ρ_i - ρ) where c depends on accumulation and T.

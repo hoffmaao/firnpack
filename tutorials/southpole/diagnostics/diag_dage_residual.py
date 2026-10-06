@@ -75,14 +75,14 @@ print(f"  -> {'MODEL/FORCING BIAS: b(t) is suspect' if v_s > v_w else 'REPRESENT
 def acf(x, k):
     x = x - x.mean()
     return float(np.sum(x[:-k] * x[k:]) / np.sum(x**2))
-print(f"\n===== whiteness of the raw residual (1-m sampling) =====")
+print("\n===== whiteness of the raw residual (1-m sampling) =====")
 for k in (1, 2, 3, 5):
     print(f"  lag-{k} autocorr = {acf(res, k):+.3f}")
 print("  (white -> the stated sigma is just too small by the rms factor;")
 print("   strongly correlated -> a coherent structure the model is missing)")
 
 # ---- 3. where does the smooth part live? ------------------------------------
-print(f"\n===== smooth (coherent) residual vs depth =====")
+print("\n===== smooth (coherent) residual vs depth =====")
 print(f"{'z band':>14} {'N':>4} {'mean res':>9} {'rms res':>8}")
 for lo in range(0, 130, 20):
     m = (z >= lo) & (z < lo + 20)
@@ -93,10 +93,10 @@ print(f"\n  overall mean residual (bias) = {res.mean():+.3f} sigma")
 
 # ---- 4. what sigma would make this fit? -------------------------------------
 infl = float(np.sqrt(np.mean(res**2)))
-print(f"\n===== error-model implication =====")
+print("\n===== error-model implication =====")
 print(f"  Desroziers-style inflation to reach rms 1: sigma x {infl:.2f}")
-print(f"  (the archived r8 used x2.2 by hand; Andrew 07-10 dropped it to show")
-print(f"   the honest misfit. This says the STATED sigma omits a")
+print("  (the archived r8 used x2.2 by hand; Andrew 07-10 dropped it to show")
+print("   the honest misfit. This says the STATED sigma omits a")
 print(f"   representativeness term of ~{np.sqrt(max(infl**2-1,0)):.2f}x the stated value.)")
 
 out = R / "dage_residual_structure.json"

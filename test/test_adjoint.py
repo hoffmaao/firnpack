@@ -16,7 +16,6 @@ accumulation and rho_s, so the misfit is taken over the interior profile.
 
 from __future__ import annotations
 
-import numpy as np
 import pytest
 
 try:
@@ -35,7 +34,6 @@ if fd is not None:
         taylor_test,
     )
 
-    from firnpack.constants import year
     from firnpack.models.firn import FirnModel, FirnParameters
     from firnpack.solvers.firn_solver import FirnColumnSolver
 

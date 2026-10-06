@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "firnpack"
 version = "0.1.0"
-description = "FirnGrain: a 1D firn densification, thermal, and accumulation inverse model in Firedrake"
+description = "Firnpack: a 1D firn densification, thermal, and accumulation inverse model in Firedrake"
 requires-python = ">=3.10"
 license = {text = "GPL-3.0-or-later"}
 authors = [
@@ -33,6 +33,8 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["test"]
+# Let `pytest` run from a fresh clone without `pip install -e .` first.
+pythonpath = ["src"]
 addopts = "-m 'not slow'"
 markers = [
     "slow: long-running end-to-end tests (deselect with '-m \"not slow\"')",

@@ -20,7 +20,7 @@ Source HDF5: DataONE doi:10.18739/A25X25D7M (FirnCoverData_2_0_2021_07_30.h5);
 point FIRNCOVER_H5 at it, or drop it at the default path below. See
 data/README.md for the re-download URL.
 
-Run: /home/andrew/venv-firedrake-2026/bin/python \
+Run: PYTHONPATH=src OMP_NUM_THREADS=1 python \
        tutorials/summit/diagnostics/stage_firncover_compaction.py
 """
 import os

@@ -24,7 +24,7 @@ import numpy as np
 import firedrake as fd
 from firedrake.adjoint import (Control, continue_annotation, pause_annotation,
                                stop_annotating, get_working_tape)
-from pyadjoint import compute_gradient
+from pyadjoint import compute_derivative
 from firnpack.models.firn import FirnParameters, FirnModel
 from firnpack.physics.densification import herron_langway as _hl
 from firnpack.constants import year as YEAR_S
@@ -229,8 +229,6 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
     ezz_fn = scal_fn.get("ezz_yr")            # None -> no dynamic strain
     def Ts_expr_for(k):
         j, f = bracket_T[k]
-        base = (lambda i: T_fns[i] + Tk_C) if cfg.T_knots.invert else \
-               (lambda i: fd.Constant(float(cfg.T_knots.init[i])) + Tk_C)
         if not cfg.T_knots.invert:  # prescribed floats interpolated per step
             if f is None: return fd.Constant(float(cfg.T_knots.init[j])) + Tk_C
             v = (1.0-f)*cfg.T_knots.init[j] + f*cfg.T_knots.init[j+1]
@@ -473,7 +471,7 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
             tape.clear_tape(); continue_annotation(); rebuild()
             for c, v in zip(ctrl_fns, xv): c.assign(float(v))
             Jv = forward()
-            dJ = compute_gradient(Jv, [Control(c) for c in ctrl_fns])
+            dJ = compute_derivative(Jv, [Control(c) for c in ctrl_fns], apply_riesz=True)
             pause_annotation()
             return float(Jv), np.array([float(g.dat.data_ro[0])*dlen for g in dJ])
         t0 = time.perf_counter()
@@ -513,7 +511,7 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
             names = [m[0] for m in ctrl_meta]
             tape.clear_tape(); continue_annotation(); rebuild()
             for c,v in zip(ctrl_fns,x0): c.assign(float(v))
-            J0f=forward(); dJ=compute_gradient(J0f,[Control(c) for c in ctrl_fns]); pause_annotation()
+            J0f=forward(); dJ=compute_derivative(J0f,[Control(c) for c in ctrl_fns],apply_riesz=True); pause_annotation()
             g=np.array([float(gi.dat.data_ro[0])*dlen for gi in dJ])
             def Jat(xv):
                 tape.clear_tape(); continue_annotation(); rebuild()
@@ -558,7 +556,7 @@ def assimilate(cfg, mode="optimize", warm=None, fd_names=None, fd_h=1e-3,
     J_hist = est.J_hist
     x_map = np.array([float(c.dat.data_ro[0]) for c in ctrl_fns])
     names=[m[0] for m in ctrl_meta]; islogs=[m[1] for m in ctrl_meta]
-    m_map={}; out_extra={}
+    m_map={}
     for i,(nm,il) in enumerate(zip(names,islogs)):
         if nm in scal_by_name: m_map[nm]=math.exp(x_map[i]) if il else x_map[i]
     result=dict(name=cfg.name, J=float(res.fun), message=str(res.message),
