@@ -53,7 +53,7 @@ _R8_REPRO = (_LEGACY_DAGE and abs(SIG_DAGE_SCALE - 2.2) < 1e-9
 if MODE=="validate":
     r=assimilate(cfg, mode="forward", warm=warm)
     print(f"\nENGINE forward J at the warm MAP = {r['J']:.4f}  (NZ={NZ} dt={DT})")
-    print(f"  rms: " + " ".join(f"{k[4:]}={v:.3f}" for k,v in r['diag'].items() if k.startswith('rms_')))
+    print("  rms: " + " ".join(f"{k[4:]}={v:.3f}" for k,v in r['diag'].items() if k.startswith('rms_')))
     p=r["profiles"]; d=np.array(p["depth"]); rho=np.array(p["rho"]); ag=np.array(p["age_yr"]); Tp=np.array(p["T_C"])
     zco=float(np.interp(830.0,rho,d)) if rho.max()>830 else float("nan")
     print(f"  derived: close-off(830)={zco:.2f} m  age(100m)={np.interp(100,d,ag):.1f} yr  "

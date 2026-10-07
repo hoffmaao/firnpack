@@ -72,6 +72,7 @@ import zipfile
 from pathlib import Path
 
 import numpy as np
+import xarray as xr
 
 HERE = Path(__file__).parent
 RAW = HERE.parent.parent / "archive" / "aquifer" / "sources"
@@ -205,6 +206,43 @@ def fetch(group, year):
     return out
 
 
+def _largest_contiguous(mask):
+    """Keep only the largest 4-connected group of selected cells.
+
+    The albedo test removes a cell whose own late-summer albedo betrays bare
+    rock, but not one that merely sits in the same marginal zone and happens
+    to clear the threshold. The belt is a connected band along the flow
+    divide, so an isolated cell with no retained neighbour is an outlier
+    rather than part of it: -38.00 E, 66.75 N (1660 m, albedo 0.850 against a
+    0.845 threshold) sat immediately east of the excluded rock row with its
+    nearest retained neighbour 0.75 degrees away, and contributed marginal
+    ice to the average. Requiring connectivity drops it, and drops the next
+    such cell without another hand-edit.
+    """
+    lab = np.zeros(mask.shape, dtype=int)
+    groups = []
+    for i in range(mask.shape[0]):
+        for j in range(mask.shape[1]):
+            if not mask[i, j] or lab[i, j]:
+                continue
+            groups.append(0)
+            stack = [(i, j)]
+            lab[i, j] = len(groups)
+            while stack:
+                a, b = stack.pop()
+                groups[-1] += 1
+                for da, db in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    x, y = a + da, b + db
+                    if (0 <= x < mask.shape[0] and 0 <= y < mask.shape[1]
+                            and mask[x, y] and not lab[x, y]):
+                        lab[x, y] = len(groups)
+                        stack.append((x, y))
+    if not groups:
+        return mask
+    keep = int(np.argmax(groups)) + 1
+    return lab == keep
+
+
 def _ice_mask(z):
     """Cells that are wholly glacier ice, by late-summer ERA5 albedo.
 
@@ -246,6 +284,14 @@ def reduce_all():
         if dropped:
             print(f"  excluded {dropped} cell(s) with bare rock "
                   f"(late-summer albedo < {ICE_ALBEDO_MIN})")
+
+    # and drop cells that survive the albedo test but sit apart from the belt
+    connected = _largest_contiguous(mask.values)
+    n_iso = int(mask.sum()) - int(connected.sum())
+    if n_iso:
+        print(f"AOI: dropping {n_iso} isolated cell(s) not connected to the belt")
+    mask = mask & xr.DataArray(connected, coords=mask.coords, dims=mask.dims)
+
     w = np.cos(np.deg2rad(orog["latitude"])).broadcast_like(z).where(mask)
     print(f"AOI: {int(mask.sum())} cells, {ELEV_BAND[0]:.0f}-{ELEV_BAND[1]:.0f} m"
           f" (mean {float(z.where(mask).mean()):.0f} m)")

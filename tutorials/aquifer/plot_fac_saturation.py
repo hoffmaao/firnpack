@@ -34,7 +34,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.colors import LinearSegmentedColormap, PowerNorm
 
 sys.path.insert(0, str(Path(__file__).parent))
 from config import ERA5_EXPERIMENTS, FIGURES, OUTPUT
@@ -126,7 +126,12 @@ def figure(runs):
 
         # --- saturation, depth vs time ---
         ax = axes[1][k]
-        im = ax.pcolormesh(t, d, S, cmap=WATER, vmin=0.0, vmax=1.0,
+        im = ax.pcolormesh(t, d, S, cmap=WATER, norm=PowerNorm(0.35, vmin=0.0, vmax=1.0),
+                           # Power norm, not linear. An unsaturated percolation
+                           # zone sits at S ~ 0.02-0.08 - a few percent of pore
+                           # space by volume, which is what is observed - and a
+                           # linear 0-1 scale renders all of it as blank white,
+                           # hiding the very transport the figure is about.
                            shading="auto", rasterized=True)
         cs = ax.contour(t, d, S, levels=[0.5], colors="#d94801", linewidths=1.4)
         ax.axhspan(OBS_TABLE[0], OBS_TABLE[1], color="#d94801", alpha=0.16,

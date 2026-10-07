@@ -50,7 +50,7 @@ m = MAP["m_map"]
 
 print("=" * 64)
 print(f"SP firn reanalysis - engine forward at {MAP_NAME}, CTRL vs TONLY vs FULL")
-print(f"  MAP: " + " ".join(f"{k}={v:.4g}" for k, v in m.items()))
+print("  MAP: " + " ".join(f"{k}={v:.4g}" for k, v in m.items()))
 print("=" * 64)
 
 _b = build_cfg()

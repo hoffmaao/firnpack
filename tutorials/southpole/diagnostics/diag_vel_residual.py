@@ -73,7 +73,7 @@ for j in range(len(Z)):
 # ---- the decomposition: which term carries the variance? -------------------
 v_common = float(np.mean(common**2))
 v_site = float(np.mean(sitedev**2))
-print(f"\n===== variance decomposition (sigma^2 units) =====")
+print("\n===== variance decomposition (sigma^2 units) =====")
 print(f"  common-mode  <common^2>  = {v_common:6.3f}   "
       f"({100*v_common/(v_common+v_site):4.1f}%)")
 print(f"  site-specific <dev^2>    = {v_site:6.3f}   "

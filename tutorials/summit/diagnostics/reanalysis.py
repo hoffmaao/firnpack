@@ -43,7 +43,7 @@ m = MAP["m_map"]
 print("=" * 64)
 print(f"Summit firn reanalysis - engine forward at {MAP_NAME}, CTRL vs FULL "
       "(accumulation-driven; T forcing constant)")
-print(f"  MAP: " + " ".join(f"{k}={v:.4g}" for k, v in m.items()))
+print("  MAP: " + " ".join(f"{k}={v:.4g}" for k, v in m.items()))
 print("=" * 64)
 
 cfg = build_cfg().cfg

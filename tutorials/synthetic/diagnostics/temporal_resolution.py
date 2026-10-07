@@ -20,7 +20,7 @@ import json, os
 from pathlib import Path
 import numpy as np
 from firnpack.inverse.osse import (dense_truth, truth_profiles, make_obs,
-                                   inversion_cfg, TRUTH, T_YEARS, B_YEARS)
+                                   inversion_cfg, TRUTH)
 from firnpack.inverse import assimilate
 
 HERE = Path(__file__).resolve().parent.parent  # the tutorial dir, not diagnostics/

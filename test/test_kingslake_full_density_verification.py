@@ -45,7 +45,6 @@ You can tweak beta_list, dt_years, and spinup_years at the bottom.
 from __future__ import annotations
 
 import os
-from dataclasses import replace
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -123,7 +122,6 @@ def run_firedrake_column(
     # ------------------------------------------------------------------
     mesh = fd.IntervalMesh(nz, 0.0, H0_m)
     V = fd.FunctionSpace(mesh, "CG", 1)
-    R = fd.FunctionSpace(mesh, "R", 0)
 
     # ------------------------------------------------------------------
     # Parameters: set up a Kingslake-intermediate-like case.

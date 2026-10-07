@@ -100,7 +100,7 @@ for kind, key, yrs_key, s_prior, log in (
               f"sig_post/sig_prior = {ratio:5.3f}  f = {1-ratio:5.3f}   "
               f"(most from {top})")
 
-print(f"\n===== WHERE CAN THE DATA SEE THE HISTORY? =====")
+print("\n===== WHERE CAN THE DATA SEE THE HISTORY? =====")
 for kind, lbl in (("T", "temperature"), ("b", "accumulation")):
     rs = [r for r in rows if r["kind"] == kind]
     print(f"\n{lbl} knots (prior sigma "
@@ -116,7 +116,7 @@ for kind, lbl in (("T", "temperature"), ("b", "accumulation")):
     if inv:
         print(f"  -> INVISIBLE knots (data cannot see a full prior excursion): "
               f"{', '.join('%.0f' % y for y in inv)}")
-        print(f"     These return the prior no matter what. Placement there is wasted.")
+        print("     These return the prior no matter what. Placement there is wasted.")
 
 json.dump(dict(map=Path(MAP_PATH).name, sig_dage_scale=float(SIG_DAGE),
                sigma_T=SIG_T, sigma_b_log=SIG_B, J0=J0, knots=rows),

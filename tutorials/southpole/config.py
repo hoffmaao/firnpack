@@ -431,7 +431,6 @@ def build_cfg():
     # nearest-step rule keeps the final-state path anyway. At dt=5 none of
     # these offsets reaches one time step, so tagging would change nothing
     # while complicating the archived-MAP reproductions.
-    P0T_ref=273.15; c_i=2009.0; T_ref=273.15   # match FirnParameters (c_i, T_ref)
     from firnpack.models.firn import FirnParameters as _FP
     _p=_FP(); c_i=float(_p.c_i); T_ref=float(_p.T_ref)
     obs=[

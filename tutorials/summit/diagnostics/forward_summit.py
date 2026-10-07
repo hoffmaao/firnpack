@@ -19,7 +19,7 @@ Env: FIRN_SP_MAP (default sp_joint_r8.json), FIRN_SUMMIT_T_C, FIRN_SUMMIT_B,
      FIRN_SPIN_YEARS (default 1200), FIRN_H (default 130).
 """
 from __future__ import annotations
-import functools, json, math, os
+import functools, json, os
 from pathlib import Path
 import numpy as np, pandas as pd
 import firedrake as fd
@@ -128,7 +128,7 @@ age_rms_yr = float(np.sqrt(np.nanmean((mod_age_at[sel]-obs_age[sel])**2)))
 obs_T_d = ftC.depth_m.values; mod_T_at = np.interp(obs_T_d, md, mTc)
 T_rms = float(np.sqrt(np.nanmean((mod_T_at-ftC.T_C.values)**2)))
 print(f"MISFIT vs Summit obs:  age RMS = {age_rms_yr:.1f} yr (over 0-{H0:.0f} m),  "
-      f"firn-T RMS = {T_rms:.2f} C" + (f",  density available" if has_dens else ",  density MISSING"))
+      f"firn-T RMS = {T_rms:.2f} C" + (",  density available" if has_dens else ",  density MISSING"))
 
 # ---- figure ----
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt

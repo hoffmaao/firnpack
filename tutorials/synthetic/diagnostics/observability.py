@@ -31,7 +31,6 @@ Output: output/obsv_<slug>.json (+ shared output/obsv_truth_profiles.json)
 from __future__ import annotations
 import json, os
 from pathlib import Path
-import numpy as np
 from firnpack.inverse.osse import (TRUTH, T_YEARS, T_TRUTH, B_YEARS, B_TRUTH,
                                    truth_profiles, make_obs, inversion_cfg)
 from firnpack.inverse import assimilate

@@ -1,6 +1,6 @@
 # Documentation
 
-Paper-facing documentation for FirnGrain: the methods notes, derivations, and
+Paper-facing documentation for Firnpack: the methods notes, derivations, and
 conventions that the code assumes but does not state.
 
 This directory is for prose that outlives any single run. Things that belong

@@ -1,4 +1,4 @@
-# FirnGrain runtime dependencies (versions pinned to the development environment).
+# Firnpack runtime dependencies (versions pinned to the development environment).
 # Firedrake + PETSc are NOT pip-installable in the usual way - install Firedrake
 # first following https://www.firedrakeproject.org/download.html, then this repo
 # with `pip install -e .` into that environment. The versions below record what

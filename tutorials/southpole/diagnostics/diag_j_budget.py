@@ -41,15 +41,15 @@ J_tot = budget["J"]
 print(f"\nMAP {Path(MAP_PATH).name}: J = {J_tot:.2f}   "
       f"(obs blocks {J_obs:.2f}, priors+rest {J_tot-J_obs:.2f})")
 
-print(f"\n===== AS RUN (the sigmas r10 actually used) =====")
+print("\n===== AS RUN (the sigmas r10 actually used) =====")
 print(f"{'block':>10} {'N':>5} {'rms':>6} {'chi2':>9} {'% of J':>8}")
 for d in sorted(rows, key=lambda d: -d["chi2"]):
     print(f"{d['label']:>10} {d['n']:5d} {d['rms']:6.2f} {d['chi2']:9.2f} "
           f"{100*d['chi2']/J_tot:7.1f}%")
 
 # ---- self-consistent error model: rescale each block's sigma by its own rms -
-print(f"\n===== IF each block's sigma were self-consistent "
-      f"(sigma *= its own rms) =====")
+print("\n===== IF each block's sigma were self-consistent "
+      "(sigma *= its own rms) =====")
 print(f"{'block':>10} {'N':>5} {'sig x':>6} {'chi2':>9} {'% of J':>8}")
 J2_obs = sum(0.5*d["n"] for d in rows)      # every block -> rms 1 by construction
 J2 = J2_obs + (J_tot - J_obs)

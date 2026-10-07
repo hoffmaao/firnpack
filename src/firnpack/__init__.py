@@ -1,4 +1,4 @@
-"""FirnGrain: A 1D firn column model with pluggable physics and adjoint support.
+"""Firnpack: A 1D firn column model with pluggable physics and adjoint support.
 
 The user-facing API follows the icepack/hydropack pattern:
 

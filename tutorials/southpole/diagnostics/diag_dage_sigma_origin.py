@@ -70,7 +70,7 @@ print(f"  fraction of points on the 4% FLOOR (not the s.e.): "
 # ---- 2. structure function: variance of dage vs averaging scale ------------
 # smooth the OBSERVED dage with running means of increasing length; the
 # variance removed at each scale is the power living below that scale.
-print(f"\n===== variance of d(age)/dz by scale (model-free) =====")
+print("\n===== variance of d(age)/dz by scale (model-free) =====")
 print(f"{'scale':>8} {'~years':>8} {'sd about the smooth (yr/m)':>28}")
 rows = []
 for L in (2, 4, 7, 10, 15, 20, 30, 50):
@@ -84,7 +84,7 @@ for L in (2, 4, 7, 10, 15, 20, 30, 50):
 
 # ---- 3. the comparison that matters ---------------------------------------
 sig_med = float(np.median(sig))
-print(f"\n===== the origin of the 2.2x =====")
+print("\n===== the origin of the 2.2x =====")
 print(f"the legacy sigma samples ONLY the +-0.6 m window: {sig_med:.3f} yr/m")
 for L, yrs, sd in rows:
     print(f"  variability below {L:2d} m (~{yrs:4.0f} yr): {sd:.3f} yr/m "
